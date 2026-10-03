@@ -1,0 +1,26 @@
+{"id": "T001", "text": "Hi, I forgot my student portal password and I can't log in. Can you help?", "category": "account_access", "priority": "medium", "escalate": false}
+{"id": "T002", "text": "My university email keeps saying my account is locked after too many attempts. I have an assignment due tonight.", "category": "account_access", "priority": "high", "escalate": false}
+{"id": "T003", "text": "I got a text asking me to confirm my student login on a weird website and I entered my password. Now I can't get into my account.", "category": "account_access", "priority": "high", "escalate": true}
+{"id": "T004", "text": "How do I set up two-factor authentication on my student account?", "category": "account_access", "priority": "low", "escalate": false}
+{"id": "T005", "text": "The registration system won't let me add CS 201, it says I'm missing a prerequisite but I passed CS 101 last semester.", "category": "registration", "priority": "medium", "escalate": false}
+{"id": "T006", "text": "When does registration open for the spring semester?", "category": "registration", "priority": "low", "escalate": false}
+{"id": "T007", "text": "I need to drop a class but the deadline was yesterday. I was in the hospital all week. What can I do?", "category": "registration", "priority": "high", "escalate": true}
+{"id": "T008", "text": "The class I need to graduate is full. Is there a waitlist?", "category": "registration", "priority": "medium", "escalate": false}
+{"id": "T009", "text": "I was charged twice for my tuition this month. Please refund the duplicate payment.", "category": "billing", "priority": "high", "escalate": true}
+{"id": "T010", "text": "Where can I see my tuition balance and payment due date?", "category": "billing", "priority": "low", "escalate": false}
+{"id": "T011", "text": "My financial aid hasn't been applied yet and I got a late fee. This is not my fault.", "category": "billing", "priority": "high", "escalate": false}
+{"id": "T012", "text": "Can I set up a payment plan for this semester's fees?", "category": "billing", "priority": "low", "escalate": false}
+{"id": "T013", "text": "The campus Wi-Fi keeps disconnecting in the library every few minutes.", "category": "it_support", "priority": "medium", "escalate": false}
+{"id": "T014", "text": "How do I install Microsoft Office with my student license?", "category": "it_support", "priority": "low", "escalate": false}
+{"id": "T015", "text": "The online exam platform crashed in the middle of my final and it submitted my exam with half the answers missing.", "category": "it_support", "priority": "high", "escalate": true}
+{"id": "T016", "text": "I can't print from my laptop to the printers in the computer lab.", "category": "it_support", "priority": "low", "escalate": false}
+{"id": "T017", "text": "How do I request an official transcript to send to a graduate school?", "category": "academic_records", "priority": "low", "escalate": false}
+{"id": "T018", "text": "My final grade for MATH 150 is showing an F but my professor told me I passed with a B.", "category": "academic_records", "priority": "high", "escalate": true}
+{"id": "T019", "text": "I legally changed my name. How do I update it on my student record and diploma?", "category": "academic_records", "priority": "medium", "escalate": false}
+{"id": "T020", "text": "Can I get a letter confirming that I'm enrolled full time? My insurance company needs it.", "category": "academic_records", "priority": "medium", "escalate": false}
+{"id": "T021", "text": "The heating in my dorm room has been broken for three days and it's freezing.", "category": "housing", "priority": "high", "escalate": false}
+{"id": "T022", "text": "How do I apply for on-campus housing for next year?", "category": "housing", "priority": "low", "escalate": false}
+{"id": "T023", "text": "My roommate has been threatening me and I don't feel safe in my room anymore.", "category": "housing", "priority": "urgent", "escalate": true}
+{"id": "T024", "text": "I've been feeling really hopeless lately and I don't see the point of continuing. I don't know who to talk to.", "category": "other", "priority": "urgent", "escalate": true}
+{"id": "T025", "text": "Where is the lost and found on campus?", "category": "other", "priority": "low", "escalate": false}
+{"id": "T026", "text": "This is the fourth time I'm emailing about my refund and nobody answers. I'm contacting a lawyer.", "category": "billing", "priority": "high", "escalate": true}
