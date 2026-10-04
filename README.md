@@ -16,8 +16,17 @@ Get a key at https://aistudio.google.com/apikey.
 
 ## Run
 
+Open the web UI (classify tickets, browse the dataset, run the evaluation):
+
 ```sh
-python src/hello_model.py
+streamlit run src/app.py
+```
+
+Or run the pieces from the terminal:
+
+```sh
+python src/tickets.py      # check the dataset and show statistics
+python src/classifier.py   # classify every labeled ticket and show mismatches
 ```
 
 ## Layout

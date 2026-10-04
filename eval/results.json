@@ -1,0 +1,396 @@
+{
+  "model": "gemini-3.5-flash-lite",
+  "finished_at": "2026-10-04T05:37:05.351172",
+  "results": [
+    {
+      "ticket": {
+        "id": "T001",
+        "text": "Hi, I forgot my student portal password and I can't log in. Can you help?",
+        "category": "account_access",
+        "priority": "medium",
+        "escalate": false
+      },
+      "prediction": {
+        "reason": "The student needs assistance resetting their forgotten portal password.",
+        "category": "account_access",
+        "priority": "medium",
+        "escalate": false
+      }
+    },
+    {
+      "ticket": {
+        "id": "T002",
+        "text": "My university email keeps saying my account is locked after too many attempts. I have an assignment due tonight.",
+        "category": "account_access",
+        "priority": "high",
+        "escalate": false
+      },
+      "prediction": {
+        "reason": "Account access issue is blocking a time-sensitive assignment submission.",
+        "category": "account_access",
+        "priority": "high",
+        "escalate": false
+      }
+    },
+    {
+      "ticket": {
+        "id": "T003",
+        "text": "I got a text asking me to confirm my student login on a weird website and I entered my password. Now I can't get into my account.",
+        "category": "account_access",
+        "priority": "high",
+        "escalate": true
+      },
+      "prediction": {
+        "reason": "The student's account may be compromised due to a phishing attack.",
+        "category": "account_access",
+        "priority": "high",
+        "escalate": true
+      }
+    },
+    {
+      "ticket": {
+        "id": "T004",
+        "text": "How do I set up two-factor authentication on my student account?",
+        "category": "account_access",
+        "priority": "low",
+        "escalate": false
+      },
+      "prediction": {
+        "reason": "This is a general informational request about setting up two-factor authentication.",
+        "category": "account_access",
+        "priority": "low",
+        "escalate": false
+      }
+    },
+    {
+      "ticket": {
+        "id": "T005",
+        "text": "The registration system won't let me add CS 201, it says I'm missing a prerequisite but I passed CS 101 last semester.",
+        "category": "registration",
+        "priority": "medium",
+        "escalate": false
+      },
+      "prediction": {
+        "reason": "The student cannot register for a class due to an apparent prerequisite error.",
+        "category": "registration",
+        "priority": "medium",
+        "escalate": false
+      }
+    },
+    {
+      "ticket": {
+        "id": "T006",
+        "text": "When does registration open for the spring semester?",
+        "category": "registration",
+        "priority": "low",
+        "escalate": false
+      },
+      "prediction": {
+        "reason": "This is a general inquiry about registration dates, which does not require human escalation.",
+        "category": "registration",
+        "priority": "low",
+        "escalate": false
+      }
+    },
+    {
+      "ticket": {
+        "id": "T007",
+        "text": "I need to drop a class but the deadline was yesterday. I was in the hospital all week. What can I do?",
+        "category": "registration",
+        "priority": "high",
+        "escalate": true
+      },
+      "prediction": {
+        "reason": "The student missed the drop deadline due to a medical emergency, which requires a policy exception handled by a human.",
+        "category": "registration",
+        "priority": "high",
+        "escalate": true
+      }
+    },
+    {
+      "ticket": {
+        "id": "T008",
+        "text": "The class I need to graduate is full. Is there a waitlist?",
+        "category": "registration",
+        "priority": "medium",
+        "escalate": false
+      },
+      "prediction": {
+        "reason": "The student is asking about waitlists for a class, which falls under registration.",
+        "category": "registration",
+        "priority": "medium",
+        "escalate": false
+      }
+    },
+    {
+      "ticket": {
+        "id": "T009",
+        "text": "I was charged twice for my tuition this month. Please refund the duplicate payment.",
+        "category": "billing",
+        "priority": "high",
+        "escalate": true
+      },
+      "prediction": {
+        "reason": "This is a billing dispute involving a duplicate tuition charge that requires a refund correction.",
+        "category": "billing",
+        "priority": "high",
+        "escalate": true
+      }
+    },
+    {
+      "ticket": {
+        "id": "T010",
+        "text": "Where can I see my tuition balance and payment due date?",
+        "category": "billing",
+        "priority": "low",
+        "escalate": false
+      },
+      "prediction": {
+        "reason": "The student is asking a general informational question about billing.",
+        "category": "billing",
+        "priority": "low",
+        "escalate": false
+      }
+    },
+    {
+      "ticket": {
+        "id": "T011",
+        "text": "My financial aid hasn't been applied yet and I got a late fee. This is not my fault.",
+        "category": "billing",
+        "priority": "high",
+        "escalate": false
+      },
+      "prediction": {
+        "reason": "This is a billing and financial aid issue involving fees that requires human intervention to resolve.",
+        "category": "billing",
+        "priority": "high",
+        "escalate": true
+      }
+    },
+    {
+      "ticket": {
+        "id": "T012",
+        "text": "Can I set up a payment plan for this semester's fees?",
+        "category": "billing",
+        "priority": "low",
+        "escalate": false
+      },
+      "prediction": {
+        "reason": "The student is inquiring about setting up a payment plan for tuition fees.",
+        "category": "billing",
+        "priority": "medium",
+        "escalate": false
+      }
+    },
+    {
+      "ticket": {
+        "id": "T013",
+        "text": "The campus Wi-Fi keeps disconnecting in the library every few minutes.",
+        "category": "it_support",
+        "priority": "medium",
+        "escalate": false
+      },
+      "prediction": {
+        "reason": "The issue involves campus Wi-Fi connectivity which is an IT support matter that does not require escalation.",
+        "category": "it_support",
+        "priority": "medium",
+        "escalate": false
+      }
+    },
+    {
+      "ticket": {
+        "id": "T014",
+        "text": "How do I install Microsoft Office with my student license?",
+        "category": "it_support",
+        "priority": "low",
+        "escalate": false
+      },
+      "prediction": {
+        "reason": "This is a general request for information about installing university-provided software.",
+        "category": "it_support",
+        "priority": "low",
+        "escalate": false
+      }
+    },
+    {
+      "ticket": {
+        "id": "T015",
+        "text": "The online exam platform crashed in the middle of my final and it submitted my exam with half the answers missing.",
+        "category": "it_support",
+        "priority": "high",
+        "escalate": true
+      },
+      "prediction": {
+        "reason": "The student has an exam result dispute due to a technical crash, which requires escalation.",
+        "category": "it_support",
+        "priority": "high",
+        "escalate": true
+      }
+    },
+    {
+      "ticket": {
+        "id": "T016",
+        "text": "I can't print from my laptop to the printers in the computer lab.",
+        "category": "it_support",
+        "priority": "low",
+        "escalate": false
+      },
+      "prediction": {
+        "reason": "Printing issues are standard IT support queries that do not require escalation.",
+        "category": "it_support",
+        "priority": "medium",
+        "escalate": false
+      }
+    },
+    {
+      "ticket": {
+        "id": "T017",
+        "text": "How do I request an official transcript to send to a graduate school?",
+        "category": "academic_records",
+        "priority": "low",
+        "escalate": false
+      },
+      "prediction": {
+        "reason": "The student is asking a general informational question about requesting an official transcript.",
+        "category": "academic_records",
+        "priority": "low",
+        "escalate": false
+      }
+    },
+    {
+      "ticket": {
+        "id": "T018",
+        "text": "My final grade for MATH 150 is showing an F but my professor told me I passed with a B.",
+        "category": "academic_records",
+        "priority": "high",
+        "escalate": true
+      },
+      "prediction": {
+        "reason": "The student is disputing a final grade, which requires human intervention.",
+        "category": "academic_records",
+        "priority": "high",
+        "escalate": true
+      }
+    },
+    {
+      "ticket": {
+        "id": "T019",
+        "text": "I legally changed my name. How do I update it on my student record and diploma?",
+        "category": "academic_records",
+        "priority": "medium",
+        "escalate": false
+      },
+      "prediction": {
+        "reason": "The student is requesting information on how to update their legal name on official university records.",
+        "category": "academic_records",
+        "priority": "low",
+        "escalate": false
+      }
+    },
+    {
+      "ticket": {
+        "id": "T020",
+        "text": "Can I get a letter confirming that I'm enrolled full time? My insurance company needs it.",
+        "category": "academic_records",
+        "priority": "medium",
+        "escalate": false
+      },
+      "prediction": {
+        "reason": "The student is requesting an official enrollment verification letter for insurance purposes.",
+        "category": "academic_records",
+        "priority": "medium",
+        "escalate": false
+      }
+    },
+    {
+      "ticket": {
+        "id": "T021",
+        "text": "The heating in my dorm room has been broken for three days and it's freezing.",
+        "category": "housing",
+        "priority": "high",
+        "escalate": false
+      },
+      "prediction": {
+        "reason": "The heating issue in the dorm room affects living conditions and requires prompt maintenance.",
+        "category": "housing",
+        "priority": "high",
+        "escalate": false
+      }
+    },
+    {
+      "ticket": {
+        "id": "T022",
+        "text": "How do I apply for on-campus housing for next year?",
+        "category": "housing",
+        "priority": "low",
+        "escalate": false
+      },
+      "prediction": {
+        "reason": "The student is asking a general information question about how to apply for housing.",
+        "category": "housing",
+        "priority": "low",
+        "escalate": false
+      }
+    },
+    {
+      "ticket": {
+        "id": "T023",
+        "text": "My roommate has been threatening me and I don't feel safe in my room anymore.",
+        "category": "housing",
+        "priority": "urgent",
+        "escalate": true
+      },
+      "prediction": {
+        "reason": "Safety threat from a roommate requires immediate human intervention.",
+        "category": "housing",
+        "priority": "urgent",
+        "escalate": true
+      }
+    },
+    {
+      "ticket": {
+        "id": "T024",
+        "text": "I've been feeling really hopeless lately and I don't see the point of continuing. I don't know who to talk to.",
+        "category": "other",
+        "priority": "urgent",
+        "escalate": true
+      },
+      "prediction": {
+        "reason": "The student is showing signs of crisis and self-harm, requiring immediate intervention.",
+        "category": "other",
+        "priority": "urgent",
+        "escalate": true
+      }
+    },
+    {
+      "ticket": {
+        "id": "T025",
+        "text": "Where is the lost and found on campus?",
+        "category": "other",
+        "priority": "low",
+        "escalate": false
+      },
+      "prediction": {
+        "reason": "This is a general informational request about campus locations.",
+        "category": "other",
+        "priority": "low",
+        "escalate": false
+      }
+    },
+    {
+      "ticket": {
+        "id": "T026",
+        "text": "This is the fourth time I'm emailing about my refund and nobody answers. I'm contacting a lawyer.",
+        "category": "billing",
+        "priority": "high",
+        "escalate": true
+      },
+      "prediction": {
+        "reason": "The student is threatening legal action after multiple ignored contacts regarding a money dispute.",
+        "category": "billing",
+        "priority": "high",
+        "escalate": true
+      }
+    }
+  ]
+}
