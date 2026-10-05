@@ -52,10 +52,10 @@ Pipeline (target): ticket -> classify -> retrieve document chunks -> draft reply
 Auto-send only if ALL pass: category is not "other"; the model did not ask to escalate; retrieval found a strong match; the draft cites a source. Otherwise escalate.
 
 ## Data rules
-- Tickets and documents are in English for v1. Turkish tickets are an optional stretch goal in Phase 7.
+- Language: the system is bilingual, Turkish and English. The user picks the language in the app, and everything they see (UI text, draft replies) is in that language. Tickets come in both languages, and every knowledge-base document exists in both Turkish and English. docs/labels.md (the label rulebook) is in Turkish. Label IDs (account_access, ...), code and comments stay in English, because code needs simple ASCII names.
 - I write and label the tickets myself. You may suggest tickets that cover gaps (edge cases, tricky wording), but the final labels are my decision. Discuss each label with me and explain why.
-- Format: data/tickets/tickets.jsonl, one JSON object per line: id, text, category, priority, escalate.
-- Phase 1 has about 40 tickets and no more. Phase 2 adds about 20 more, and those 20 are a LOCKED TEST SET: never used to adjust the prompt, only for the final score. Never tune the prompt on the test set.
+- Format: data/tickets/tickets.jsonl, one JSON object per line: id, text, language (tr or en), category, priority, escalate.
+- Phase 1 has about 80 tickets (40 Turkish + 40 English) and no more. Phase 2 adds about 40 more (20 + 20), and those 40 are a LOCKED TEST SET: never used to adjust the prompt, only for the final score. Never tune the prompt on the test set.
 
 ## Tech stack (introduced one at a time, when needed)
 Python 3.12 with a virtual environment in .venv (use uv if it is installed, otherwise ask me), google-genai, python-dotenv, pydantic, Streamlit and pandas for a small web page, later pgvector (Postgres), FastAPI, LangGraph, pytest.
@@ -68,7 +68,7 @@ Everything was deleted on purpose so I can rebuild it slowly. Do NOT recreate th
 - Step 0: Environment. Check Python 3.12, the virtual environment, .gitignore, .env.example, requirements.txt. Help me create .env without ever reading it. Explain what each file is for.
 - Step 1: First model call. Create src/llm.py (shared Gemini setup: key from .env, model name from GEMINI_MODEL, automatic retries) and a tiny test script that sends one ticket and prints the reply. Explain what an API call is.
 - Step 2: Define the labels together. Before any code, we write the category definitions, priority definitions and escalation rules in plain words. I write them, you check them for overlaps and gaps.
-- Step 3: The data. src/tickets.py defines what a valid ticket is (pydantic model, Literal types for category and priority) and loads tickets.jsonl with clear errors. I write the first 20 tickets with you; we reach about 40 with a good mix: every category, every priority, edge cases, and about a quarter that need escalation.
+- Step 3: The data. src/tickets.py defines what a valid ticket is (pydantic model, Literal types for category and priority) and loads tickets.jsonl with clear errors. I write the first 20 tickets with you; we reach about 80 (half Turkish, half English) with a good mix in each language: every category, every priority, edge cases, and about a quarter that need escalation.
 - Step 4: The classifier. src/classifier.py: the system prompt built from our definitions, structured output (response schema), temperature 0, and the "reason" field first. Explain why each choice matters. Run it on the tickets and read every mistake together.
 - Step 5: The evaluation. src/evaluate.py: score per label and overall, and missed escalations (the most dangerous error: a ticket that needed a human but was not escalated). Save the run to eval/results.json. Explain what the score does and does not prove.
 - Step 6: A small web page. src/app.py with Streamlit: try one ticket, browse the dataset, run the evaluation. Keep it small and explain it block by block.
@@ -81,8 +81,8 @@ Phase 1 is done when:
 - Everything is committed and pushed, and the docs/learning_log.md has an entry for each step.
 
 ## Later phases (one deliverable per week for my professor)
-2. Week 3: trustworthy score. About 60 tickets total, 20 locked as the test set, compare dev score and test score, read every mistake.
-3. Weeks 4-5: knowledge base of 8-10 short policy documents, chunking, embeddings, retrieval. In-memory search first, then pgvector. Measure how often the right document is in the top 3.
+2. Week 3: trustworthy score. About 120 tickets total, 40 locked as the test set, compare dev score and test score for each language, read every mistake.
+3. Weeks 4-5: knowledge base of 8-10 short policy documents, each in Turkish and English, chunking, embeddings, retrieval. In-memory search first, then pgvector. Measure how often the right document is in the top 3.
 4. Week 6: grounded draft replies that cite their source, the decision function, routing to units. Rate 15 drafts; count tickets auto-sent that should not have been.
 5. Week 7: FastAPI endpoint POST /tickets, saved results, pytest tests for the decision rules.
 6. Week 8: rebuild as a LangGraph graph, add a human review queue tab in Streamlit.
