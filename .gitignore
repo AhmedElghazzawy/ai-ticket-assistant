@@ -12,3 +12,6 @@ __pycache__/
 
 # Claude Code: personal local settings (permissions on this Mac)
 .claude/settings.local.json
+
+# Generated bundle of the whole project (rebuild with tools/make_context.py)
+claude_context.md

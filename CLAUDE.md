@@ -21,6 +21,7 @@ It is also my FIRST AI engineering project. The goal is for me to learn and trul
   6. Ask me 2-3 short questions to check I understood, and wait for my answers. If I'm wrong, correct me kindly and re-explain.
   7. Ask me to write 3-5 lines in my own words in docs/learning_log.md. I write them, you only prompt me.
   8. Suggest a commit message. Only commit or push when I say so.
+- After EVERY change (new file, code change, decision, problem found, command run and its result), add it to docs/changelog.md with the reason, then run `.venv/bin/python tools/make_context.py` so claude_context.md is up to date. claude_context.md is the full project in one file, which I paste into a Claude chat to be taught.
 - Do not add libraries, files or features I did not ask for. Add a library only when the current step needs it, and tell me why. Simple but impressive, no over-engineering.
 - Keep code short and readable: small functions, type hints, short English comments, snake_case names.
 - Tell me honestly when something is weak or may be misleading (for example an inflated score), even if I did not ask.
