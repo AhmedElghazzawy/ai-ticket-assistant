@@ -1,0 +1,3 @@
+# Streamlit settings, read automatically when the app starts.
+[theme]
+primaryColor = "#1f5fa8"  # university blue: buttons, selected tabs, links

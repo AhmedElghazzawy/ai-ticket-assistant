@@ -356,3 +356,21 @@ Claude has set most labels in batches 2-4 because I said "do what you see best".
 - Safety check before pushing: `.env` was never committed in this history and is ignored; `claude_context.md` is ignored; the old `key.env` commit is not part of `main`, and `git push origin main` sends only `main` (the hidden checkpoint refs stay local).
 - I want GitHub up to date every day. CLAUDE.md rule changed: commits still only when I approve, and every approved commit is pushed right away.
 - Committed the last 40 tickets and this rule change, then pushed everything with `git push origin main`.
+
+- Commit and push: `642626c` Step 3: complete 80-ticket dev set (40 TR + 40 EN); push every approved commit. GitHub `main` moved from `facb85a` to `642626c`. Checked first: no `.env` or `key.env` in any pushed commit.
+
+## UI redesign: better to use and to look at (2026-10-06)
+
+### What I asked
+Make the web page look better and easier to use. No new libraries; still Streamlit.
+
+### Files
+- `.streamlit/config.toml` (new): Streamlit's settings file, read automatically at start. Sets the main color to university blue (`#1f5fa8`). Light/dark mode still follows the Mac setting.
+- `src/app.py`, rebuilt in 4 pieces:
+  1. Theme file (above).
+  2. Top part: more TR/EN texts; `CATEGORY_NAMES` and `PRIORITY_NAMES` show readable labels ("Hesap Erişimi", "🔴 Acil") while the data keeps the English IDs; wide page layout; sidebar with the language switch, a short project description, a progress checklist (✅ done / ⏳ coming, controlled by `DONE_STEPS = 3`) and the model name; `read_dataset()` loads the tickets once for both tabs and turns a data error into a message.
+  3. "Try a ticket": two columns (input left, result right). An example picker fills the text box with a dataset ticket in the current UI language. It uses `st.session_state` (Streamlit's memory between reruns) and a callback (`on_change=use_example`, with the examples passed in through `args` so the function does not depend on a variable defined later). The reply is shown in a framed card. A note says the labels arrive in Step 4.
+  4. "Dataset": filters (text search, language, category, priority, escalation; empty = all), 4 summary numbers for the tickets shown (count, TR, EN, escalation rate), and a table with readable labels, an escalate checkbox and a wide text column.
+
+### Commands and results
+- Headless test with `AppTest` (no API calls), all passed: page loads in TR with the new title, tabs and progress list; picking example `tr-009` fills the text box; no filter -> 80 / TR 40 / EN 40 / 26%; category billing -> 12 / 6 / 6 / 42%; escalation Evet -> 21 / 11 / 10 / 100%; search "OBS" -> 8 tickets (case-insensitive, also finds "obs"); switching to EN changes the title, tabs and priority names; no exceptions.
