@@ -20,7 +20,7 @@ It is also my FIRST AI engineering project. The goal is for me to learn and trul
   5. Run it and show me the real output.
   6. Ask me 2-3 short questions to check I understood, and wait for my answers. If I'm wrong, correct me kindly and re-explain.
   7. Ask me to write 3-5 lines in my own words in docs/learning_log.md. I write them, you only prompt me.
-  8. Suggest a commit message. Only commit or push when I say so.
+  8. Suggest a commit message. Only commit when I say so. Every approved commit is pushed to GitHub right away, so GitHub is always up to date.
 - After EVERY change (new file, code change, decision, problem found, command run and its result), add it to docs/changelog.md with the reason, then run `.venv/bin/python tools/make_context.py` so claude_context.md is up to date. claude_context.md is the full project in one file, which I paste into a Claude chat to be taught.
 - Do not add libraries, files or features I did not ask for. Add a library only when the current step needs it, and tell me why. Simple but impressive, no over-engineering.
 - Keep code short and readable: small functions, type hints, short English comments, snake_case names.
@@ -32,7 +32,7 @@ It is also my FIRST AI engineering project. The goal is for me to learn and trul
 - Keep a .env.example that contains only placeholders (GEMINI_API_KEY=your-key-here, GEMINI_MODEL=...). If .env does not exist, ask me to create it, and never ask me to paste the key into the chat.
 - Check the current Gemini model names and free-tier limits in Google's official docs instead of assuming. The model name lives in .env as GEMINI_MODEL, so it can change without editing code.
 - The free tier has request limits per minute. Add short waits between calls and automatic retries, and never loop over many tickets without that.
-- Never commit or push without asking me first.
+- Never commit without asking me first. When I approve a commit, push it to GitHub too (git push origin main).
 
 ## What my professor asked for (his feedback on my idea)
 He said the idea is feasible but too general. Before building, I must define clearly:
