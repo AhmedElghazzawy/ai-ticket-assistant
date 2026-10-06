@@ -153,4 +153,74 @@ Read the whole rulebook again: fixed one contradiction (the `billing` definition
 - First build: 10 files, 30,249 characters. Safety check: every `GEMINI_API_KEY=` line inside is the placeholder `your-key-here`.
 - Compared every file in the folder with the bundle. Left out on purpose: `.env` (secret), `claude_context.md` (itself), `src/__pycache__/*.pyc` (Python's automatic machine code), `.claude/settings.local.json` (my Claude Code permissions), `.venv/` (38 MB of other people's libraries; listed in requirements.txt) and `.git/` (described here and in the history section).
 - I asked for the full history too. `make_context.py` now also adds, at the end, every commit since the restart (`facb85a`) with every added (+) and removed (-) line, plus all changes not committed yet. The first attempt (before the restart) is left out on purpose so old and new code are not mixed.
+- Commit: `5229774` Add changelog with full command log, and tool that bundles the whole project and its history into claude_context.md
 - Completeness check: a small script compared every line of every project file with the bundle -> all 10 files and all 488 lines found. Only `claude_context.md` needs to be sent to Claude; the changelog is already inside it.
+
+---
+
+## Step 3: The data (2026-10-06, in progress)
+
+### Library
+- `pydantic` 2.13.5 was already installed, because `google-genai` uses it. Added to `requirements.txt` anyway, because our own code now uses it directly. Never rely on another library's dependency.
+
+### Files
+- `src/tickets.py`, built in 3 pieces:
+  1. Allowed values as `Literal` types (`Category` = the 7 IDs from docs/labels.md, `Priority` = 4 levels, `Language` = tr/en) and the `Ticket` model (`id`, `text`, `language`, `category`, `priority`, `escalate`). `extra="forbid"`: misspelled field names are errors. `strict=True`: no silent conversions (the text "yes" is not True). `Field(min_length=1)`: no empty text. `TICKETS_PATH` is found relative to the file, so it works from any folder.
+  2. `load_tickets()`: reads `data/tickets/tickets.jsonl` (JSONL = one JSON object per line), validates each line with `Ticket.model_validate_json`, and stops with the file name and line number on the first invalid line. Also rejects duplicate ids. Blank lines are skipped.
+  3. `print_summary()`: counts tickets per language, category, priority and escalate (with `Counter`), to check the dataset is balanced. Runs only when the file is started directly (`if __name__ == "__main__"`).
+
+### Commands and results
+1. `uv pip show pydantic` -> 2.13.5, required by google-genai.
+2. Tested the loader on a scratch file (outside the project) with 8 cases. All behaved correctly:
+   - a correct ticket -> loaded, summary printed
+   - category typo `acount_access` -> `literal_error`, lists the 7 allowed values
+   - escalate `"yes"` -> `bool_type` error (strict mode works)
+   - missing `priority` -> `Field required`
+   - field name typo `categroy` -> `Extra inputs are not permitted` (and `category` missing)
+   - empty text -> `String should have at least 1 character`
+   - broken JSON -> `Invalid JSON`
+   - the same id twice -> `duplicate ids ['t1']`
+3. Changed the summary text from "1 valid tickets" to "Valid tickets: 1".
+
+## UI shell: a web page that grows with the project (2026-10-06)
+
+### Decision
+- I asked for a full UI to test with and show my professor. Claude explained that most parts (classifier, evaluation, RAG, decision) do not exist yet, so a "full" UI now would have empty or fake buttons. Decision: build a small real Streamlit app now and add one tab per finished part (Step 4: labels and reason; Step 5: evaluation tab; Phases 3-4: sources, cited reply, auto-send or routing; Phase 6: human review queue).
+
+### Library
+- `streamlit` 1.65.0: turns a Python script into a web page. Key idea: the whole script runs again from the top after every click or input, and the page is redrawn. Added to `requirements.txt`.
+
+### Files
+- `src/app.py`, built in 3 pieces:
+  1. `TEXTS`: every UI text in Turkish and English. A TR/EN switch in the sidebar picks the language; `t["..."]` looks up a text. Two tabs.
+  2. "Try a ticket" tab: a text box and a Send button. Empty text -> warning, no API call. Otherwise the ticket is sent with `ask()`; the prompt asks for a reply in the UI language. A spinner shows while waiting (also during retries). Any error is shown in a red box instead of crashing (`except Exception` on purpose, marked with `# noqa: BLE001`). Honest limit: this still uses the simple Step 1 prompt, with no classification and no documents, so it can invent facts.
+  3. "Dataset" tab: info box if `tickets.jsonl` does not exist yet; red box with the line number if a line is invalid; otherwise a language filter (All / tr / en), a ticket count and a sortable table.
+
+### Commands and results
+1. `uv pip install streamlit` -> 1.65.0 (with dependencies such as pandas and pyarrow).
+2. Fixed a small flaw: the "Draft reply" heading appeared even when the call failed. Now the reply is fetched first, then the heading is shown.
+3. Tested headlessly with Streamlit's `AppTest` (no browser). All passed: page loads in TR; switch to EN changes title and tabs; empty Send -> "Please write a ticket."; Dataset tab -> "No tickets yet" info; a real English Wi-Fi ticket -> "Draft reply" with troubleshooting steps, no errors. (The "missing ScriptRunContext" warning comes from the tester and can be ignored.)
+4. Ruff (code checker in VS Code) warned "Do not catch blind exception" -> kept on purpose and marked with `# noqa: BLE001` plus the reason.
+5. `use_container_width` is deprecated in Streamlit 1.65 -> removed; full width (`width="stretch"`) is already the default.
+
+### How to run
+`.venv/bin/streamlit run src/app.py` -> opens http://localhost:8501 in the browser. Stop it with Ctrl+C in the terminal.
+
+## Step 3 (continued): the first 10 tickets (2026-10-06)
+
+### How they were made
+- Claude drafted 10 tickets (5 TR + 5 EN) with suggested labels and reasons from docs/labels.md. I reviewed them.
+- My decisions: `en-002` ("system says I'm missing a prerequisite but I passed it last year") -> escalate = true, because the student says the system record is wrong and a human must check and correct it. `tr-004` uses "obs": BŞEÜ's student system is called OBS.
+
+### File
+- `data/tickets/tickets.jsonl`: 10 tickets, ids `tr-001`..`tr-005` and `en-001`..`en-005`.
+
+### Commands and results
+- `.venv/bin/python src/tickets.py` -> Valid tickets: 10. language en 5 / tr 5; all 7 categories (academic_records 2, account_access 2, billing 1, housing 1, it_support 1, other 1, registration 2); priority high 2, low 3, medium 4, urgent 1; escalate True 3 / False 7.
+
+### Discussion: "10 tickets is not enough"
+- Agreed; the plan is 80 dev (40 TR + 40 EN) + 40 locked test tickets.
+- Important idea: tickets do not make the system stronger by themselves. We do not train Gemini. Tickets are exam questions: they measure the system and reveal weaknesses; we improve it by fixing the rulebook and prompt when a ticket exposes a weakness.
+- Overfitting risk: fixing the prompt until every dev ticket passes can mean "memorizing the exam". The locked test set is the surprise exam that proves the system generalizes.
+- No system handles every situation. The real goal: handle common cases well, and when unsure, send to a human (the decision step, Phase 4). Phase 7 stress tests try to break it on purpose.
+- Plan per language (40 each, in batches of 10): ~30 normal (about 5 per category), ~4 border cases, ~4 tricky wording (two problems, very short, vague, messy spelling, mixed TR+EN, angry-but-simple, polite-but-escalate), ~2 hidden danger (crisis or hacked account mentioned in passing). About 25% escalate. Prompt injection mainly in Phase 7, with 1-2 in dev.

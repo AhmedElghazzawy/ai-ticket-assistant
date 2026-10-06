@@ -1,2 +1,4 @@
 google-genai==2.28.0   # talk to Gemini models
 python-dotenv==1.2.4   # load the API key and model name from .env
+pydantic==2.13.5       # check that every ticket has valid fields and labels
+streamlit==1.65.0      # the web page (UI) for trying tickets and browsing data

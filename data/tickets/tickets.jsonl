@@ -1,0 +1,10 @@
+{"id": "tr-001", "text": "OBS şifremi unuttum, sıfırlama maili gelmiyor. Yarın sabah ders kaydı bitiyor.", "language": "tr", "category": "account_access", "priority": "urgent", "escalate": false}
+{"id": "tr-002", "text": "Yurt odamdaki kalorifer bir haftadır çalışmıyor, oda çok soğuk.", "language": "tr", "category": "housing", "priority": "medium", "escalate": false}
+{"id": "tr-003", "text": "Harç ücreti kartımdan iki kez çekildi, fazla ödenen tutarın iadesini istiyorum.", "language": "tr", "category": "billing", "priority": "high", "escalate": true}
+{"id": "tr-004", "text": "sifremi unuttum obs ye giremiyorum yardim edin lutfen", "language": "tr", "category": "account_access", "priority": "medium", "escalate": false}
+{"id": "tr-005", "text": "Final notum sisteme yanlış girilmiş, sınav kağıdımı görmek ve itiraz etmek istiyorum.", "language": "tr", "category": "academic_records", "priority": "medium", "escalate": true}
+{"id": "en-001", "text": "The Wi-Fi in the library keeps disconnecting every few minutes.", "language": "en", "category": "it_support", "priority": "medium", "escalate": false}
+{"id": "en-002", "text": "I can't add CENG 301, the system says I'm missing a prerequisite but I passed it last year.", "language": "en", "category": "registration", "priority": "high", "escalate": true}
+{"id": "en-003", "text": "How can I get an official transcript? I need it for an internship application.", "language": "en", "category": "academic_records", "priority": "low", "escalate": false}
+{"id": "en-004", "text": "THIS IS THE WORST UNIVERSITY EVER!!! When does spring registration open??", "language": "en", "category": "registration", "priority": "low", "escalate": false}
+{"id": "en-005", "text": "Where is the lost and found office on campus? I lost my student ID card.", "language": "en", "category": "other", "priority": "low", "escalate": false}
