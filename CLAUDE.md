@@ -44,10 +44,12 @@ He said the idea is feasible but too general. Before building, I must define cle
 He also said these parts can be explained separately: classification, RAG retrieval, answer generation, and the forward / do-not-forward decision. His suggested flow: user submits ticket, system classifies it, RAG retrieves information from the knowledge base, a draft answer is created, the system decides on automatic reply, and unresolved or special cases go to the relevant unit or person.
 
 ## Project design (decided)
-Categories (7): account_access, registration, billing, it_support, academic_records, housing, other
+Categories (7): account_access, registration, billing, it_support, academic_records, campus_life, other
+(campus_life replaced housing: the dorms in Bilecik are KYK dorms run by the state, not by BŞEÜ.)
 Priority: low, medium, high, urgent
-Escalate to a human when ANY applies: safety threat, harassment, or signs of crisis; account possibly compromised; the student needs a policy exception; a money dispute needing a refund or correction; a grade or exam dispute; a legal threat or repeated contact with no answer. Being upset alone is NOT a reason.
-Routing to units: account_access and it_support go to the IT Department; registration and academic_records go to Student Affairs; billing goes to the Finance Office; housing goes to the Housing Office; other goes to Student Affairs duty staff.
+Escalate to a human when ANY applies: safety threat, harassment, or signs of crisis; account possibly compromised; the student needs a policy exception; a money dispute needing a refund or correction; a grade or exam dispute; a legal threat, a disciplinary case, or repeated contact with no answer. Being upset alone is NOT a reason.
+Routing to units (real BŞEÜ offices): account_access and it_support go to Bilgi İşlem Daire Başkanlığı (IT); registration and academic_records go to Öğrenci İşleri Daire Başkanlığı (Student Affairs); billing goes to Öğrenci İşleri, İstatistik Disiplin ve Harçlar Şube Müdürlüğü (fees); campus_life goes to Sağlık, Kültür ve Spor (SKS) Daire Başkanlığı; other goes to Student Affairs duty staff.
+BŞEÜ system names used in tickets and documents: OBS (student system), SOFRA (passwords and student e-mail), @ogrenci.bilecik.edu.tr e-mail, UZEM at ders.bilecik.edu.tr (distance courses), Akıllı Kart (student ID card). See docs/problem_catalog.md.
 
 Pipeline (target): ticket -> classify -> retrieve document chunks -> draft reply that cites its source -> decide -> auto-send or route to a unit.
 Auto-send only if ALL pass: category is not "other"; the model did not ask to escalate; retrieval found a strong match; the draft cites a source. Otherwise escalate.

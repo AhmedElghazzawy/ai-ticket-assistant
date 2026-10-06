@@ -9,7 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 # The only allowed values. Anything else (e.g. a typo like "billng") is an error.
 Category = Literal[
     "account_access", "it_support", "registration", "academic_records",
-    "billing", "housing", "other",
+    "billing", "campus_life", "other",
 ]
 Priority = Literal["low", "medium", "high", "urgent"]
 Language = Literal["tr", "en"]
