@@ -5,7 +5,7 @@ A course project at BŞEÜ (Computer Engineering). The system reads a student's 
 It is also my FIRST AI engineering project. The goal is for me to learn and truly understand it, not just to have working code.
 
 ## Who I am and how we communicate
-- Computer engineering student, complete beginner in AI engineering. Mac, VS Code, Claude Code in the terminal.
+- Computer engineering student, complete beginner in AI engineering. Mac, VS Code, Codex in the terminal.
 - Chat with me in English, in simple words.
 - Anything written for my professor or the university (reports, emails, README for the course) is in Turkish, with English technical terms kept as they are (RAG, API, embedding, classification...).
 - I must be able to explain every line of this project to my professor myself.
@@ -21,7 +21,7 @@ It is also my FIRST AI engineering project. The goal is for me to learn and trul
   6. Ask me 2-3 short questions to check I understood, and wait for my answers. If I'm wrong, correct me kindly and re-explain.
   7. Ask me to write 3-5 lines in my own words in docs/learning_log.md. I write them, you only prompt me.
   8. Suggest a commit message. Only commit when I say so. Every approved commit is pushed to GitHub right away, so GitHub is always up to date.
-- After EVERY change (new file, code change, decision, problem found, command run and its result), add it to docs/changelog.md with the reason, then run `.venv/bin/python tools/make_context.py` so claude_context.md is up to date. claude_context.md is the full project in one file, which I paste into a Claude chat to be taught.
+- After EVERY change (new file, code change, decision, problem found, command run and its result), add it to docs/changelog.md with the reason, then run `.venv/bin/python tools/make_context.py` so claude_context.md is up to date. claude_context.md is the full project in one file, which I paste into a Codex chat to be taught.
 - Do not add libraries, files or features I did not ask for. Add a library only when the current step needs it, and tell me why. Simple but impressive, no over-engineering.
 - Keep code short and readable: small functions, type hints, short English comments, snake_case names.
 - Tell me honestly when something is weak or may be misleading (for example an inflated score), even if I did not ask.
@@ -64,7 +64,7 @@ Auto-send only if ALL pass: category is not "other"; the model did not ask to es
 Python 3.12 with a virtual environment in .venv (use uv if it is installed, otherwise ask me), google-genai, python-dotenv, pydantic, Streamlit and pandas for a small web page, later pgvector (Postgres), FastAPI, LangGraph, pytest.
 
 ## Repo layout (target)
-data/tickets/, data/knowledge_base/, src/, eval/, docs/ (learning_log.md), README.md, CLAUDE.md, requirements.txt, .env.example, .gitignore
+data/tickets/, data/knowledge_base/, src/, eval/, docs/ (learning_log.md), README.md, AGENTS.md, requirements.txt, .env.example, .gitignore
 
 ## Phase 1: rebuild from zero, understanding every step
 Everything was deleted on purpose so I can rebuild it slowly. Do NOT recreate the old code from memory or paste big files. Build it with me, step by step, using the teaching mode above.
@@ -93,7 +93,7 @@ Phase 1 is done when:
 8. Week 10: README, architecture diagram, Turkish project report, 5-minute demo script, v1.0 tag.
 
 ## Lessons from my first attempt
-- Claude Code ran in auto mode and wrote more than I understood. That is why we restarted.
+- Codex ran in auto mode and wrote more than I understood. That is why we restarted.
 - The first score of 85% came from a prompt tuned on the same tickets, so it was probably optimistic.
 - The secrets file was once named key.env by mistake, so git did not ignore it. The name must be exactly .env.
 

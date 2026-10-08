@@ -24,6 +24,7 @@ Etiket ID'leri (`account_access` vb.) kodda kullanıldığı için İngilizce ka
 - **Buraya girer:** öğrencinin resmi kaydı: kayıtta görünen notlar, GNO, transkript, öğrenci belgesi, mezuniyet durumu, kayıttaki kişisel bilgilerin düzeltilmesi.
 - Staj evrakları da buraya girer: staj formu, SGK girişi, stajın kredi olarak sayılması.
 - Akıllı Kart (öğrenci kimlik kartı) da buraya girer: kayıp, çalınma, basılmaması, hatalı bilgi.
+- Disiplin soruşturması da buraya girer (Öğrenci İşleri yürütür; escalation kural 6).
 - **Buraya girmez:** bu dönem ders seçme veya değiştirme → `registration`. Staj yeri bulma, kariyer tavsiyesi → `other`.
 - **Örnek:** "Staj başvurum için resmi transkripte ihtiyacım var."
 
@@ -33,12 +34,13 @@ Etiket ID'leri (`account_access` vb.) kodda kullanıldığı için İngilizce ka
 - **Örnek:** "Bu dönem harç ücreti hesabımdan iki kez çekildi."
 
 ### `campus_life` (Kampüs Yaşamı) → Sağlık, Kültür ve Spor (SKS) Daire Başkanlığı
-- **Buraya girer:** kampüsteki günlük yaşam: yemekhane, öğrenci kulüpleri ve etkinlikler, kampüse ulaşım, psikolojik danışmanlık randevusu, spor tesisleri. Yurt soruları da buraya girer: Bilecik'teki yurtlar KYK'ya aittir, bu yüzden cevap öğrenciyi KYK'ya yönlendirir.
-- **Buraya girmez:** öğrencinin üniversiteye ödediği para → `billing`. Kriz belirtisi varsa kategori yine `campus_life` olabilir ama `escalate = true`.
+- **Buraya girer:** kampüsteki günlük yaşam: yemekhane, öğrenci kulüpleri ve etkinlikler, kampüse ulaşım, psikolojik danışmanlık randevusu, spor tesisleri, kütüphane (çalışma saatleri, salonlar). Kütüphane veritabanlarına kampüs dışından erişim ise `it_support`'tur. Yurt soruları da buraya girer: Bilecik'teki yurtlar KYK'ya aittir, bu yüzden cevap öğrenciyi KYK'ya yönlendirir.
+- **Buraya girmez:** öğrencinin üniversiteye ödediği para → `billing`. Psikolojik danışmanlık randevusu isteyen bir ticket kriz belirtisi içerse bile `campus_life`'tır (ama `escalate = true`). Bir öğrenci veya personelden gelen tehdit ve taciz ise `other`'dır.
 - **Örnek:** "Yemekhanede vejetaryen menü var mı?"
 
 ### `other` (Diğer) → Öğrenci İşleri nöbetçi personeli
-- **Buraya girer:** yukarıdaki 6 kategoriye uymayan gerçek talepler: kayıp eşya, kariyer ve staj yeri bulma, KYK burs ve kredisi, somut talebi olmayan şikâyetler, anlaşılmayan ticket'lar.
+- **Buraya girer:** yukarıdaki 6 kategoriye uymayan gerçek talepler: kayıp eşya, kariyer ve staj yeri bulma, KYK burs ve kredisi, engelli öğrenci birimi ve erişilebilirlik soruları, somut talebi olmayan şikâyetler, anlaşılmayan ticket'lar.
+- Bir öğrenci veya personelden gelen tehdit ve taciz de buraya girer: kategori `other`'dır, asıl işi escalation (kural 1) yapar.
 - **Buraya girmez:** ticket 6 kategoriden birine uyuyorsa, belirsiz olsa bile o kategori kullanılır.
 - **Örnek:** "Kampüste kayıp eşya bürosu nerede?"
 
@@ -61,7 +63,7 @@ Escalation ise ticket'taki **tüm** sorunlara bakar: sorunlardan biri escalation
 
 | Öncelik | Anlamı | Örnek |
 |---|---|---|
-| `urgent` (Acil) | Güvenlik riski, ele geçirilmiş olabilecek hesap veya **24 saat içinde** önemli bir şeyin engellenmesi | "Sınavım 2 saat sonra başlıyor ve LMS'e giriş yapamıyorum." |
+| `urgent` (Acil) | Güvenlik riski, tehdit, taciz veya kriz belirtisi (hafif bir dille ifade edilse bile), ele geçirilmiş olabilecek hesap veya **24 saat içinde** önemli bir şeyin engellenmesi | "Sınavım 2 saat sonra başlıyor ve LMS'e giriş yapamıyorum." |
 | `high` (Yüksek) | Önemli bir şeyin **birkaç gün içinde** engellenmesi veya hatalı para çekimi | "Harç ücreti hesabımdan iki kez çekildi." |
 | `medium` (Orta) | Gerçek bir sorun, ama geçici bir çözüm var veya yakın bir son tarih yok | "Kütüphanedeki yazıcı bozuk, üst kattaki çalışıyor." |
 | `low` (Düşük) | Bilgi sorusu, hiçbir şey engellenmiyor | "Bahar dönemi ders kaydı ne zaman başlıyor?" |
@@ -69,6 +71,7 @@ Escalation ise ticket'taki **tüm** sorunlara bakar: sorunlardan biri escalation
 **Kurallar:**
 1. Sadece sinirli bir üslup önceliği yükseltmez. "BU ÇOK SAÇMA, ders kaydı ne zaman açılıyor??" yine `low`'dur.
 2. Öncelik ve escalation birbirinden bağımsızdır. Bir ticket `low` olup yine de insana gidebilir (kibar bir not itirazı) veya `urgent` olup otomatik cevaplanabilir (sınav öncesi unutulan şifre).
+3. Giriş veya erişim sorunu, ticket'ta bir son tarih belirtilmemişse `medium`'dur.
 
 ## Escalation (insana yönlendirme)
 
@@ -79,10 +82,12 @@ Aşağıdakilerden **herhangi biri** varsa `escalate = true`:
 | 1 | Güvenlik tehdidi, taciz veya kriz belirtisi | "Yurtta biri beni sürekli tehdit ediyor, kendimi güvende hissetmiyorum." |
 | 2 | Hesabın ele geçirilmiş olabileceği | "E-postamdan benim göndermediğim mesajlar gitmiş." |
 | 3 | Öğrencinin bir kural istisnasına ihtiyacı var | "Ekle-bırak süresi geçti ama hastalık nedeniyle dersi bırakmam gerekiyor." |
-| 4 | İade veya düzeltme gerektiren para anlaşmazlığı | "Harç iki kez çekildi, fazla ödememin iadesini istiyorum." |
-| 5 | Not veya sınav itirazı | "Final notumun sisteme yanlış girildiğini düşünüyorum." |
+| 4 | Para veya resmi kayıt hatası: iade ya da düzeltme gerekiyor (öğrenci sistemin veya kaydın yanlış olduğunu söylüyor). Bir kayıt veya belge hakkında sadece soru sormak bu kural değildir. | "Harç iki kez çekildi, fazla ödememin iadesini istiyorum." / "Sistem ön koşulu almadığımı söylüyor ama dersi geçen yıl geçtim." |
+| 5 | Not veya sınav itirazı, ya da sınavın geçerliliği hakkında karar gereken durum (ör. sınav sırasında sistem çöktü) | "Final notumun sisteme yanlış girildiğini düşünüyorum." / "UZEM sınav sırasında dondu, sınavım kapandı." |
 | 6 | Hukuki tehdit, disiplin süreci veya cevapsız tekrarlanan başvuru | "Üçüncü kez yazıyorum, cevap gelmezse hukuki yola başvuracağım." / "Hakkımda disiplin soruşturması açılmış." |
 
 **Escalation sebebi değildir:** öğrencinin sadece sinirli veya üzgün olması.
+
+**Normal işlemler tek başına istisna değildir (kural 3 değil):** belgeli mazeret sınavı başvurusu, ders muafiyeti / intibak başvurusu, kayıt dondurma (akademik izin), iade hakkı hakkında soru sormak, makbuz veya belge istemek. İstisna, süresi geçmiş bir işlemi yapmak veya bir kuralın dışına çıkmak istemektir.
 
 **Not:** `escalate` etiketi sadece bu 6 kurala bakar. `other` kategorisindeki ticket'ların insana gitmesi etiketin değil, sonraki karar adımının (decision) işidir.

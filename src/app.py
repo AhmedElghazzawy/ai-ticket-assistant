@@ -2,6 +2,7 @@
 
 import streamlit as st
 
+from classifier import classify
 from llm import MODEL, ask
 from tickets import TICKETS_PATH, Ticket, load_tickets
 
@@ -26,7 +27,11 @@ TEXTS = {
         "reply": "Taslak cevap",
         "reply_language": "Turkish",
         "reply_hint": "Bir ticket yazıp Gönder'e basın.",
-        "not_yet": "Kategori, öncelik ve escalation etiketleri bir sonraki adımda (Step 4) burada görünecek.",
+        "labels": "Etiketler",
+        "reason": "Modelin gerekçesi",
+        "esc_yes": "🙋 İnsana yönlendir",
+        "esc_no": "Escalation gerekmiyor",
+        "draft_note": "Bu taslak henüz üniversite belgelerine dayanmıyor; gerçek bilgiler RAG ile (Phase 3) gelecek.",
         "no_data": "Henüz ticket yok. data/tickets/tickets.jsonl dosyasını oluşturun.",
         "count": "Ticket sayısı",
         "filter": "Dil",
@@ -59,7 +64,11 @@ TEXTS = {
         "reply": "Draft reply",
         "reply_language": "English",
         "reply_hint": "Write a ticket and press Send.",
-        "not_yet": "Category, priority and escalation labels will appear here in the next step (Step 4).",
+        "labels": "Labels",
+        "reason": "The model's reason",
+        "esc_yes": "🙋 Send to a human",
+        "esc_no": "No escalation needed",
+        "draft_note": "This draft is not based on university documents yet; real facts come with RAG (Phase 3).",
         "no_data": "No tickets yet. Create data/tickets/tickets.jsonl.",
         "count": "Number of tickets",
         "filter": "Language",
@@ -74,7 +83,7 @@ TEXTS = {
         "text_col": "Ticket text",
     },
 }
-DONE_STEPS = 3  # how many of the steps above are finished; raise it as the project grows
+DONE_STEPS = 4  # how many of the steps above are finished; raise it as the project grows
 
 # Readable names for the label IDs (the IDs themselves stay English in the data).
 CATEGORY_NAMES = {
@@ -138,7 +147,6 @@ with tab_try:
         send = st.button(t["send"], type="primary")
 
     with right:
-        st.subheader(t["reply"])
         if send and not ticket.strip():
             st.warning(t["empty"])
         elif send:
@@ -148,14 +156,22 @@ with tab_try:
             )
             try:
                 with st.spinner(t["thinking"]):
+                    result = classify(ticket)
                     reply = ask(prompt)
+                st.subheader(t["labels"])
+                c1, c2, c3 = st.columns(3)
+                c1.metric(t["category"], CATEGORY_NAMES[language][result.category])
+                c2.metric(t["priority"], PRIORITY_NAMES[language][result.priority])
+                c3.metric(t["escalate"], t["esc_yes"] if result.escalate else t["esc_no"])
+                st.caption(f"**{t['reason']}:** {result.reason}")
+                st.subheader(t["reply"])
                 with st.container(border=True):
                     st.markdown(reply)
+                st.caption(t["draft_note"])
             except Exception as error:  # noqa: BLE001 - on purpose: show any problem on the page, not a crash
                 st.error(f"{type(error).__name__}: {error}")
         else:
             st.caption(t["reply_hint"])
-        st.info(t["not_yet"])
 
 with tab_data:
     if data_error:  # a bad line in tickets.jsonl: show which one, like the terminal does

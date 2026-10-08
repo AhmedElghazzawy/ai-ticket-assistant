@@ -7,6 +7,9 @@ ROOT = Path(__file__).resolve().parent.parent
 OUTPUT = ROOT / "claude_context.md"
 FIRST = ["CLAUDE.md", "docs/changelog.md"]  # shown before all other files
 RESTART = "facb85a"  # the "Start over from scratch" commit; history starts after it
+SUMMARY_ONLY = "eval/*.json"  # raw model predictions: too big to paste; their numbers are in the changelog
+# Git pathspecs left out of the history diffs: raw results (too big) and the changelog (shown in full above).
+NOT_IN_HISTORY = [f":(exclude){SUMMARY_ONLY}", ":(exclude)docs/changelog.md"]
 
 INTRO = """# AI Ticket Assistant: full project context
 
@@ -33,8 +36,9 @@ def project_files() -> list[Path]:
 
 def history_section() -> str:
     """Every commit since the restart with its changed lines, plus uncommitted changes."""
-    log = git("log", "--reverse", "-p", "--format=%n### Commit %h: %s (%ad)", "--date=short", f"{RESTART}..HEAD")
-    pending = git("diff", "HEAD")
+    log = git("log", "--reverse", "-p", "--format=%n### Commit %h: %s (%ad)", "--date=short",
+              f"{RESTART}..HEAD", "--", ".", *NOT_IN_HISTORY)
+    pending = git("diff", "HEAD", "--", ".", *NOT_IN_HISTORY)
     return (
         "\n---\n\n# History: every change, line by line\n\n"
         "Lines starting with + were added, lines starting with - were removed.\n\n"
@@ -47,6 +51,9 @@ def history_section() -> str:
 def file_section(path: Path) -> str:
     """Format one file as a heading followed by its full content."""
     name = path.relative_to(ROOT).as_posix()
+    if path.match(SUMMARY_ONLY):
+        size = path.stat().st_size
+        return f"\n---\n\n## File: {name}\n\n(Raw predictions, {size:,} bytes, not shown. The scores are in docs/changelog.md.)\n"
     language = path.suffix.lstrip(".") or "text"
     content = path.read_text(encoding="utf-8").rstrip()
     return f"\n---\n\n## File: {name}\n\n````{language}\n{content}\n````\n"
