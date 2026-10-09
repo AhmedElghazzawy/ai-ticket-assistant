@@ -7,7 +7,7 @@ import streamlit as st
 
 from classifier import classify
 from llm import MODEL, ask
-from tickets import TICKETS_PATH, Ticket, load_tickets
+from tickets import TEST_PATH, TICKETS_PATH, Ticket, load_tickets
 
 # Every text on the page, in both languages. Add new texts to both.
 TEXTS = {
@@ -19,6 +19,18 @@ TEXTS = {
         "steps": ["Gemini bağlantısı", "Etiket kuralları", "80 ticket'lık veri seti", "Sınıflandırma",
                   "Değerlendirme (skor)", "Belge arama (RAG)", "Karar ve yönlendirme"],
         "model": "Model",
+        "view": "Görünüm",
+        "student_view": "🎓 Öğrenci",
+        "staff_view": "🛠 Personel",
+        "greeting": "Merhaba! BŞEÜ Öğrenci Yardım Masası'na hoş geldiniz. Sorununuzu kısaca yazın, ilgili birime iletelim.",
+        "chat_box": "Sorununuzu yazın...",
+        "received": "Talebiniz alındı.",
+        "topic": "Konu",
+        "unit": "İlgili birim",
+        "esc_msg": "Talebiniz bir personel tarafından incelenecek ve sizinle iletişime geçilecek.",
+        "emergency": "Acil bir tehlike varsa hemen 112'yi arayın.",
+        "clear": "Sohbeti temizle",
+        "demo_note": "Prototip: cevaplar henüz üniversitenin resmi belgelerine dayanmıyor; otomatik gönderme kararı Phase 4'te gelecek.",
         "tab_try": "💬 Ticket dene",
         "tab_data": "📋 Veri seti",
         "tab_eval": "📊 Değerlendirme",
@@ -73,6 +85,18 @@ TEXTS = {
         "steps": ["Gemini connection", "Label rules", "80-ticket dataset", "Classification",
                   "Evaluation (score)", "Document search (RAG)", "Decision and routing"],
         "model": "Model",
+        "view": "View",
+        "student_view": "🎓 Student",
+        "staff_view": "🛠 Staff",
+        "greeting": "Hello! Welcome to the BŞEÜ Student Helpdesk. Briefly describe your problem and we will pass it to the right office.",
+        "chat_box": "Describe your problem...",
+        "received": "Your request has been received.",
+        "topic": "Topic",
+        "unit": "Responsible office",
+        "esc_msg": "A staff member will review your request and contact you.",
+        "emergency": "If you are in immediate danger, call 112 now.",
+        "clear": "Clear chat",
+        "demo_note": "Prototype: answers are not based on official university documents yet; the auto-send decision comes in Phase 4.",
         "tab_try": "💬 Try a ticket",
         "tab_data": "📋 Dataset",
         "tab_eval": "📊 Evaluation",
@@ -137,7 +161,42 @@ PRIORITY_NAMES = {
 }
 
 
+# Where each category is routed: the real BŞEÜ offices decided in CLAUDE.md.
+UNITS = {
+    "tr": {"account_access": "Bilgi İşlem Daire Başkanlığı", "it_support": "Bilgi İşlem Daire Başkanlığı",
+           "registration": "Öğrenci İşleri Daire Başkanlığı", "academic_records": "Öğrenci İşleri Daire Başkanlığı",
+           "billing": "Öğrenci İşleri, İstatistik Disiplin ve Harçlar Şube Müdürlüğü",
+           "campus_life": "Sağlık, Kültür ve Spor (SKS) Daire Başkanlığı", "other": "Öğrenci İşleri nöbetçi personeli"},
+    "en": {"account_access": "IT Department (Bilgi İşlem)", "it_support": "IT Department (Bilgi İşlem)",
+           "registration": "Student Affairs (Öğrenci İşleri)", "academic_records": "Student Affairs (Öğrenci İşleri)",
+           "billing": "Student Affairs, Fees Office (Harçlar Şube Müdürlüğü)",
+           "campus_life": "Health, Culture and Sports Office (SKS)", "other": "Student Affairs duty staff"},
+}
+
 RESULTS_DIR = Path(__file__).resolve().parent.parent / "eval"
+
+
+def draft_reply(ticket: str, reply_language: str) -> str:
+    """A short draft answer. Not grounded in university documents yet (RAG comes in Phase 3)."""
+    return ask(f"You are a university helpdesk assistant. Reply briefly in {reply_language} to this ticket:\n\n{ticket}")
+
+
+def student_answer(ticket: str, t: dict, language: str) -> str:
+    """Classify a student's message and build the chat answer: topic, office, then a draft or a hand-off."""
+    result = classify(ticket)
+    lines = [
+        f"✅ {t['received']}",
+        f"📌 **{t['topic']}:** {CATEGORY_NAMES[language][result.category]} · "
+        f"**{t['priority']}:** {PRIORITY_NAMES[language][result.priority]}",
+        f"🏢 **{t['unit']}:** {UNITS[language][result.category]}",
+    ]
+    if result.escalate:  # sensitive case: a human answers, so the student gets no AI draft
+        lines.append(f"🙋 {t['esc_msg']}")
+        if result.priority == "urgent":
+            lines.append(f"🚨 **{t['emergency']}**")
+    else:
+        lines += [f"💬 **{t['reply']}:**", draft_reply(ticket, t["reply_language"])]
+    return "\n\n".join(lines)
 
 
 def read_results() -> dict[str, dict]:
@@ -160,11 +219,39 @@ st.set_page_config(page_title="Helpdesk Assistant", page_icon="🎓", layout="wi
 with st.sidebar:
     language = st.radio("Dil / Language", ["tr", "en"], format_func=str.upper, horizontal=True)
     t = TEXTS[language]  # t["title"] gives the title in the chosen language
+    view = st.radio(t["view"], ["student", "staff"], format_func=lambda v: t[f"{v}_view"], horizontal=True)
     st.caption(t["about"])
     st.subheader(t["progress"])
     for number, step in enumerate(t["steps"]):
         st.markdown(("✅ " if number < DONE_STEPS else "⏳ ") + step)
     st.caption(f"{t['model']}: `{MODEL}`")
+
+if view == "student":
+    st.title(t["title"])
+    st.caption(t["demo_note"])
+    if "messages" not in st.session_state:
+        st.session_state.messages = []  # the chat history, kept between reruns
+    with st.chat_message("assistant"):
+        st.markdown(t["greeting"])
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+    if question := st.chat_input(t["chat_box"]):  # := stores the text and checks it is not empty
+        st.session_state.messages.append({"role": "user", "content": question})
+        with st.chat_message("user"):
+            st.markdown(question)
+        with st.chat_message("assistant"):
+            try:
+                with st.spinner(t["thinking"]):
+                    answer = student_answer(question, t, language)
+            except Exception as error:  # noqa: BLE001 - show the problem in the chat instead of crashing
+                answer = f"⚠️ {type(error).__name__}: {error}"
+            st.markdown(answer)
+        st.session_state.messages.append({"role": "assistant", "content": answer})
+    if st.session_state.messages and st.sidebar.button(t["clear"]):
+        st.session_state.messages = []
+        st.rerun()
+    st.stop()  # the staff view below is not drawn
 
 tickets, data_error = read_dataset()
 
@@ -195,14 +282,10 @@ with tab_try:
         if send and not ticket.strip():
             st.warning(t["empty"])
         elif send:
-            prompt = (
-                "You are a university helpdesk assistant. "
-                f"Reply briefly in {t['reply_language']} to this ticket:\n\n{ticket}"
-            )
             try:
                 with st.spinner(t["thinking"]):
                     result = classify(ticket)
-                    reply = ask(prompt)
+                    reply = draft_reply(ticket, t["reply_language"])
                 st.subheader(t["labels"])
                 c1, c2, c3 = st.columns(3)
                 c1.metric(t["category"], CATEGORY_NAMES[language][result.category])
@@ -275,7 +358,8 @@ with tab_eval:
         newest = max(all_results, key=lambda name: all_results[name]["date"])  # open the latest run first
         chosen = st.radio(t["results_file"], list(all_results), index=list(all_results).index(newest), horizontal=True)
         res = all_results[chosen]
-        st.caption(t["run_info"].format(model=res["model"], level=res["thinking_level"], runs=res["runs"], date=res["date"]))
+        st.caption(t["run_info"].format(model=res["model"], level=res["thinking_level"], runs=res["runs"], date=res["date"])
+                   + f" · {res.get('dataset', 'dev')}")
 
         # Scores table: one row per metric, one column per language group.
         names = {"category": t["category"], "priority": t["priority"], "escalate": t["escalate"],
@@ -305,8 +389,9 @@ with tab_eval:
         # Every run-1 mistake, side by side with my label and the model's reason.
         st.subheader(t["mistakes"])
         first_run = res["predictions"][0]
+        scored = load_tickets(TEST_PATH) if res.get("dataset") == "test" else tickets  # match the run's dataset
         rows = []
-        for x in tickets:
+        for x in scored:
             p = first_run.get(x.id)
             wrong = [f for f in ("category", "priority", "escalate") if p and p[f] != getattr(x, f)]
             if wrong:

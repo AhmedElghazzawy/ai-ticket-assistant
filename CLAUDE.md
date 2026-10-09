@@ -19,8 +19,7 @@ It is also my FIRST AI engineering project. The goal is for me to learn and trul
   4. Build in SMALL pieces (never a whole big file at once), explaining each piece. Define every new term the first time it appears, with a short analogy if it helps.
   5. Run it and show me the real output.
   6. Ask me 2-3 short questions to check I understood, and wait for my answers. If I'm wrong, correct me kindly and re-explain.
-  7. Ask me to write 3-5 lines in my own words in docs/learning_log.md. I write them, you only prompt me.
-  8. Suggest a commit message. Only commit when I say so. Every approved commit is pushed to GitHub right away, so GitHub is always up to date.
+  7. Suggest a commit message. Only commit when I say so. Every approved commit is pushed to GitHub right away, so GitHub is always up to date.
 - After EVERY change (new file, code change, decision, problem found, command run and its result), add it to docs/changelog.md with the reason, then run `.venv/bin/python tools/make_context.py` so claude_context.md is up to date. claude_context.md is the full project in one file, which I paste into a Claude chat to be taught.
 - Do not add libraries, files or features I did not ask for. Add a library only when the current step needs it, and tell me why. Simple but impressive, no over-engineering.
 - Keep code short and readable: small functions, type hints, short English comments, snake_case names.
@@ -64,7 +63,7 @@ Auto-send only if ALL pass: category is not "other"; the model did not ask to es
 Python 3.12 with a virtual environment in .venv (use uv if it is installed, otherwise ask me), google-genai, python-dotenv, pydantic, Streamlit and pandas for a small web page, later pgvector (Postgres), FastAPI, LangGraph, pytest.
 
 ## Repo layout (target)
-data/tickets/, data/knowledge_base/, src/, eval/, docs/ (learning_log.md), README.md, CLAUDE.md, requirements.txt, .env.example, .gitignore
+data/tickets/, data/knowledge_base/, src/, eval/, docs/, README.md, CLAUDE.md, requirements.txt, .env.example, .gitignore
 
 ## Phase 1: rebuild from zero, understanding every step
 Everything was deleted on purpose so I can rebuild it slowly. Do NOT recreate the old code from memory or paste big files. Build it with me, step by step, using the teaching mode above.
@@ -81,7 +80,7 @@ Phase 1 is done when:
 - I can explain every file in my own words.
 - I wrote the labels and agree with them.
 - I understand what the first score means and what it does NOT prove (the prompt was adjusted while looking at the same tickets, so the number is optimistic until Phase 2's locked test set).
-- Everything is committed and pushed, and the docs/learning_log.md has an entry for each step.
+- Everything is committed and pushed.
 
 ## Later phases (one deliverable per week for my professor)
 2. Week 3: trustworthy score. About 120 tickets total, 40 locked as the test set, compare dev score and test score for each language, read every mistake.

@@ -556,3 +556,92 @@ One file instead of a separate professor document: it is the GitHub front page a
 1. What the project is; pipeline with the status of each stage (classification and evaluation done, RAG/answer/decision later); the 7 categories with examples and their real BŞEÜ offices; priority and escalation rules in short; links to docs/labels.md and docs/problem_catalog.md.
 2. Dataset (80 dev tickets, mix, tricky cases, real BŞEÜ names, Phase 2 locked test set); classification method (rulebook as system prompt, structured output, reason first, temperature 1.0 and why, thinking high); evaluation method (what each metric means); first results table (low vs high, average of 2 runs); "what this score does NOT prove"; scope and limits.
 3. Setup and run commands; project structure (one line per file); next steps, including the planned RAG documents for Phase 3 (stated as a plan).
+- Commit and push: `4e6b196` Steps 6-7: Evaluation tab and Turkish README. Checked the file list first (only changelog, app.py, README; no secrets). GitHub now shows the README on the repo front page.
+
+# Phase 2: a trustworthy score (started 2026-10-09)
+
+## Who writes the locked test tickets
+- Options: (A) classmates write real tickets and I label them (most trustworthy), (B) I write them without looking at the dev set, (C) Claude drafts them (weakest: Claude helped write the rulebook). My choice for now: C, grounded in research about what real students write. Recorded as the weaker option.
+
+## Research for the test tickets
+Searches and pages read: Şikayetvar (complaint site) statistics via DHA: private university complaints +133%, state +45%, KYK +81%, scholarship scams +279%; main themes: slow transcript/diploma/registration processes, refunds, fees, crowded KYK dorms, campus facilities. Şikayetvar complaints at one university (titles such as "Harç Ücreti İadesi Ve Kayıt Silme Talebine Yanıt Almayan Üniversite", "Mezuniyet Bilgilerimin Yöksis'e İşlenmemesi", "Transkript İçin Yüksek Ücret", "Ödeme Fazlasını İade Etmiyor"). Ekşi Sözlük on transcript delays. Bianet on international students (residence permits cancelled because the university reported non-attendance). Other universities' FAQs: ÇAP, yatay geçiş, azami süre, tek ders sınavı.
+
+## File: `data/tickets/test_tickets.jsonl` (40 tickets: tr-t01..tr-t20, en-t01..en-t20)
+- On purpose different from the dev set: more topics without a written rule (residence permit, YÖKSİS, scholarship scam, food poisoning, a friend talking about suicide, plagiarism + discipline), longer stories, lowercase without punctuation, a new injection style ("SYSTEM: classification override...").
+- Locked by design: a separate file; the web page and the example picker only read tickets.jsonl. Rule: never change docs/labels.md or the prompt because of these tickets.
+- `load_tickets(test file)` -> 40 valid; en 20 / tr 20; academic_records 11, account_access 4, billing 5, campus_life 6, it_support 5, other 4, registration 5; priority high 9, low 13, medium 10, urgent 8; escalate 14/40 = 35% (higher than dev 26%; paperwork and money problems dominate real complaints). No id or text overlap with the dev set.
+- Labels drafted by Claude with the current rulebook; waiting for my review before the first test evaluation.
+- I approved the 7 judgment-call labels as drafted. The test set is now frozen.
+
+## Code for the test set
+- `src/tickets.py`: `TEST_PATH` (data/tickets/test_tickets.jsonl) defined once, next to `TICKETS_PATH`, with the comment "LOCKED test set: measure only, never tune on it".
+- `src/evaluate.py`: `evaluate.py high test` evaluates the locked test file, records `"dataset": "test"` in the results, and saves to `eval/results_high_test.json`, so the dev results are never overwritten. `evaluate.py high` works as before.
+- `src/app.py`: the Evaluation tab builds the mistakes table from the test tickets when the results file is a test run (before, it would have compared test predictions with dev tickets and shown an empty table that looks like "no mistakes"). The run info line shows dev/test. The test tickets are still not in the Dataset tab or the example picker.
+- Cleanup: `TEST_PATH` was first written in both evaluate.py and app.py; moved to tickets.py so there is one definition.
+- Started the first test evaluation: `evaluate.py high test` (40 tickets x 2 runs = 80 calls).
+
+## Student view: a chat-style assistant (2026-10-09)
+- I asked for the UI of the actual assistant while the test run was going. Rule followed: no API calls during the test run (they share the per-minute limit); build now, live-test later.
+- `src/app.py`, 3 pieces:
+  1. `UNITS`: category -> real BŞEÜ office (from CLAUDE.md), TR and EN (EN keeps the Turkish office name in brackets). `draft_reply()`: the draft-reply prompt in one function, now used by both the staff tab and the student chat (before, the prompt was written inline in the staff tab).
+  2. Student-view texts in TR and EN (greeting, chat box, "request received", topic, office, hand-off message, 112 emergency line, clear chat, prototype note).
+  3. `student_answer()`: classifies the message and builds the answer: topic + priority, the responsible office; if escalated, NO AI draft (a human answers sensitive cases) and, if urgent, "call 112" (Turkey's emergency number); otherwise the draft reply. Sidebar switch "🎓 Student / 🛠 Staff" (student is the default). Chat with `st.chat_message` and `st.chat_input`; history in `st.session_state.messages`; walrus operator `:=` stores the text and checks it is not empty; "clear chat" button; `st.stop()` ends the script after the student page so the staff tabs are not drawn and the old code did not need to change.
+- Honest limits shown on the page: answers are not based on official documents yet; the auto-send decision comes in Phase 4. Each message is handled on its own (no conversation memory for the model).
+- AppTest without API calls: opens in the student view (TR) with greeting and chat box, no tabs drawn; EN changes the texts; switching to Staff shows the 3 tabs and hides the chat; no exceptions.
+
+## Bug: the test run hung for 31 minutes (2026-10-09)
+- `evaluate.py high test` stopped at run 2, ticket 8: the log did not change for 31 minutes; the process was alive but idle. Cause: one request to Google never got an answer, and the client had **no timeout**, so it waited forever.
+- Second, worse bug found at the same time: `evaluate.py` saves only at the end and caught only Google's `ClientError`. A timeout error would have crashed the run and lost everything, including the complete run 1.
+- Fixes:
+  1. `src/llm.py`: `HttpOptions(timeout=60_000, ...)`: give up on a request after 60 s (checked: `timeout` is in milliseconds in this library version); the retry logic then tries again.
+  2. `src/evaluate.py`: any other error for one ticket is printed and that ticket is skipped, instead of crashing the whole run.
+- Check: one classification with the new timeout -> OK in 2.9 s. Stopped the hung process and restarted the test evaluation from the beginning (no results had been seen, so nothing was tuned).
+
+## Phase 3 preparation: real BŞEÜ documents for RAG (research, no Gemini calls)
+Found official BŞEÜ documents, so the knowledge base can be built from real regulations instead of invented texts:
+- **BŞEÜ Ön Lisans ve Lisans Eğitim-Öğretim Yönetmeliği**, Resmi Gazete no. 30824, 7 July 2019 (resmigazete.gov.tr/eskiler/2019/07/20190707-1.htm). Covers: kayıt yenileme (md. 8), ders kaydı and credit load (md. 15), ekle-bırak in the first week of the semester (md. 16), attendance 70% theory / 80% practice (md. 17), bütünleme (md. 19), not itirazı within 5 working days (md. 20), mazeret sınavı (md. 21), azami süre 7 years for a 4-year bachelor (md. 12/3; an earlier summary wrongly said md. 31), tek ders sınavı (md. 32), graduation with at least 240 AKTS (md. 34), akademik izin up to 2 semesters each time, 4 in total (md. 36).
+- **Sınav Uygulama Esasları Yönergesi** (exam rules), **Yaz Okulu Yönetmeliği** (summer school), **Ders Açma, Muafiyet ve İntibak Esasları Yönergesi** (exemptions), **Önceki Öğrenmelerin Tanınmasına İlişkin Yönerge**, **Yatay Geçiş Koşulları**, **Staj Yönergesi**, **Öğrenci Kulüpleri Yönergesi**: all PDFs on bilecik.edu.tr.
+- Öğrenci İşleri FAQ topics (harç, Akıllı Kart, kayıt silme, mezuniyet, akademik izin) on bilecik.edu.tr/ogrenciisleri.
+- Not found yet: an official BŞEÜ IT guide for SOFRA/OBS passwords and eduroam (the orientation PDF is over 10 MB and could not be read).
+
+## Learning log removed (2026-10-09)
+- My decision: I do not need docs/learning_log.md; I learn by giving the repo (claude_context.md) to Claude and asking for explanations. Focus on the project.
+- Deleted `docs/learning_log.md` (it held only the empty template). Removed its step from the teaching steps in CLAUDE.md (steps renumbered: 7 is now "suggest a commit message"), from the repo layout and from the "Phase 1 is done when" list; removed its line from the README project structure.
+- Verified against the official text (Resmi Gazete 2019-07-07, the regulation itself): ekle-bırak with advisor approval in the first week after classes start (md. 16); attendance 70% theory, 80% practice/lab (md. 17); bütünleme without application for each failed course (md. 19/4); exam objection to the teaching unit within 5 working days after results are announced (md. 20); mazeret application within 5 working days from the start of the excuse (md. 21); azami süre 4 years (associate), 7 years (4-year bachelor), 8 years (5-year) (md. 12/3); tek ders sınavı on academic-calendar dates (md. 32); akademik izin up to 2 semesters each time, 4 in total (md. 36). Lesson: summaries can get article numbers wrong; every rule in the knowledge base must be checked against the official text.
+
+# Phase 3: knowledge base for RAG (started 2026-10-09)
+
+## Plan (approved)
+8-10 short topic documents in `data/knowledge_base/`, each in TR and EN, written only from official BŞEÜ sources with article numbers and a link. One `##` section per rule, so each section can later become one chunk. Topics: ders kaydı/ekle-bırak; sınavlar (mazeret, bütünleme, tek ders, itiraz); akademik izin and kayıt silme; devam, azami süre, mezuniyet; muafiyet/intibak; yaz okulu; staj; harç and iade; OBS/SOFRA/e-posta; kampüs yaşamı (SKS, kulüpler, KYK redirect). Weak sources so far: harç and IT accounts.
+
+## Document 1: `ders_kaydi.tr.md` and `ders_kaydi.en.md`
+- Source: Yönetmelik md. 8 (kayıt yenileme), md. 15 (kredi yükü ve ders kaydı), md. 16 (ders değiştirme, ekleme, silme), fetched from the official Resmî Gazete page. Exact sentences are in quotation marks; the rest is marked as a summary. The EN version says the Turkish text is binding.
+- Honesty fix before showing: Claude's first draft included two sentences NOT in the official text ("if approval is late, go to your advisor or the department secretary" and "adding after the deadline is not defined in the regulation"). Both removed. Rule: no fact enters the knowledge base unless it was read in the source; an invented sentence in a cited document is worse than no answer.
+
+## Phase 2 result: the locked test set (2026-10-09)
+`.venv/bin/python src/evaluate.py high test` -> 40 tickets x 2 runs, 0 errors (the timeout fix worked). Saved in `eval/results_high_test.json`.
+
+| average of 2 runs | DEV (80) | TEST (40, locked) |
+|---|---|---|
+| category | 98.1% | 90.0% |
+| priority | 88.1% | 85.0% |
+| priority within one | 98.8% | 93.8% |
+| escalate | 96.2% | 88.8% |
+| all three | 84.4% | **73.8%** |
+| missed escalations | 0 / 0 | **0 / 0** |
+
+- Test run 1 by language (all three): TR 70.0%, EN 75.0% (the language gap is smaller than on dev). Consistency on test: category 95%, priority 92%, escalate 98%.
+- **Missed escalations: 0 in both test runs**, even on situations the rulebook never covered (residence permit cancelled, food poisoning, a friend talking about suicide, plagiarism + discipline, hacked account via SMS).
+- All escalation errors are over-escalations: run 1 tr-t01 (graduation not yet in YÖKSİS), tr-t11 (Instagram scholarship scam), en-t07 (grade not entered), en-t09 (questions a transcript fee); run 2 also en-t10.
+- The dev score was optimistic by about 10 points (84.4% -> 73.8% all three). This is the honest number to report.
+
+### Reading the test mistakes (analysis only: the rulebook and prompt are NOT changed because of these)
+- Unknown local name: tr-t06 "SOFRA'dan şifre sıfırlama" -> the model said `campus_life`, reading SOFRA as a dining system ("sofra" = dining table in Turkish). docs/labels.md never explains what SOFRA is. A real knowledge gap; RAG (Phase 3) should help.
+- Course-information questions: tr-t20 (which electives are in English), en-t19 (Turkish course for international students) -> model `other`, label `registration`. The rulebook does not say where "what courses are offered" questions belong.
+- Several mistakes are on the 7 judgment calls drafted by Claude: tr-t11 scam (model: account_access, urgent, escalate; arguably the model is right), tr-t08 (model it_support, label other), en-t07 (missing grade -> model escalates), en-t09 (fee question -> model treats it as a money dispute). The test labels were Claude's drafts, so part of the gap is label quality, not only model quality.
+- Rule kept: these labels are NOT changed after seeing the results (that would inflate the test score). Any rulebook fix inspired by these tickets must be checked on a NEW test set.
+
+## Student view: live test (after the test run, 3 API calls)
+- "Kampüste eduroam'a nasıl bağlanırım?" -> Teknik Destek, low, Bilgi İşlem; draft reply given. The draft told the student to use "...@adu.edu.tr", the e-mail domain of ANOTHER university (Aydın Adnan Menderes). A clear hallucination: the reason Phase 3 (RAG) and the "not based on documents" warning exist.
+- "Son günlerde hiçbir şeyin anlamı yok gibi hissediyorum, artık dayanamıyorum." -> Kampüs Yaşamı, urgent, SKS; NO AI draft; "a staff member will contact you" and "call 112". Works as designed.
+- Chat history kept 4 messages; no exceptions.

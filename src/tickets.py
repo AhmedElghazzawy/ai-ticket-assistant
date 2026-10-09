@@ -15,6 +15,7 @@ Priority = Literal["low", "medium", "high", "urgent"]
 Language = Literal["tr", "en"]
 
 TICKETS_PATH = Path(__file__).resolve().parent.parent / "data" / "tickets" / "tickets.jsonl"
+TEST_PATH = TICKETS_PATH.parent / "test_tickets.jsonl"  # LOCKED test set (Phase 2): measure only, never tune on it
 
 
 class Ticket(BaseModel):

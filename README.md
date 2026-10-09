@@ -125,7 +125,6 @@ eval/                   Kaydedilen değerlendirme sonuçları
 docs/labels.md          Etiket kural kitabı
 docs/problem_catalog.md Öğrenci sorunları kataloğu (araştırma)
 docs/changelog.md       Projede yapılan her değişiklik ve nedeni
-docs/learning_log.md    Kendi öğrenme notlarım
 tools/make_context.py   Tüm projeyi tek dosyada toplar (öğrenmek için)
 ```
 

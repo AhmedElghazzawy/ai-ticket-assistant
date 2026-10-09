@@ -1,7 +1,7 @@
 """Score the classifier against my labels and save the run to eval/.
 
-Run: .venv/bin/python src/evaluate.py          (thinking level low)
-     .venv/bin/python src/evaluate.py high     (thinking level high)
+Run: .venv/bin/python src/evaluate.py high        (dev tickets, thinking level high)
+     .venv/bin/python src/evaluate.py high test   (the LOCKED test tickets: measure only, never tune on them)
 """
 
 import json
@@ -14,7 +14,7 @@ from google.genai import errors, types
 
 from classifier import THINKING_LEVEL, classify
 from llm import MODEL
-from tickets import Ticket, load_tickets
+from tickets import TEST_PATH, TICKETS_PATH, Ticket, load_tickets
 
 RUNS = 2  # each ticket is classified twice, to measure consistency
 WAIT_SECONDS = 5  # pause between calls to stay under the free-tier requests-per-minute limit
@@ -37,6 +37,9 @@ def predict_all(tickets: list[Ticket], thinking_level: types.ThinkingLevel) -> l
                     print(f"Quota used up (429) in run {run_number}. Stopping; partial results are kept.")
                     return runs
                 print(f"run {run_number} [{number}/{len(tickets)}] {ticket.id} ERROR {error.code}: {error.message}")
+                continue
+            except Exception as error:  # noqa: BLE001 - e.g. a timeout: skip this ticket instead of losing the whole run
+                print(f"run {run_number} [{number}/{len(tickets)}] {ticket.id} ERROR {type(error).__name__}: {error}")
                 continue
             print(f"run {run_number} [{number}/{len(tickets)}] {ticket.id}", flush=True)
     return runs
@@ -109,13 +112,15 @@ def print_mistakes(tickets: list[Ticket], predictions: Predictions) -> None:
 
 def main() -> None:
     level = types.ThinkingLevel[sys.argv[1].upper()] if len(sys.argv) > 1 else THINKING_LEVEL
-    tickets = load_tickets()
+    on_test = len(sys.argv) > 2 and sys.argv[2] == "test"
+    tickets = load_tickets(TEST_PATH if on_test else TICKETS_PATH)
     runs = predict_all(tickets, level)
     by_language = {lang: [t for t in tickets if t.language == lang] for lang in ("tr", "en")}
     results = {
         "date": datetime.now().isoformat(timespec="seconds"),
         "model": MODEL,
         "thinking_level": level.value,
+        "dataset": "test" if on_test else "dev",
         "runs": len(runs),
         "score_run1": score(tickets, runs[0]),
         "score_run1_tr": score(by_language["tr"], runs[0]),
@@ -125,7 +130,8 @@ def main() -> None:
         "predictions": runs,
     }
     RESULTS_DIR.mkdir(exist_ok=True)
-    path = RESULTS_DIR / f"results_{level.value.lower()}.json"
+    suffix = "_test" if on_test else ""
+    path = RESULTS_DIR / f"results_{level.value.lower()}{suffix}.json"
     path.write_text(json.dumps(results, ensure_ascii=False, indent=2), encoding="utf-8")
     print_report(results)
     print_mistakes(tickets, runs[0])

@@ -29,7 +29,8 @@ RETRY = types.HttpRetryOptions(
 
 client = genai.Client(
     api_key=get_setting("GEMINI_API_KEY"),
-    http_options=types.HttpOptions(retry_options=RETRY),
+    # timeout: give up on a request after 60 s (one once hung for 30+ minutes); the retry logic then tries again.
+    http_options=types.HttpOptions(timeout=60_000, retry_options=RETRY),
 )
 
 
