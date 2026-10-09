@@ -5,17 +5,21 @@ from pathlib import Path
 
 import streamlit as st
 
-from classifier import classify
-from llm import MODEL, ask
+from decision import UNITS
+from llm import MODEL
+from pipeline import process_ticket
+from retrieval import load_index
 from tickets import TEST_PATH, TICKETS_PATH, Ticket, load_tickets
 
 # Every text on the page, in both languages. Add new texts to both.
 TEXTS = {
     "tr": {
-        "title": "🎓 Üniversite Yardım Masası Asistanı",
+        "title": "🎓 BŞEÜ Öğrenci Yardım Masası",
+        "tagline": "Yapay zekâ destekli yardım asistanı · prototip",
         "subtitle": "BŞEÜ öğrenci ticket'larını okur, etiketler ve taslak cevap yazar.",
         "about": "Çalışma Tasarımı I projesi. Ticket → sınıflandırma → belge arama (RAG) → kaynaklı cevap → otomatik gönder veya birime yönlendir.",
-        "progress": "İlerleme",
+        "progress": "📊 Proje durumu",
+        "menu": "Menü",
         "steps": ["Gemini bağlantısı", "Etiket kuralları", "80 ticket'lık veri seti", "Sınıflandırma",
                   "Değerlendirme (skor)", "Belge arama (RAG)", "Karar ve yönlendirme"],
         "model": "Model",
@@ -27,10 +31,26 @@ TEXTS = {
         "received": "Talebiniz alındı.",
         "topic": "Konu",
         "unit": "İlgili birim",
-        "esc_msg": "Talebiniz bir personel tarafından incelenecek ve sizinle iletişime geçilecek.",
+        "forwarded": "Talebiniz yukarıdaki birime iletildi; bir personel size dönüş yapacak.",
         "emergency": "Acil bir tehlike varsa hemen 112'yi arayın.",
         "clear": "Sohbeti temizle",
-        "demo_note": "Prototip: cevaplar henüz üniversitenin resmi belgelerine dayanmıyor; otomatik gönderme kararı Phase 4'te gelecek.",
+        "try_examples": "Örnek sorular:",
+        "footer": "Öğrenci İşleri Daire Başkanlığı · 0228 214 10 71 · ogrenciisleri@bilecik.edu.tr",
+        "examples": ["Final sınavına giremedim, ne yapmalıyım?", "Kaydımı sildirirsem harç iade edilir mi?",
+                     "Yaz okulunda en fazla kaç ders alabilirim?"],
+        "source_label": "Kaynak",
+        "demo_note": "Prototip: cevaplar yalnızca resmî BŞEÜ belgelerine dayanır; belgeler sorunuzu yanıtlamıyorsa talebiniz ilgili birime iletilir.",
+        "tab_overview": "🏠 Genel bakış",
+        "pipeline": "Sistem nasıl çalışır",
+        "key_results": "Temel sonuçlar",
+        "test_score": "Test skoru (üçü de doğru)",
+        "missed_test": "Kaçırılan escalation (test)",
+        "hit3": "Doğru belge ilk 3'te (test)",
+        "unsafe": "Hatalı otomatik gönderim (dev)",
+        "not_run": "henüz çalıştırılmadı",
+        "units_table": "Kategoriler ve birimler",
+        "office": "Birim",
+        "nodes": ["Öğrenci ticket'ı", "Sınıflandırma", "Belge arama (RAG)", "Kaynaklı cevap", "Karar", "Otomatik gönder", "Birime yönlendir"],
         "tab_try": "💬 Ticket dene",
         "tab_data": "📋 Veri seti",
         "tab_eval": "📊 Değerlendirme",
@@ -63,7 +83,12 @@ TEXTS = {
         "reason": "Modelin gerekçesi",
         "esc_yes": "🙋 İnsana yönlendir",
         "esc_no": "Escalation gerekmiyor",
-        "draft_note": "Bu taslak henüz üniversite belgelerine dayanmıyor; gerçek bilgiler RAG ile (Phase 3) gelecek.",
+        "retrieved": "Bulunan kurallar (benzerlik puanı)",
+        "evidence": "Kanıt (kurallardan alıntı)",
+        "covered": "Belgeler cevaplıyor mu",
+        "decision": "Karar",
+        "auto_yes": "✅ Otomatik gönderilir",
+        "auto_no": "🙋 Birime yönlendirilir",
         "no_data": "Henüz ticket yok. data/tickets/tickets.jsonl dosyasını oluşturun.",
         "count": "Ticket sayısı",
         "filter": "Dil",
@@ -78,10 +103,12 @@ TEXTS = {
         "text_col": "Ticket metni",
     },
     "en": {
-        "title": "🎓 University Helpdesk Assistant",
+        "title": "🎓 BŞEÜ Student Helpdesk",
+        "tagline": "AI-assisted helpdesk assistant · prototype",
         "subtitle": "Reads BŞEÜ student tickets, labels them and drafts a reply.",
         "about": "Çalışma Tasarımı I project. Ticket → classification → document search (RAG) → reply with source → auto-send or route to an office.",
-        "progress": "Progress",
+        "progress": "📊 Project status",
+        "menu": "Menu",
         "steps": ["Gemini connection", "Label rules", "80-ticket dataset", "Classification",
                   "Evaluation (score)", "Document search (RAG)", "Decision and routing"],
         "model": "Model",
@@ -93,10 +120,26 @@ TEXTS = {
         "received": "Your request has been received.",
         "topic": "Topic",
         "unit": "Responsible office",
-        "esc_msg": "A staff member will review your request and contact you.",
+        "forwarded": "Your request has been forwarded to the office above; a staff member will get back to you.",
         "emergency": "If you are in immediate danger, call 112 now.",
         "clear": "Clear chat",
-        "demo_note": "Prototype: answers are not based on official university documents yet; the auto-send decision comes in Phase 4.",
+        "try_examples": "Example questions:",
+        "footer": "Student Affairs (Öğrenci İşleri) · 0228 214 10 71 · ogrenciisleri@bilecik.edu.tr",
+        "examples": ["I missed my final exam, what can I do?", "If I withdraw, do I get my tuition back?",
+                     "How many courses can I take in summer school?"],
+        "source_label": "Source",
+        "demo_note": "Prototype: answers come only from official BŞEÜ documents; if they do not answer your question, your request is forwarded to the responsible office.",
+        "tab_overview": "🏠 Overview",
+        "pipeline": "How the system works",
+        "key_results": "Key results",
+        "test_score": "Test score (all three correct)",
+        "missed_test": "Missed escalations (test)",
+        "hit3": "Right document in top 3 (test)",
+        "unsafe": "Unsafe auto-sends (dev)",
+        "not_run": "not run yet",
+        "units_table": "Categories and offices",
+        "office": "Office",
+        "nodes": ["Student ticket", "Classification", "Document search (RAG)", "Cited answer", "Decision", "Auto-send", "Route to office"],
         "tab_try": "💬 Try a ticket",
         "tab_data": "📋 Dataset",
         "tab_eval": "📊 Evaluation",
@@ -129,7 +172,12 @@ TEXTS = {
         "reason": "The model's reason",
         "esc_yes": "🙋 Send to a human",
         "esc_no": "No escalation needed",
-        "draft_note": "This draft is not based on university documents yet; real facts come with RAG (Phase 3).",
+        "retrieved": "Retrieved rules (similarity score)",
+        "evidence": "Evidence (quoted from the rules)",
+        "covered": "Covered by the documents",
+        "decision": "Decision",
+        "auto_yes": "✅ Auto-send",
+        "auto_no": "🙋 Route to the office",
         "no_data": "No tickets yet. Create data/tickets/tickets.jsonl.",
         "count": "Number of tickets",
         "filter": "Language",
@@ -144,7 +192,7 @@ TEXTS = {
         "text_col": "Ticket text",
     },
 }
-DONE_STEPS = 5  # how many of the steps above are finished; raise it as the project grows
+DONE_STEPS = 7  # how many of the steps above are finished; raise it as the project grows
 
 # Readable names for the label IDs (the IDs themselves stay English in the data).
 CATEGORY_NAMES = {
@@ -161,42 +209,53 @@ PRIORITY_NAMES = {
 }
 
 
-# Where each category is routed: the real BŞEÜ offices decided in CLAUDE.md.
-UNITS = {
-    "tr": {"account_access": "Bilgi İşlem Daire Başkanlığı", "it_support": "Bilgi İşlem Daire Başkanlığı",
-           "registration": "Öğrenci İşleri Daire Başkanlığı", "academic_records": "Öğrenci İşleri Daire Başkanlığı",
-           "billing": "Öğrenci İşleri, İstatistik Disiplin ve Harçlar Şube Müdürlüğü",
-           "campus_life": "Sağlık, Kültür ve Spor (SKS) Daire Başkanlığı", "other": "Öğrenci İşleri nöbetçi personeli"},
-    "en": {"account_access": "IT Department (Bilgi İşlem)", "it_support": "IT Department (Bilgi İşlem)",
-           "registration": "Student Affairs (Öğrenci İşleri)", "academic_records": "Student Affairs (Öğrenci İşleri)",
-           "billing": "Student Affairs, Fees Office (Harçlar Şube Müdürlüğü)",
-           "campus_life": "Health, Culture and Sports Office (SKS)", "other": "Student Affairs duty staff"},
-}
+@st.cache_resource
+def get_index() -> list:
+    """Load the saved knowledge-base vectors once per server, not on every click."""
+    return load_index()
+
+
+def student_answer(ticket: str, t: dict, language: str) -> str:
+    """Run the whole pipeline and build the chat answer: topic, office, then the cited reply or a hand-off."""
+    r = process_ticket(ticket, language, get_index())
+    c = r.classification
+    lines = [
+        f"✅ {t['received']}",
+        f"📌 **{t['topic']}:** {CATEGORY_NAMES[language][c.category]} · "
+        f"**{t['priority']}:** {PRIORITY_NAMES[language][c.priority]}",
+        f"🏢 **{t['unit']}:** {UNITS[language][c.category]}",
+    ]
+    if r.decision.auto_send:  # every safety check passed: send the grounded, cited reply
+        lines.append(f"💬 {r.answer.reply}")
+        cited = {chunk.id: chunk for _, chunk in r.hits}
+        for source_id in r.answer.sources:  # the exact section and article, e.g. "Mazeret sınavı (Madde 21)"
+            chunk = cited[source_id]
+            lines.append(f"> 📄 **{t['source_label']}:** {chunk.title} · {chunk.text.splitlines()[0]}")
+    else:  # a human answers; the student never sees an unchecked AI reply
+        lines.append(f"🙋 {t['forwarded']}")
+        if c.escalate and c.priority == "urgent":
+            lines.append(f"🚨 **{t['emergency']}**")
+    return "\n\n".join(lines)
+
 
 RESULTS_DIR = Path(__file__).resolve().parent.parent / "eval"
 
 
-def draft_reply(ticket: str, reply_language: str) -> str:
-    """A short draft answer. Not grounded in university documents yet (RAG comes in Phase 3)."""
-    return ask(f"You are a university helpdesk assistant. Reply briefly in {reply_language} to this ticket:\n\n{ticket}")
+def banner(title: str, tagline: str) -> str:
+    """BŞEÜ-style header with the university's own red gradient (bilecik.edu.tr tema-default.css).
+
+    HTML only for our fixed texts; user input must never be put into HTML.
+    """
+    return ("<div style='background: linear-gradient(90deg, #943434 0%, #DC4C2D 100%); color: #ffffff; "
+            "padding: 1.1rem 1.5rem; border-radius: 0.75rem; margin-bottom: 0.5rem'>"
+            f"<div style='font-size: 1.7rem; font-weight: 700'>{title}</div>"
+            f"<div style='opacity: 0.9'>{tagline}</div></div>")
 
 
-def student_answer(ticket: str, t: dict, language: str) -> str:
-    """Classify a student's message and build the chat answer: topic, office, then a draft or a hand-off."""
-    result = classify(ticket)
-    lines = [
-        f"✅ {t['received']}",
-        f"📌 **{t['topic']}:** {CATEGORY_NAMES[language][result.category]} · "
-        f"**{t['priority']}:** {PRIORITY_NAMES[language][result.priority]}",
-        f"🏢 **{t['unit']}:** {UNITS[language][result.category]}",
-    ]
-    if result.escalate:  # sensitive case: a human answers, so the student gets no AI draft
-        lines.append(f"🙋 {t['esc_msg']}")
-        if result.priority == "urgent":
-            lines.append(f"🚨 **{t['emergency']}**")
-    else:
-        lines += [f"💬 **{t['reply']}:**", draft_reply(ticket, t["reply_language"])]
-    return "\n\n".join(lines)
+def read_json(name: str) -> dict | None:
+    """One saved results file from eval/, or None if that evaluation has not been run yet."""
+    path = RESULTS_DIR / name
+    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else None
 
 
 def read_results() -> dict[str, dict]:
@@ -214,29 +273,46 @@ def read_dataset() -> tuple[list[Ticket], str | None]:
         return [], str(error)
 
 
-st.set_page_config(page_title="Helpdesk Assistant", page_icon="🎓", layout="wide")
+# The sidebar starts closed: the main page shows only the chat; everything else opens on click.
+st.set_page_config(page_title="BŞEÜ Yardım Masası", page_icon="🎓", layout="wide", initial_sidebar_state="collapsed")
+
+title_col, language_col = st.columns([6, 1], vertical_alignment="center")
+language = language_col.radio("Dil / Language", ["tr", "en"], format_func=str.upper, horizontal=True,
+                              label_visibility="collapsed")
+t = TEXTS[language]  # t["title"] gives the title in the chosen language
+title_col.markdown(banner(t["title"], t["tagline"]), unsafe_allow_html=True)
 
 with st.sidebar:
-    language = st.radio("Dil / Language", ["tr", "en"], format_func=str.upper, horizontal=True)
-    t = TEXTS[language]  # t["title"] gives the title in the chosen language
-    view = st.radio(t["view"], ["student", "staff"], format_func=lambda v: t[f"{v}_view"], horizontal=True)
-    st.caption(t["about"])
-    st.subheader(t["progress"])
-    for number, step in enumerate(t["steps"]):
-        st.markdown(("✅ " if number < DONE_STEPS else "⏳ ") + step)
-    st.caption(f"{t['model']}: `{MODEL}`")
+    st.subheader(t["menu"])
+    view = st.radio(t["view"], ["student", "staff"], format_func=lambda v: t[f"{v}_view"])
+    with st.expander(t["progress"]):  # closed until clicked
+        st.caption(t["about"])
+        for number, step in enumerate(t["steps"]):
+            st.markdown(("✅ " if number < DONE_STEPS else "⏳ ") + step)
+        st.caption(t["demo_note"])
+        st.caption(f"{t['model']}: `{MODEL}`")
 
 if view == "student":
-    st.title(t["title"])
-    st.caption(t["demo_note"])
     if "messages" not in st.session_state:
         st.session_state.messages = []  # the chat history, kept between reruns
-    with st.chat_message("assistant"):
-        st.markdown(t["greeting"])
+    if not st.session_state.messages:  # welcome card, only before the conversation starts
+        _, middle, _ = st.columns([1, 3, 1])
+        with middle.container(border=True):
+            # HTML only to center OUR fixed text; never put user input into HTML.
+            st.markdown(f"<div style='text-align:center; padding:1rem'>"
+                        f"<div style='font-size:2.5rem'>🎓</div><p>{t['greeting']}</p></div>",
+                        unsafe_allow_html=True)
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
-    if question := st.chat_input(t["chat_box"]):  # := stores the text and checks it is not empty
+    picked = None
+    if not st.session_state.messages:
+        st.caption(t["try_examples"])
+        for column, example in zip(st.columns(len(t["examples"])), t["examples"]):
+            if column.button(example):
+                picked = example
+    st.caption(f"📞 {t['footer']}")  # the real office, as a fallback for anything the chat cannot solve
+    if question := st.chat_input(t["chat_box"]) or picked:  # := stores the text and checks it is not empty
         st.session_state.messages.append({"role": "user", "content": question})
         with st.chat_message("user"):
             st.markdown(question)
@@ -255,9 +331,28 @@ if view == "student":
 
 tickets, data_error = read_dataset()
 
-st.title(t["title"])
 st.caption(t["subtitle"])
-tab_try, tab_data, tab_eval = st.tabs([t["tab_try"], t["tab_data"], t["tab_eval"]])
+tab_overview, tab_try, tab_data, tab_eval = st.tabs([t["tab_overview"], t["tab_try"], t["tab_data"], t["tab_eval"]])
+
+with tab_overview:
+    st.subheader(t["pipeline"])
+    n = t["nodes"]  # ticket, classify, search, answer, decision, auto-send, route
+    st.graphviz_chart(f"""digraph {{ rankdir=LR; node [shape=box, style="rounded,filled", fillcolor="#f6e3e3", color="#a90005"];
+        "{n[0]}" -> "{n[1]}" -> "{n[2]}" -> "{n[3]}" -> "{n[4]}";
+        "{n[4]}" -> "{n[5]}" [label="✓"]; "{n[4]}" -> "{n[6]}" [label="✗"]; }}""")
+
+    st.subheader(t["key_results"])
+    test, retrieval, pipeline_dev = read_json("results_high_test.json"), read_json("retrieval_results.json"), read_json("pipeline_results_dev.json")
+    k1, k2, k3, k4 = st.columns(4)
+    runs = [test[key] for key in ("score_run1", "score_run2") if test and test.get(key)]  # average both runs
+    k1.metric(t["test_score"], f"{sum(r['all_three'] for r in runs) / len(runs):.1%}" if runs else t["not_run"])
+    k2.metric(t["missed_test"], len(test["score_run1"]["missed_escalations"]) if test else t["not_run"])
+    k3.metric(t["hit3"], f"{retrieval['test']['summary']['hit@3']:.0%}" if retrieval else t["not_run"])
+    k4.metric(t["unsafe"], len(pipeline_dev["summary"]["unsafe_auto_sends"]) if pipeline_dev else t["not_run"])
+
+    st.subheader(t["units_table"])
+    st.dataframe([{t["category"]: CATEGORY_NAMES[language][cat], t["office"]: UNITS[language][cat]}
+                  for cat in CATEGORY_NAMES[language]], hide_index=True)
 
 def use_example(examples: dict[str, str]) -> None:
     """Copy the chosen example ticket into the text box."""
@@ -284,18 +379,28 @@ with tab_try:
         elif send:
             try:
                 with st.spinner(t["thinking"]):
-                    result = classify(ticket)
-                    reply = draft_reply(ticket, t["reply_language"])
+                    r = process_ticket(ticket, language, get_index())
+                c = r.classification
                 st.subheader(t["labels"])
                 c1, c2, c3 = st.columns(3)
-                c1.metric(t["category"], CATEGORY_NAMES[language][result.category])
-                c2.metric(t["priority"], PRIORITY_NAMES[language][result.priority])
-                c3.metric(t["escalate"], t["esc_yes"] if result.escalate else t["esc_no"])
-                st.caption(f"**{t['reason']}:** {result.reason}")
+                c1.metric(t["category"], CATEGORY_NAMES[language][c.category])
+                c2.metric(t["priority"], PRIORITY_NAMES[language][c.priority])
+                c3.metric(t["escalate"], t["esc_yes"] if c.escalate else t["esc_no"])
+                st.caption(f"**{t['reason']}:** {c.reason}")
+                st.subheader(t["retrieved"])
+                for score, chunk in r.hits:
+                    st.markdown(f"- `{score:.3f}` **{chunk.id}**: {chunk.text.splitlines()[0]}")
                 st.subheader(t["reply"])
+                st.caption(f"**{t['covered']}:** {r.answer.covered} · **{t['evidence']}:** {r.answer.evidence or '-'}")
                 with st.container(border=True):
-                    st.markdown(reply)
-                st.caption(t["draft_note"])
+                    st.markdown(r.answer.reply)
+                st.subheader(t["decision"])
+                if r.decision.auto_send:
+                    st.success(t["auto_yes"])
+                else:
+                    st.warning(f"{t['auto_no']}: {UNITS[language][c.category]}")
+                    for reason in r.decision.reasons:
+                        st.markdown(f"- {reason}")
             except Exception as error:  # noqa: BLE001 - on purpose: show any problem on the page, not a crash
                 st.error(f"{type(error).__name__}: {error}")
         else:

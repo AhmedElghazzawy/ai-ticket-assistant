@@ -1,3 +1,33 @@
 # Streamlit settings, read automatically when the app starts.
+# Colors come from BŞEÜ's own stylesheet (bilecik.edu.tr/css/tema-default.css):
+# #a90005 = --icerik-baslik-renk (headings), #852A2F = --tema-koyu-renk-tonu (dark tone).
+
 [theme]
-primaryColor = "#1f5fa8"  # university blue: buttons, selected tabs, links
+baseRadius = "medium"  # softly rounded corners
+
+[theme.light]
+primaryColor = "#a90005"              # BŞEÜ red: buttons, links, selected items
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f6f1f1"  # light warm grey for boxes and inputs
+textColor = "#2b2b2b"
+linkColor = "#852A2F"
+borderColor = "#e6d8d8"
+
+[theme.light.sidebar]
+backgroundColor = "#852A2F"           # BŞEÜ dark tone, like the university menu
+textColor = "#ffffff"
+
+[theme.dark]
+primaryColor = "#E0574D"              # lighter BŞEÜ red: the deep red is hard to read on dark backgrounds
+backgroundColor = "#161213"
+secondaryBackgroundColor = "#241b1c"
+textColor = "#f1eaea"
+linkColor = "#F08A80"
+borderColor = "#3a2a2b"
+
+[theme.dark.sidebar]
+backgroundColor = "#2a1214"
+textColor = "#f1eaea"
+
+[client]
+toolbarMode = "minimal"  # hide Streamlit's own menu and Deploy button, so the page looks like a real product
