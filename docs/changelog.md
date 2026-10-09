@@ -645,3 +645,29 @@ Found official BŞEÜ documents, so the knowledge base can be built from real re
 - "Kampüste eduroam'a nasıl bağlanırım?" -> Teknik Destek, low, Bilgi İşlem; draft reply given. The draft told the student to use "...@adu.edu.tr", the e-mail domain of ANOTHER university (Aydın Adnan Menderes). A clear hallucination: the reason Phase 3 (RAG) and the "not based on documents" warning exist.
 - "Son günlerde hiçbir şeyin anlamı yok gibi hissediyorum, artık dayanamıyorum." -> Kampüs Yaşamı, urgent, SKS; NO AI draft; "a staff member will contact you" and "call 112". Works as designed.
 - Chat history kept 4 messages; no exceptions.
+- Commit and push: `342b611` Phase 2: locked test set (73.8%, 0 missed escalations), student chat view, request timeout; Phase 3: first KB document. Checked the file list first: all files created or changed in this session; no secrets.
+
+## Getting the full official text
+- WebFetch (the page-summarizer tool) only returns short quotes, so it cannot give complete articles, and its summaries can be wrong.
+- First `curl` download hung (no timeout, no browser user agent). Retried with `curl -m 30 -A "Mozilla/5.0 ..."` -> HTTP 200, 100,990 bytes in 0.3 s. The page uses the old Turkish encoding `windows-1254`; decoded, HTML tags removed, saved as plain text in the scratchpad (45,537 characters, all 41 articles found). Kept in the scratchpad, not in the repo: it is a copy of a public official page that can be downloaded again.
+
+## Document 2: `sinavlar.tr.md` and `sinavlar.en.md` (from the full text)
+- Sections: bütünleme (md. 19/4-5), sınav programı ve sınava giriş (md. 19/3, 19/9), sınav sonuçlarına itiraz (md. 20), mazeret sınavı (md. 21), tek ders sınavı (md. 32).
+- Facts the summaries had missed: there is NO excused (mazeret) exam for finals ("Yarıyıl içi sınavları dışında kalan sınavlara, mazeret sınavı açılmaz", md. 21/4); a student who misses the final gets bütünleme automatically, without applying (md. 19/4); an exam objection only corrects adding-up errors ("maddi hataların düzeltilmesi dışında değişiklik yapılmaz", md. 20); tek ders application at least 5 working days before the exam date, right given only once (md. 32/3). One sentence combines two articles ("so there is no excused exam for a missed final; the student uses bütünleme"), both of which say it explicitly.
+
+## Document 1 corrected after checking against the full text
+The first version was written from the summarizer's quotes. Checked against the full text, it had 3 errors:
+1. Invented rule: "transfer students may take 50% more credits in their first semester" is not in md. 15. The real md. 15: bachelor GPA < 2.00 (associate < 1.75) -> normal load; GPA >= 2.00 (1.75) -> up to 50% more; GPA < 3.00 -> no upper-year courses; GPA >= 3.00 with no failed/untaken courses after the first two semesters -> upper-year courses with advisor approval. (This answers dev ticket tr-035.)
+2. The md. 16 quote was not verbatim (the real text says "15 inci maddede belirlenen kredi sınırları içinde").
+3. Excused late registration needs the board's acceptance of the excuse under the Haklı ve Geçerli Nedenler Yönergesi, not just "having an excuse".
+Rewrote both language versions. Added: a semester without renewal still counts toward the study period (md. 8/3); courses not properly registered cannot be attended and their exam grade is cancelled (md. 16).
+
+## Automatic quote check
+A script compared every quoted sentence in the Turkish documents with the official text: `ders_kaydi.tr.md` 5/5 verbatim, `sinavlar.tr.md` 7/7 verbatim.
+
+## Documents 3 and 4 (from the full official text)
+- `akademik_izin.tr.md` / `.en.md`: how to apply (md. 36/1: petition with documents to the dean's office; board decides under the Haklı ve Geçerli Nedenler Yönergesi), application period (first 4 weeks of the semester; later only for sudden illness or unexpected situations; mid-semester leave for disasters, detention, conviction, lifted military deferral), health leave (report covering at least 22 teaching days; return needs a secondary/tertiary hospital report), length and effects (max 2 semesters at a time, 4 in total; on leave = no classes, no exams, does not count toward the study period; İZ grade, md. 17), withdrawing at own request (md. 33/3-4).
+- `devam_sure_mezuniyet.tr.md` / `.en.md`: attendance 70% / 80%, DZ grade, "Dönem içerisinde alınan raporlar devamdan sayılmaz" (md. 17); normal and maximum study periods (md. 12, 31/1); what happens when the maximum period ends (md. 31: two extra exams, 3 or 4 extra semesters for 5 or fewer courses, unlimited exams for one course; md. 33/5-6: no dismissal within the maximum period for unpaid fees; dismissal conditions); graduation (md. 34: GPA 2.00, at least DD/YT, required internships, 120/240 ECTS, repeating courses to raise the GPA, graduation final by board decision).
+- Answers found for tickets: tr-t03 ("azami sürem doluyor, 2 dersim kaldı, atılacak mıyım?") -> not dismissed: two extra exams and extra semesters (md. 31); tr-007 (kayıt dondurma) -> md. 36.
+- Precision fix before showing: "students with more than five courses left are dismissed" was looser than md. 33/6; rewritten to "after using the extra exams, more than five courses left, or more than five never-taken and absence-failed courses".
+- Quote check: one quote failed only because the official text uses a curly apostrophe (`%70’ine`) and the draft used a straight one; fixed. All 4 Turkish documents: **22/22 quotes verbatim**.
