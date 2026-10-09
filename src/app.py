@@ -1,5 +1,8 @@
 """Web page for the ticket assistant. Run with: .venv/bin/streamlit run src/app.py"""
 
+import json
+from pathlib import Path
+
 import streamlit as st
 
 from classifier import classify
@@ -18,6 +21,23 @@ TEXTS = {
         "model": "Model",
         "tab_try": "💬 Ticket dene",
         "tab_data": "📋 Veri seti",
+        "tab_eval": "📊 Değerlendirme",
+        "no_results": "Henüz sonuç yok. Terminalde çalıştırın:",
+        "results_file": "Sonuç dosyası",
+        "run_info": "Model {model}, düşünme seviyesi {level}, {runs} çalıştırma, {date}",
+        "score_table": "Skorlar (1. çalıştırma)",
+        "metric": "Ölçüt",
+        "all_three": "Üçü de doğru",
+        "within_one": "Öncelik (bir seviye yakın)",
+        "missed": "Kaçırılan escalation",
+        "missed_help": "İnsana gitmesi gerekip gitmeyen ticket'lar: en tehlikeli hata.",
+        "over": "Gereksiz escalation",
+        "consistency": "Tutarlılık (1. ve 2. çalıştırma aynı etiket)",
+        "mistakes": "Hatalar (1. çalıştırma) ve modelin gerekçesi",
+        "mine": "benim",
+        "model_says": "model",
+        "rerun": "Yeni bir değerlendirme yaklaşık 20 dakika ve 160 API çağrısı sürer. Terminalde çalıştırın:",
+        "limits": "Bu skor ne kanıtlamaz: kural kitabı bu 80 ticket'a bakılarak düzeltildi, bu yüzden skor iyimserdir. Güvenilir skor Phase 2'deki kilitli test setinden gelecek. Etiketler de tartışmalı olabilir ve ticket'ları biz yazdık.",
         "ticket_box": "Öğrencinin ticket'ı",
         "example": "Veri setinden örnek seç",
         "example_hint": "Bir örnek seçin veya kendiniz yazın",
@@ -55,6 +75,23 @@ TEXTS = {
         "model": "Model",
         "tab_try": "💬 Try a ticket",
         "tab_data": "📋 Dataset",
+        "tab_eval": "📊 Evaluation",
+        "no_results": "No results yet. Run in the terminal:",
+        "results_file": "Results file",
+        "run_info": "Model {model}, thinking level {level}, {runs} runs, {date}",
+        "score_table": "Scores (run 1)",
+        "metric": "Metric",
+        "all_three": "All three correct",
+        "within_one": "Priority (within one level)",
+        "missed": "Missed escalations",
+        "missed_help": "Tickets that needed a human but were not escalated: the most dangerous error.",
+        "over": "Over-escalations",
+        "consistency": "Consistency (same label in run 1 and run 2)",
+        "mistakes": "Mistakes (run 1) and the model's reason",
+        "mine": "mine",
+        "model_says": "model",
+        "rerun": "A new evaluation takes about 20 minutes and 160 API calls. Run it in the terminal:",
+        "limits": "What this score does NOT prove: the rulebook was fixed while looking at these 80 tickets, so the score is optimistic. The trustworthy score comes from the locked test set in Phase 2. Labels can be debatable, and we wrote the tickets ourselves.",
         "ticket_box": "The student's ticket",
         "example": "Pick an example from the dataset",
         "example_hint": "Pick an example or write your own",
@@ -83,7 +120,7 @@ TEXTS = {
         "text_col": "Ticket text",
     },
 }
-DONE_STEPS = 4  # how many of the steps above are finished; raise it as the project grows
+DONE_STEPS = 5  # how many of the steps above are finished; raise it as the project grows
 
 # Readable names for the label IDs (the IDs themselves stay English in the data).
 CATEGORY_NAMES = {
@@ -98,6 +135,14 @@ PRIORITY_NAMES = {
     "tr": {"urgent": "🔴 Acil", "high": "🟠 Yüksek", "medium": "🟡 Orta", "low": "🟢 Düşük"},
     "en": {"urgent": "🔴 Urgent", "high": "🟠 High", "medium": "🟡 Medium", "low": "🟢 Low"},
 }
+
+
+RESULTS_DIR = Path(__file__).resolve().parent.parent / "eval"
+
+
+def read_results() -> dict[str, dict]:
+    """All saved evaluation runs, keyed by file name (e.g. results_high.json)."""
+    return {p.name: json.loads(p.read_text(encoding="utf-8")) for p in sorted(RESULTS_DIR.glob("results_*.json"))}
 
 
 def read_dataset() -> tuple[list[Ticket], str | None]:
@@ -125,7 +170,7 @@ tickets, data_error = read_dataset()
 
 st.title(t["title"])
 st.caption(t["subtitle"])
-tab_try, tab_data = st.tabs([t["tab_try"], t["tab_data"]])
+tab_try, tab_data, tab_eval = st.tabs([t["tab_try"], t["tab_data"], t["tab_eval"]])
 
 def use_example(examples: dict[str, str]) -> None:
     """Copy the chosen example ticket into the text box."""
@@ -220,3 +265,60 @@ with tab_data:
             "escalate": st.column_config.CheckboxColumn(t["escalate"], width="small"),
             "text": st.column_config.TextColumn(t["text_col"], width="large"),
         })
+
+with tab_eval:
+    all_results = read_results()
+    if not all_results:
+        st.info(t["no_results"])
+        st.code(".venv/bin/python src/evaluate.py high")
+    else:
+        newest = max(all_results, key=lambda name: all_results[name]["date"])  # open the latest run first
+        chosen = st.radio(t["results_file"], list(all_results), index=list(all_results).index(newest), horizontal=True)
+        res = all_results[chosen]
+        st.caption(t["run_info"].format(model=res["model"], level=res["thinking_level"], runs=res["runs"], date=res["date"]))
+
+        # Scores table: one row per metric, one column per language group.
+        names = {"category": t["category"], "priority": t["priority"], "escalate": t["escalate"],
+                 "all_three": t["all_three"], "priority_within_one": t["within_one"]}
+        groups = {t["all"]: res["score_run1"], "TR": res["score_run1_tr"], "EN": res["score_run1_en"]}
+        st.subheader(t["score_table"])
+        st.dataframe(
+            [{t["metric"]: label, **{g: f"{s[key]:.1%}" for g, s in groups.items()}} for key, label in names.items()],
+            hide_index=True,
+        )
+
+        run1 = res["score_run1"]
+        col_missed, col_over = st.columns(2)
+        col_missed.metric(t["missed"], len(run1["missed_escalations"]), help=t["missed_help"])
+        col_missed.caption(", ".join(run1["missed_escalations"]) or "✅")
+        col_over.metric(t["over"], len(run1["over_escalations"]))
+        col_over.caption(", ".join(run1["over_escalations"]) or "✅")
+
+        if res["consistency"]:
+            c = res["consistency"]
+            st.subheader(t["consistency"])
+            k1, k2, k3 = st.columns(3)
+            k1.metric(t["category"], f"{c['category']:.0%}")
+            k2.metric(t["priority"], f"{c['priority']:.0%}")
+            k3.metric(t["escalate"], f"{c['escalate']:.0%}")
+
+        # Every run-1 mistake, side by side with my label and the model's reason.
+        st.subheader(t["mistakes"])
+        first_run = res["predictions"][0]
+        rows = []
+        for x in tickets:
+            p = first_run.get(x.id)
+            wrong = [f for f in ("category", "priority", "escalate") if p and p[f] != getattr(x, f)]
+            if wrong:
+                diffs = "; ".join(f"{f}: {t['model_says']}={p[f]}, {t['mine']}={getattr(x, f)}" for f in wrong)
+                rows.append({"id": x.id, "diff": diffs, "text": x.text, "reason": p["reason"]})
+        st.dataframe(rows, hide_index=True, column_config={
+            "id": st.column_config.TextColumn("ID", width="small"),
+            "diff": st.column_config.TextColumn(t["metric"], width="medium"),
+            "text": st.column_config.TextColumn(t["text_col"], width="medium"),
+            "reason": st.column_config.TextColumn(t["reason"], width="large"),
+        })
+
+        st.warning(t["limits"])
+        st.caption(t["rerun"])
+        st.code(".venv/bin/python src/evaluate.py high")

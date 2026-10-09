@@ -532,3 +532,27 @@ Average of 2 runs (fair comparison, because single runs move by several points):
 ### Bundle slimmed (claude_context.md had grown to 429k characters)
 - `tools/make_context.py`: `eval/*.json` files (raw predictions, about 60 KB each) are listed with a one-line note instead of their content; their numbers are in this changelog. Git "pathspecs" `:(exclude)eval/*.json` and `:(exclude)docs/changelog.md` leave them out of the history diffs (the changelog is already shown in full, so its diffs were duplicates).
 - Result: 429,000 -> 251,000 characters (about 63,000 tokens).
+
+- Commit and push: `a7a031a` Steps 4-5: classifier (structured output, thinking HIGH) and evaluation with consistency; results for low vs high.
+- That commit also included `AGENTS.md`, which Claude did not create: `git add -A` picked it up. Read it afterwards: a copy of CLAUDE.md adapted for Codex (created Oct 8, 23:48), no secrets. Lesson: list and check any file Claude did not create before committing. Open question for me: keep both CLAUDE.md and AGENTS.md (then they must be kept in sync)?
+
+## Step 6: Evaluation tab in the web page (2026-10-09)
+
+### Design decision
+- CLAUDE.md asks for "run the evaluation" in the page. A full run takes about 20 minutes and 160 API calls: a button would freeze the page and could use up the quota by accident in a demo. So the tab SHOWS the saved results from `eval/` and gives the terminal command for a new run.
+
+### `src/app.py`, 2 pieces
+1. Texts for the tab in TR and EN; `read_results()` finds every `eval/results_*.json` with `glob`; a third tab "📊 Değerlendirme / Evaluation"; sidebar `DONE_STEPS = 5` (Evaluation ✅).
+2. The tab: choose a results file (opens the newest run first, by date); run info (model, thinking level, runs, date); scores table (rows = category, priority, escalate, all three, priority within one; columns = all / TR / EN); missed escalations and over-escalations as numbers plus ticket ids (with a help text: missed = the most dangerous error); consistency (3 numbers); every run-1 mistake with my label, the model's label, the ticket text and the model's reason; a warning box "what this score does NOT prove"; the command for a new run.
+
+### Commands and results
+- AppTest (no API calls): no exceptions; 3 tabs; sidebar shows "✅ Değerlendirme (skor)"; with results_low.json the table matches the terminal report exactly (all three 73.8% / 62.5% / 85.0%), missed 0, over 4, 21 mistake rows; switching to EN changes the tab names.
+- Fixed: it opened `results_low.json` first (alphabetical); now it opens the newest run (`results_high.json`).
+
+## Step 7: Review and package (2026-10-09, in progress)
+
+### `README.md` (new, Turkish, English technical terms kept), 3 pieces
+One file instead of a separate professor document: it is the GitHub front page and answers every question the professor asked.
+1. What the project is; pipeline with the status of each stage (classification and evaluation done, RAG/answer/decision later); the 7 categories with examples and their real BŞEÜ offices; priority and escalation rules in short; links to docs/labels.md and docs/problem_catalog.md.
+2. Dataset (80 dev tickets, mix, tricky cases, real BŞEÜ names, Phase 2 locked test set); classification method (rulebook as system prompt, structured output, reason first, temperature 1.0 and why, thinking high); evaluation method (what each metric means); first results table (low vs high, average of 2 runs); "what this score does NOT prove"; scope and limits.
+3. Setup and run commands; project structure (one line per file); next steps, including the planned RAG documents for Phase 3 (stated as a plan).
