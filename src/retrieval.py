@@ -65,10 +65,15 @@ def similarity(a: list[float], b: list[float]) -> float:
     return sum(x * y for x, y in zip(a, b))
 
 
-def search(ticket: str, index: list[tuple[Chunk, list[float]]], k: int = 3) -> list[tuple[float, Chunk]]:
-    """The k chunks most similar to the ticket, best first."""
+def search(ticket: str, index: list[tuple[Chunk, list[float]]], k: int = 3,
+           language: str | None = None) -> list[tuple[float, Chunk]]:
+    """The k chunks most similar to the ticket, best first.
+
+    language ("tr"/"en"): only search chunks in that language, so the same rule does not appear twice (TR + EN).
+    """
     query = embed([query_text(ticket)])[0]
-    scored = [(similarity(query, vector), chunk) for chunk, vector in index]
+    scored = [(similarity(query, vector), chunk) for chunk, vector in index
+              if language is None or chunk.language == language]
     return sorted(scored, key=lambda pair: pair[0], reverse=True)[:k]
 
 

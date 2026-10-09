@@ -737,3 +737,21 @@ A script compared every quoted sentence in the Turkish documents with the offici
 - Found: the top 3 often holds the same rule twice (TR and EN versions), wasting a slot. Next fix: search only the chunks in the ticket's language.
 - Bundle: `data/kb_index.json` is listed with a note instead of its numbers, and left out of the history diffs.
 - Bug in my own edit: the bundle jumped to 1.28 million characters because the 855 KB index was still pasted in. The search-and-replace edit to make_context.py silently did not match (wrong indentation). Fixed: `SUMMARY_ONLY` is now a tuple of patterns (`eval/*.json`, `data/kb_index.json`) used both for the file list and the history pathspecs, and every scripted edit now asserts that its text was found. Bundle back to 436,329 characters.
+- Commit and push: `e1cc96d` Phase 3: chunking and embedding search (gemini-embedding-2), index of 98 chunks.
+
+### Search in the ticket's language
+- `search(..., language="tr"|"en")`: only chunks in that language are compared, so the top 3 holds 3 different rules instead of the same rule in TR and EN.
+
+### Expected-document labels: `data/tickets/expected_docs.jsonl` (new)
+- For all 120 tickets (dev + test): the document a staff member would use to answer, or `none`. Rule: a document counts only if it really contains information that helps answer the ticket. Drafted by Claude; checked automatically (every ticket labeled once; every label is a real document or none). The test-set labels were written before any retrieval result was seen.
+- Finding: only 41/80 dev tickets (51%) and 14/40 test tickets (35%) can be answered from the knowledge base. The rest are IT problems, crises, cafeteria, KYK loans, etc. Consequences: the auto-send decision must recognize "no good document"; the biggest coverage gap is IT (no official BŞEÜ guide found yet).
+
+### `src/evaluate_retrieval.py` (new): measuring retrieval
+- Embeds all 120 tickets in paced batches (3 calls instead of 120), ranks the chunks in each ticket's language, and checks hit@1 (right document first) and hit@3 (right document in the top 3) for answerable tickets, plus the top similarity score for answerable vs. `none` tickets. Saves to `eval/retrieval_results.json`.
+- Result:
+  | | answerable | hit@1 | hit@3 | top score answerable (min / mean) | top score none (mean / max) |
+  |---|---|---|---|---|---|
+  | dev | 41 | 90% | **100%** | 0.635 / 0.728 | 0.645 / 0.730 |
+  | test | 14 | 93% | **100%** | 0.652 / 0.741 | 0.652 / 0.713 |
+- Honest limits: only 10 topics (finding the right one among 10 is easier than among hundreds); the labels and the documents were both written by Claude (possible bias); 14 answerable test tickets is a small sample.
+- Important for Phase 4: the score ranges overlap (a `none` ticket reached 0.730, an answerable one was as low as 0.635), so a similarity threshold alone cannot decide "strong match". The decision step needs another check, e.g. the model confirms the retrieved rule really answers the ticket and cites it, or says the documents do not cover it.

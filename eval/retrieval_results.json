@@ -1,0 +1,1598 @@
+{
+ "dev": {
+  "summary": {
+   "answerable": 41,
+   "hit@1": 0.9024390243902439,
+   "hit@3": 1,
+   "top_score_answerable": [
+    0.635,
+    0.728
+   ],
+   "top_score_none": [
+    0.645,
+    0.73
+   ],
+   "misses": []
+  },
+  "rows": [
+   {
+    "id": "tr-001",
+    "language": "tr",
+    "expected": "belgeler_hesaplar",
+    "top_score": 0.782,
+    "top_chunks": [
+     "belgeler_hesaplar.tr#2",
+     "belgeler_hesaplar.tr#5",
+     "belgeler_hesaplar.tr#1"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "tr-002",
+    "language": "tr",
+    "expected": "kampus_yasami",
+    "top_score": 0.684,
+    "top_chunks": [
+     "kampus_yasami.tr#4",
+     "akademik_izin.tr#3",
+     "kampus_yasami.tr#1"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "tr-003",
+    "language": "tr",
+    "expected": "harc_ucretler",
+    "top_score": 0.757,
+    "top_chunks": [
+     "harc_ucretler.tr#6",
+     "harc_ucretler.tr#2",
+     "harc_ucretler.tr#5"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "tr-004",
+    "language": "tr",
+    "expected": "belgeler_hesaplar",
+    "top_score": 0.805,
+    "top_chunks": [
+     "belgeler_hesaplar.tr#2",
+     "belgeler_hesaplar.tr#1",
+     "belgeler_hesaplar.tr#5"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "tr-005",
+    "language": "tr",
+    "expected": "sinavlar",
+    "top_score": 0.765,
+    "top_chunks": [
+     "sinavlar.tr#3",
+     "sinavlar.tr#4",
+     "sinavlar.tr#1"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "en-001",
+    "language": "en",
+    "expected": "none",
+    "top_score": 0.604,
+    "top_chunks": [
+     "belgeler_hesaplar.en#5",
+     "akademik_izin.en#4",
+     "akademik_izin.en#3"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "en-002",
+    "language": "en",
+    "expected": "ders_kaydi",
+    "top_score": 0.688,
+    "top_chunks": [
+     "ders_kaydi.en#2",
+     "ders_kaydi.en#3",
+     "ders_kaydi.en#1"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "en-003",
+    "language": "en",
+    "expected": "belgeler_hesaplar",
+    "top_score": 0.767,
+    "top_chunks": [
+     "belgeler_hesaplar.en#3",
+     "staj.en#2",
+     "staj.en#3"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "en-004",
+    "language": "en",
+    "expected": "ders_kaydi",
+    "top_score": 0.654,
+    "top_chunks": [
+     "akademik_izin.en#2",
+     "ders_kaydi.en#1",
+     "ders_kaydi.en#2"
+    ],
+    "hit1": false,
+    "hit3": true
+   },
+   {
+    "id": "en-005",
+    "language": "en",
+    "expected": "belgeler_hesaplar",
+    "top_score": 0.734,
+    "top_chunks": [
+     "belgeler_hesaplar.en#6",
+     "belgeler_hesaplar.en#2",
+     "belgeler_hesaplar.en#3"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "tr-006",
+    "language": "tr",
+    "expected": "none",
+    "top_score": 0.703,
+    "top_chunks": [
+     "belgeler_hesaplar.tr#2",
+     "harc_ucretler.tr#4",
+     "ders_kaydi.tr#1"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "tr-007",
+    "language": "tr",
+    "expected": "akademik_izin",
+    "top_score": 0.77,
+    "top_chunks": [
+     "akademik_izin.tr#2",
+     "akademik_izin.tr#4",
+     "akademik_izin.tr#1"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "tr-008",
+    "language": "tr",
+    "expected": "none",
+    "top_score": 0.672,
+    "top_chunks": [
+     "belgeler_hesaplar.tr#6",
+     "harc_ucretler.tr#3",
+     "harc_ucretler.tr#6"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "tr-009",
+    "language": "tr",
+    "expected": "none",
+    "top_score": 0.661,
+    "top_chunks": [
+     "akademik_izin.tr#1",
+     "belgeler_hesaplar.tr#2",
+     "belgeler_hesaplar.tr#3"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "tr-010",
+    "language": "tr",
+    "expected": "none",
+    "top_score": 0.708,
+    "top_chunks": [
+     "devam_sure_mezuniyet.tr#3",
+     "sinavlar.tr#2",
+     "sinavlar.tr#4"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "en-006",
+    "language": "en",
+    "expected": "harc_ucretler",
+    "top_score": 0.689,
+    "top_chunks": [
+     "harc_ucretler.en#2",
+     "harc_ucretler.en#6",
+     "harc_ucretler.en#3"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "en-007",
+    "language": "en",
+    "expected": "none",
+    "top_score": 0.644,
+    "top_chunks": [
+     "sinavlar.en#5",
+     "akademik_izin.en#4",
+     "belgeler_hesaplar.en#4"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "en-008",
+    "language": "en",
+    "expected": "none",
+    "top_score": 0.712,
+    "top_chunks": [
+     "belgeler_hesaplar.en#2",
+     "kampus_yasami.en#4",
+     "belgeler_hesaplar.en#3"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "en-009",
+    "language": "en",
+    "expected": "none",
+    "top_score": 0.612,
+    "top_chunks": [
+     "akademik_izin.en#2",
+     "sinavlar.en#4",
+     "kampus_yasami.en#1"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "en-010",
+    "language": "en",
+    "expected": "none",
+    "top_score": 0.698,
+    "top_chunks": [
+     "belgeler_hesaplar.en#2",
+     "belgeler_hesaplar.en#5",
+     "belgeler_hesaplar.en#3"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "tr-011",
+    "language": "tr",
+    "expected": "ders_kaydi",
+    "top_score": 0.764,
+    "top_chunks": [
+     "ders_kaydi.tr#3",
+     "muafiyet_intibak.tr#5",
+     "ders_kaydi.tr#2"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "tr-012",
+    "language": "tr",
+    "expected": "harc_ucretler",
+    "top_score": 0.732,
+    "top_chunks": [
+     "harc_ucretler.tr#3",
+     "harc_ucretler.tr#4",
+     "ders_kaydi.tr#1"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "tr-013",
+    "language": "tr",
+    "expected": "yaz_okulu",
+    "top_score": 0.834,
+    "top_chunks": [
+     "yaz_okulu.tr#4",
+     "muafiyet_intibak.tr#4",
+     "yaz_okulu.tr#1"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "tr-014",
+    "language": "tr",
+    "expected": "none",
+    "top_score": 0.653,
+    "top_chunks": [
+     "devam_sure_mezuniyet.tr#1",
+     "devam_sure_mezuniyet.tr#3",
+     "sinavlar.tr#4"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "tr-015",
+    "language": "tr",
+    "expected": "none",
+    "top_score": 0.602,
+    "top_chunks": [
+     "devam_sure_mezuniyet.tr#2",
+     "sinavlar.tr#2",
+     "devam_sure_mezuniyet.tr#1"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "en-011",
+    "language": "en",
+    "expected": "ders_kaydi",
+    "top_score": 0.659,
+    "top_chunks": [
+     "ders_kaydi.en#3",
+     "ders_kaydi.en#2",
+     "muafiyet_intibak.en#5"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "en-012",
+    "language": "en",
+    "expected": "muafiyet_intibak",
+    "top_score": 0.693,
+    "top_chunks": [
+     "muafiyet_intibak.en#2",
+     "muafiyet_intibak.en#4",
+     "muafiyet_intibak.en#1"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "en-013",
+    "language": "en",
+    "expected": "none",
+    "top_score": 0.674,
+    "top_chunks": [
+     "belgeler_hesaplar.en#3",
+     "ders_kaydi.en#2",
+     "devam_sure_mezuniyet.en#4"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "en-014",
+    "language": "en",
+    "expected": "harc_ucretler",
+    "top_score": 0.722,
+    "top_chunks": [
+     "harc_ucretler.en#4",
+     "harc_ucretler.en#3",
+     "harc_ucretler.en#1"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "en-015",
+    "language": "en",
+    "expected": "sinavlar",
+    "top_score": 0.635,
+    "top_chunks": [
+     "sinavlar.en#3",
+     "sinavlar.en#4",
+     "sinavlar.en#5"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "tr-016",
+    "language": "tr",
+    "expected": "none",
+    "top_score": 0.619,
+    "top_chunks": [
+     "belgeler_hesaplar.tr#2",
+     "belgeler_hesaplar.tr#6",
+     "belgeler_hesaplar.tr#5"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "tr-017",
+    "language": "tr",
+    "expected": "belgeler_hesaplar",
+    "top_score": 0.768,
+    "top_chunks": [
+     "belgeler_hesaplar.tr#3",
+     "belgeler_hesaplar.tr#2",
+     "belgeler_hesaplar.tr#4"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "tr-018",
+    "language": "tr",
+    "expected": "none",
+    "top_score": 0.616,
+    "top_chunks": [
+     "akademik_izin.tr#1",
+     "akademik_izin.tr#2",
+     "kampus_yasami.tr#2"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "tr-019",
+    "language": "tr",
+    "expected": "kampus_yasami",
+    "top_score": 0.697,
+    "top_chunks": [
+     "kampus_yasami.tr#1",
+     "kampus_yasami.tr#2",
+     "kampus_yasami.tr#3"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "en-016",
+    "language": "en",
+    "expected": "none",
+    "top_score": 0.65,
+    "top_chunks": [
+     "belgeler_hesaplar.en#2",
+     "belgeler_hesaplar.en#6",
+     "belgeler_hesaplar.en#5"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "en-017",
+    "language": "en",
+    "expected": "none",
+    "top_score": 0.578,
+    "top_chunks": [
+     "devam_sure_mezuniyet.en#3",
+     "belgeler_hesaplar.en#3",
+     "belgeler_hesaplar.en#2"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "en-018",
+    "language": "en",
+    "expected": "none",
+    "top_score": 0.519,
+    "top_chunks": [
+     "harc_ucretler.en#1",
+     "kampus_yasami.en#4",
+     "devam_sure_mezuniyet.en#2"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "en-019",
+    "language": "en",
+    "expected": "belgeler_hesaplar",
+    "top_score": 0.715,
+    "top_chunks": [
+     "belgeler_hesaplar.en#4",
+     "devam_sure_mezuniyet.en#4",
+     "belgeler_hesaplar.en#5"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "en-020",
+    "language": "en",
+    "expected": "sinavlar",
+    "top_score": 0.804,
+    "top_chunks": [
+     "sinavlar.en#4",
+     "sinavlar.en#1",
+     "sinavlar.en#5"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "en-021",
+    "language": "en",
+    "expected": "ders_kaydi",
+    "top_score": 0.707,
+    "top_chunks": [
+     "muafiyet_intibak.en#4",
+     "ders_kaydi.en#1",
+     "ders_kaydi.en#3"
+    ],
+    "hit1": false,
+    "hit3": true
+   },
+   {
+    "id": "tr-020",
+    "language": "tr",
+    "expected": "harc_ucretler",
+    "top_score": 0.692,
+    "top_chunks": [
+     "harc_ucretler.tr#3",
+     "harc_ucretler.tr#6",
+     "belgeler_hesaplar.tr#5"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "tr-021",
+    "language": "tr",
+    "expected": "harc_ucretler",
+    "top_score": 0.765,
+    "top_chunks": [
+     "harc_ucretler.tr#3",
+     "harc_ucretler.tr#1",
+     "harc_ucretler.tr#4"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "tr-022",
+    "language": "tr",
+    "expected": "none",
+    "top_score": 0.701,
+    "top_chunks": [
+     "harc_ucretler.tr#3",
+     "harc_ucretler.tr#1",
+     "harc_ucretler.tr#4"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "tr-023",
+    "language": "tr",
+    "expected": "harc_ucretler",
+    "top_score": 0.81,
+    "top_chunks": [
+     "harc_ucretler.tr#5",
+     "harc_ucretler.tr#6",
+     "akademik_izin.tr#5"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "tr-024",
+    "language": "tr",
+    "expected": "none",
+    "top_score": 0.685,
+    "top_chunks": [
+     "belgeler_hesaplar.tr#2",
+     "belgeler_hesaplar.tr#1",
+     "belgeler_hesaplar.tr#6"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "tr-025",
+    "language": "tr",
+    "expected": "sinavlar",
+    "top_score": 0.682,
+    "top_chunks": [
+     "sinavlar.tr#1",
+     "sinavlar.tr#4",
+     "sinavlar.tr#2"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "tr-026",
+    "language": "tr",
+    "expected": "none",
+    "top_score": 0.663,
+    "top_chunks": [
+     "belgeler_hesaplar.tr#2",
+     "belgeler_hesaplar.tr#1",
+     "belgeler_hesaplar.tr#5"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "tr-027",
+    "language": "tr",
+    "expected": "none",
+    "top_score": 0.692,
+    "top_chunks": [
+     "belgeler_hesaplar.tr#2",
+     "belgeler_hesaplar.tr#5",
+     "belgeler_hesaplar.tr#1"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "tr-028",
+    "language": "tr",
+    "expected": "kampus_yasami",
+    "top_score": 0.681,
+    "top_chunks": [
+     "kampus_yasami.tr#4",
+     "kampus_yasami.tr#3",
+     "kampus_yasami.tr#2"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "tr-029",
+    "language": "tr",
+    "expected": "none",
+    "top_score": 0.625,
+    "top_chunks": [
+     "kampus_yasami.tr#4",
+     "belgeler_hesaplar.tr#4",
+     "sinavlar.tr#2"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "tr-030",
+    "language": "tr",
+    "expected": "none",
+    "top_score": 0.635,
+    "top_chunks": [
+     "kampus_yasami.tr#1",
+     "sinavlar.tr#2",
+     "devam_sure_mezuniyet.tr#1"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "tr-031",
+    "language": "tr",
+    "expected": "none",
+    "top_score": 0.639,
+    "top_chunks": [
+     "belgeler_hesaplar.tr#6",
+     "belgeler_hesaplar.tr#2",
+     "belgeler_hesaplar.tr#4"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "tr-032",
+    "language": "tr",
+    "expected": "none",
+    "top_score": 0.626,
+    "top_chunks": [
+     "kampus_yasami.tr#4",
+     "harc_ucretler.tr#7",
+     "harc_ucretler.tr#4"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "tr-033",
+    "language": "tr",
+    "expected": "none",
+    "top_score": 0.618,
+    "top_chunks": [
+     "devam_sure_mezuniyet.tr#1",
+     "devam_sure_mezuniyet.tr#3",
+     "ders_kaydi.tr#3"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "tr-034",
+    "language": "tr",
+    "expected": "ders_kaydi",
+    "top_score": 0.784,
+    "top_chunks": [
+     "ders_kaydi.tr#3",
+     "ders_kaydi.tr#1",
+     "akademik_izin.tr#2"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "tr-035",
+    "language": "tr",
+    "expected": "ders_kaydi",
+    "top_score": 0.728,
+    "top_chunks": [
+     "ders_kaydi.tr#2",
+     "ders_kaydi.tr#3",
+     "devam_sure_mezuniyet.tr#4"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "tr-036",
+    "language": "tr",
+    "expected": "ders_kaydi",
+    "top_score": 0.684,
+    "top_chunks": [
+     "ders_kaydi.tr#2",
+     "ders_kaydi.tr#3",
+     "muafiyet_intibak.tr#5"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "tr-037",
+    "language": "tr",
+    "expected": "belgeler_hesaplar",
+    "top_score": 0.768,
+    "top_chunks": [
+     "belgeler_hesaplar.tr#2",
+     "belgeler_hesaplar.tr#5",
+     "belgeler_hesaplar.tr#4"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "tr-038",
+    "language": "tr",
+    "expected": "none",
+    "top_score": 0.708,
+    "top_chunks": [
+     "belgeler_hesaplar.tr#4",
+     "belgeler_hesaplar.tr#5",
+     "devam_sure_mezuniyet.tr#3"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "tr-039",
+    "language": "tr",
+    "expected": "none",
+    "top_score": 0.73,
+    "top_chunks": [
+     "belgeler_hesaplar.tr#5",
+     "belgeler_hesaplar.tr#2",
+     "ders_kaydi.tr#3"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "tr-040",
+    "language": "tr",
+    "expected": "belgeler_hesaplar",
+    "top_score": 0.7,
+    "top_chunks": [
+     "belgeler_hesaplar.tr#4",
+     "belgeler_hesaplar.tr#3",
+     "devam_sure_mezuniyet.tr#4"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "en-022",
+    "language": "en",
+    "expected": "none",
+    "top_score": 0.665,
+    "top_chunks": [
+     "harc_ucretler.en#3",
+     "harc_ucretler.en#6",
+     "harc_ucretler.en#7"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "en-023",
+    "language": "en",
+    "expected": "harc_ucretler",
+    "top_score": 0.69,
+    "top_chunks": [
+     "staj.en#2",
+     "staj.en#1",
+     "harc_ucretler.en#4"
+    ],
+    "hit1": false,
+    "hit3": true
+   },
+   {
+    "id": "en-024",
+    "language": "en",
+    "expected": "harc_ucretler",
+    "top_score": 0.69,
+    "top_chunks": [
+     "harc_ucretler.en#6",
+     "harc_ucretler.en#3",
+     "harc_ucretler.en#1"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "en-025",
+    "language": "en",
+    "expected": "none",
+    "top_score": 0.701,
+    "top_chunks": [
+     "harc_ucretler.en#4",
+     "harc_ucretler.en#6",
+     "harc_ucretler.en#7"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "en-026",
+    "language": "en",
+    "expected": "none",
+    "top_score": 0.635,
+    "top_chunks": [
+     "ders_kaydi.en#2",
+     "devam_sure_mezuniyet.en#4",
+     "belgeler_hesaplar.en#2"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "en-027",
+    "language": "en",
+    "expected": "none",
+    "top_score": 0.579,
+    "top_chunks": [
+     "sinavlar.en#4",
+     "belgeler_hesaplar.en#6",
+     "sinavlar.en#5"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "en-028",
+    "language": "en",
+    "expected": "none",
+    "top_score": 0.628,
+    "top_chunks": [
+     "devam_sure_mezuniyet.en#3",
+     "sinavlar.en#3",
+     "devam_sure_mezuniyet.en#1"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "en-029",
+    "language": "en",
+    "expected": "none",
+    "top_score": 0.626,
+    "top_chunks": [
+     "belgeler_hesaplar.en#5",
+     "belgeler_hesaplar.en#2",
+     "akademik_izin.en#2"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "en-030",
+    "language": "en",
+    "expected": "kampus_yasami",
+    "top_score": 0.769,
+    "top_chunks": [
+     "kampus_yasami.en#1",
+     "kampus_yasami.en#2",
+     "kampus_yasami.en#3"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "en-031",
+    "language": "en",
+    "expected": "none",
+    "top_score": 0.55,
+    "top_chunks": [
+     "belgeler_hesaplar.en#2",
+     "kampus_yasami.en#4",
+     "sinavlar.en#5"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "en-032",
+    "language": "en",
+    "expected": "none",
+    "top_score": 0.608,
+    "top_chunks": [
+     "devam_sure_mezuniyet.en#3",
+     "harc_ucretler.en#1",
+     "sinavlar.en#2"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "en-033",
+    "language": "en",
+    "expected": "none",
+    "top_score": 0.614,
+    "top_chunks": [
+     "belgeler_hesaplar.en#2",
+     "sinavlar.en#5",
+     "belgeler_hesaplar.en#6"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "en-034",
+    "language": "en",
+    "expected": "staj",
+    "top_score": 0.704,
+    "top_chunks": [
+     "staj.en#2",
+     "kampus_yasami.en#4",
+     "harc_ucretler.en#7"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "en-035",
+    "language": "en",
+    "expected": "none",
+    "top_score": 0.649,
+    "top_chunks": [
+     "harc_ucretler.en#3",
+     "belgeler_hesaplar.en#4",
+     "belgeler_hesaplar.en#3"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "en-036",
+    "language": "en",
+    "expected": "ders_kaydi",
+    "top_score": 0.74,
+    "top_chunks": [
+     "ders_kaydi.en#2",
+     "ders_kaydi.en#3",
+     "yaz_okulu.en#4"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "en-037",
+    "language": "en",
+    "expected": "ders_kaydi",
+    "top_score": 0.714,
+    "top_chunks": [
+     "akademik_izin.en#2",
+     "ders_kaydi.en#3",
+     "akademik_izin.en#1"
+    ],
+    "hit1": false,
+    "hit3": true
+   },
+   {
+    "id": "en-038",
+    "language": "en",
+    "expected": "belgeler_hesaplar",
+    "top_score": 0.694,
+    "top_chunks": [
+     "belgeler_hesaplar.en#2",
+     "belgeler_hesaplar.en#5",
+     "belgeler_hesaplar.en#3"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "en-039",
+    "language": "en",
+    "expected": "none",
+    "top_score": 0.64,
+    "top_chunks": [
+     "belgeler_hesaplar.en#2",
+     "belgeler_hesaplar.en#5",
+     "belgeler_hesaplar.en#1"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "en-040",
+    "language": "en",
+    "expected": "belgeler_hesaplar",
+    "top_score": 0.713,
+    "top_chunks": [
+     "belgeler_hesaplar.en#3",
+     "belgeler_hesaplar.en#4",
+     "akademik_izin.en#2"
+    ],
+    "hit1": true,
+    "hit3": true
+   }
+  ]
+ },
+ "test": {
+  "summary": {
+   "answerable": 14,
+   "hit@1": 0.9285714285714286,
+   "hit@3": 1,
+   "top_score_answerable": [
+    0.652,
+    0.741
+   ],
+   "top_score_none": [
+    0.652,
+    0.713
+   ],
+   "misses": []
+  },
+  "rows": [
+   {
+    "id": "tr-t01",
+    "language": "tr",
+    "expected": "belgeler_hesaplar",
+    "top_score": 0.755,
+    "top_chunks": [
+     "belgeler_hesaplar.tr#4",
+     "belgeler_hesaplar.tr#5",
+     "belgeler_hesaplar.tr#3"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "tr-t02",
+    "language": "tr",
+    "expected": "none",
+    "top_score": 0.7,
+    "top_chunks": [
+     "ders_kaydi.tr#2",
+     "harc_ucretler.tr#2",
+     "devam_sure_mezuniyet.tr#4"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "tr-t03",
+    "language": "tr",
+    "expected": "devam_sure_mezuniyet",
+    "top_score": 0.774,
+    "top_chunks": [
+     "devam_sure_mezuniyet.tr#3",
+     "devam_sure_mezuniyet.tr#2",
+     "devam_sure_mezuniyet.tr#1"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "tr-t04",
+    "language": "tr",
+    "expected": "none",
+    "top_score": 0.605,
+    "top_chunks": [
+     "belgeler_hesaplar.tr#3",
+     "staj.tr#3",
+     "belgeler_hesaplar.tr#2"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "tr-t05",
+    "language": "tr",
+    "expected": "sinavlar",
+    "top_score": 0.743,
+    "top_chunks": [
+     "sinavlar.tr#5",
+     "sinavlar.tr#2",
+     "sinavlar.tr#3"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "tr-t06",
+    "language": "tr",
+    "expected": "none",
+    "top_score": 0.713,
+    "top_chunks": [
+     "belgeler_hesaplar.tr#2",
+     "belgeler_hesaplar.tr#1",
+     "belgeler_hesaplar.tr#5"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "tr-t07",
+    "language": "tr",
+    "expected": "none",
+    "top_score": 0.667,
+    "top_chunks": [
+     "belgeler_hesaplar.tr#5",
+     "devam_sure_mezuniyet.tr#3",
+     "akademik_izin.tr#4"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "tr-t08",
+    "language": "tr",
+    "expected": "none",
+    "top_score": 0.671,
+    "top_chunks": [
+     "devam_sure_mezuniyet.tr#1",
+     "ders_kaydi.tr#1",
+     "devam_sure_mezuniyet.tr#3"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "tr-t09",
+    "language": "tr",
+    "expected": "harc_ucretler",
+    "top_score": 0.767,
+    "top_chunks": [
+     "harc_ucretler.tr#5",
+     "harc_ucretler.tr#6",
+     "belgeler_hesaplar.tr#5"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "tr-t10",
+    "language": "tr",
+    "expected": "harc_ucretler",
+    "top_score": 0.708,
+    "top_chunks": [
+     "harc_ucretler.tr#6",
+     "harc_ucretler.tr#3",
+     "harc_ucretler.tr#1"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "tr-t11",
+    "language": "tr",
+    "expected": "none",
+    "top_score": 0.712,
+    "top_chunks": [
+     "belgeler_hesaplar.tr#2",
+     "belgeler_hesaplar.tr#6",
+     "belgeler_hesaplar.tr#3"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "tr-t12",
+    "language": "tr",
+    "expected": "none",
+    "top_score": 0.687,
+    "top_chunks": [
+     "kampus_yasami.tr#4",
+     "kampus_yasami.tr#1",
+     "devam_sure_mezuniyet.tr#3"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "tr-t13",
+    "language": "tr",
+    "expected": "none",
+    "top_score": 0.652,
+    "top_chunks": [
+     "akademik_izin.tr#3",
+     "sinavlar.tr#3",
+     "sinavlar.tr#4"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "tr-t14",
+    "language": "tr",
+    "expected": "none",
+    "top_score": 0.615,
+    "top_chunks": [
+     "belgeler_hesaplar.tr#2",
+     "belgeler_hesaplar.tr#5",
+     "belgeler_hesaplar.tr#6"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "tr-t15",
+    "language": "tr",
+    "expected": "harc_ucretler",
+    "top_score": 0.77,
+    "top_chunks": [
+     "harc_ucretler.tr#6",
+     "harc_ucretler.tr#5",
+     "yaz_okulu.tr#2"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "tr-t16",
+    "language": "tr",
+    "expected": "none",
+    "top_score": 0.564,
+    "top_chunks": [
+     "staj.tr#4",
+     "ders_kaydi.tr#2",
+     "kampus_yasami.tr#3"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "tr-t17",
+    "language": "tr",
+    "expected": "none",
+    "top_score": 0.668,
+    "top_chunks": [
+     "muafiyet_intibak.tr#3",
+     "muafiyet_intibak.tr#1",
+     "muafiyet_intibak.tr#4"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "tr-t18",
+    "language": "tr",
+    "expected": "ders_kaydi",
+    "top_score": 0.705,
+    "top_chunks": [
+     "ders_kaydi.tr#3",
+     "ders_kaydi.tr#2",
+     "ders_kaydi.tr#1"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "tr-t19",
+    "language": "tr",
+    "expected": "none",
+    "top_score": 0.662,
+    "top_chunks": [
+     "sinavlar.tr#2",
+     "sinavlar.tr#1",
+     "sinavlar.tr#4"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "tr-t20",
+    "language": "tr",
+    "expected": "none",
+    "top_score": 0.65,
+    "top_chunks": [
+     "muafiyet_intibak.tr#5",
+     "ders_kaydi.tr#2",
+     "muafiyet_intibak.tr#2"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "en-t01",
+    "language": "en",
+    "expected": "belgeler_hesaplar",
+    "top_score": 0.766,
+    "top_chunks": [
+     "belgeler_hesaplar.en#3",
+     "belgeler_hesaplar.en#4",
+     "belgeler_hesaplar.en#1"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "en-t02",
+    "language": "en",
+    "expected": "none",
+    "top_score": 0.706,
+    "top_chunks": [
+     "devam_sure_mezuniyet.en#1",
+     "akademik_izin.en#5",
+     "akademik_izin.en#2"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "en-t03",
+    "language": "en",
+    "expected": "none",
+    "top_score": 0.646,
+    "top_chunks": [
+     "belgeler_hesaplar.en#2",
+     "belgeler_hesaplar.en#5",
+     "harc_ucretler.en#3"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "en-t04",
+    "language": "en",
+    "expected": "none",
+    "top_score": 0.629,
+    "top_chunks": [
+     "belgeler_hesaplar.en#3",
+     "belgeler_hesaplar.en#2",
+     "belgeler_hesaplar.en#4"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "en-t05",
+    "language": "en",
+    "expected": "sinavlar",
+    "top_score": 0.652,
+    "top_chunks": [
+     "sinavlar.en#4",
+     "sinavlar.en#2",
+     "sinavlar.en#5"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "en-t06",
+    "language": "en",
+    "expected": "none",
+    "top_score": 0.657,
+    "top_chunks": [
+     "ders_kaydi.en#2",
+     "devam_sure_mezuniyet.en#4",
+     "harc_ucretler.en#2"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "en-t07",
+    "language": "en",
+    "expected": "none",
+    "top_score": 0.664,
+    "top_chunks": [
+     "devam_sure_mezuniyet.en#3",
+     "ders_kaydi.en#1",
+     "sinavlar.en#5"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "en-t08",
+    "language": "en",
+    "expected": "none",
+    "top_score": 0.612,
+    "top_chunks": [
+     "kampus_yasami.en#1",
+     "devam_sure_mezuniyet.en#1",
+     "sinavlar.en#4"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "en-t09",
+    "language": "en",
+    "expected": "belgeler_hesaplar",
+    "top_score": 0.744,
+    "top_chunks": [
+     "belgeler_hesaplar.en#3",
+     "belgeler_hesaplar.en#4",
+     "harc_ucretler.en#1"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "en-t10",
+    "language": "en",
+    "expected": "staj",
+    "top_score": 0.706,
+    "top_chunks": [
+     "staj.en#3",
+     "staj.en#1",
+     "staj.en#2"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "en-t11",
+    "language": "en",
+    "expected": "none",
+    "top_score": 0.667,
+    "top_chunks": [
+     "kampus_yasami.en#4",
+     "kampus_yasami.en#1",
+     "kampus_yasami.en#3"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "en-t12",
+    "language": "en",
+    "expected": "none",
+    "top_score": 0.678,
+    "top_chunks": [
+     "ders_kaydi.en#2",
+     "belgeler_hesaplar.en#3",
+     "belgeler_hesaplar.en#2"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "en-t13",
+    "language": "en",
+    "expected": "muafiyet_intibak",
+    "top_score": 0.759,
+    "top_chunks": [
+     "ders_kaydi.en#3",
+     "muafiyet_intibak.en#5",
+     "ders_kaydi.en#2"
+    ],
+    "hit1": false,
+    "hit3": true
+   },
+   {
+    "id": "en-t14",
+    "language": "en",
+    "expected": "yaz_okulu",
+    "top_score": 0.823,
+    "top_chunks": [
+     "yaz_okulu.en#3",
+     "yaz_okulu.en#1",
+     "yaz_okulu.en#4"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "en-t15",
+    "language": "en",
+    "expected": "harc_ucretler",
+    "top_score": 0.701,
+    "top_chunks": [
+     "harc_ucretler.en#4",
+     "harc_ucretler.en#3",
+     "belgeler_hesaplar.en#6"
+    ],
+    "hit1": true,
+    "hit3": true
+   },
+   {
+    "id": "en-t16",
+    "language": "en",
+    "expected": "none",
+    "top_score": 0.565,
+    "top_chunks": [
+     "belgeler_hesaplar.en#5",
+     "belgeler_hesaplar.en#2",
+     "sinavlar.en#4"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "en-t17",
+    "language": "en",
+    "expected": "none",
+    "top_score": 0.596,
+    "top_chunks": [
+     "belgeler_hesaplar.en#6",
+     "belgeler_hesaplar.en#2",
+     "belgeler_hesaplar.en#5"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "en-t18",
+    "language": "en",
+    "expected": "none",
+    "top_score": 0.618,
+    "top_chunks": [
+     "belgeler_hesaplar.en#6",
+     "harc_ucretler.en#6",
+     "belgeler_hesaplar.en#3"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "en-t19",
+    "language": "en",
+    "expected": "none",
+    "top_score": 0.707,
+    "top_chunks": [
+     "belgeler_hesaplar.en#1",
+     "devam_sure_mezuniyet.en#1",
+     "harc_ucretler.en#1"
+    ],
+    "hit1": false,
+    "hit3": false
+   },
+   {
+    "id": "en-t20",
+    "language": "en",
+    "expected": "none",
+    "top_score": 0.635,
+    "top_chunks": [
+     "belgeler_hesaplar.en#6",
+     "harc_ucretler.en#1",
+     "harc_ucretler.en#6"
+    ],
+    "hit1": false,
+    "hit3": false
+   }
+  ]
+ }
+}
