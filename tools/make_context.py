@@ -7,9 +7,11 @@ ROOT = Path(__file__).resolve().parent.parent
 OUTPUT = ROOT / "claude_context.md"
 FIRST = ["CLAUDE.md", "docs/changelog.md"]  # shown before all other files
 RESTART = "facb85a"  # the "Start over from scratch" commit; history starts after it
-SUMMARY_ONLY = "eval/*.json"  # raw model predictions: too big to paste; their numbers are in the changelog
-# Git pathspecs left out of the history diffs: raw results (too big) and the changelog (shown in full above).
-NOT_IN_HISTORY = [f":(exclude){SUMMARY_ONLY}", ":(exclude)docs/changelog.md"]
+# Big generated data files: listed with a note instead of their content (their numbers are in the changelog).
+SUMMARY_ONLY = ("eval/*.json", "data/kb_index.json")
+# Git pathspecs left out of the history diffs: raw results (too big), and files already shown in full above.
+NOT_IN_HISTORY = [*(f":(exclude){p}" for p in SUMMARY_ONLY), ":(exclude)docs/changelog.md",
+                  ":(exclude)data/knowledge_base"]
 
 INTRO = """# AI Ticket Assistant: full project context
 
@@ -51,9 +53,9 @@ def history_section() -> str:
 def file_section(path: Path) -> str:
     """Format one file as a heading followed by its full content."""
     name = path.relative_to(ROOT).as_posix()
-    if path.match(SUMMARY_ONLY):
+    if any(path.match(pattern) for pattern in SUMMARY_ONLY):
         size = path.stat().st_size
-        return f"\n---\n\n## File: {name}\n\n(Raw predictions, {size:,} bytes, not shown. The scores are in docs/changelog.md.)\n"
+        return f"\n---\n\n## File: {name}\n\n(Generated data, {size:,} bytes, not shown. Its numbers are in docs/changelog.md.)\n"
     language = path.suffix.lstrip(".") or "text"
     content = path.read_text(encoding="utf-8").rstrip()
     return f"\n---\n\n## File: {name}\n\n````{language}\n{content}\n````\n"

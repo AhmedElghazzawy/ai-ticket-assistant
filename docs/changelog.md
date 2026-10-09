@@ -716,3 +716,24 @@ A script compared every quoted sentence in the Turkish documents with the offici
 - 54 sections per language; every TR/EN pair has the same number of sections. 2,000-3,500 characters per file.
 - All quoted sentences checked against the official texts: 49/49 verbatim.
 - Known gaps (written inside the documents): SOFRA/e-mail/eduroam steps, cafeteria, counseling, sports facilities, SGK insurance for internships; internship rules are for the Faculty of Engineering only; the KYK section uses a non-official source.
+- Commit and push: `abfb94c` Phase 3: complete knowledge base, 10 topics TR+EN from official BŞEÜ sources, 49/49 quotes verified.
+- Bundle slimmed again: the knowledge-base documents appeared twice (in full and in the history diffs). Added `:(exclude)data/knowledge_base` to the history pathspecs in tools/make_context.py.
+
+## Phase 3, technical part: chunking, embeddings, search (2026-10-09)
+
+### Checked Google's official embeddings docs first
+- Recommended model: `gemini-embedding-2` (stable, multimodal, 100+ languages including Turkish; auto-normalizes vectors when the size is reduced). No `task_type` setting; instead Google's recommended text formats: query `task: search result | query: {text}`, document `title: {title} | text: {text}`. One vector per text by wrapping each text in its own `types.Content`. Size via `types.EmbedContentConfig(output_dimensionality=768)` (recommended sizes: 768, 1536, 3072; default 3072).
+
+### `src/knowledge_base.py` (new): chunking
+- `Chunk` model (id like `sinavlar.tr#3`, doc, language, title, source, text). `split_document()` splits a document at each `## ` heading; `load_chunks()` reads all documents. One chunk = one rule, so its meaning is precise.
+- Run: 98 chunks from 10 topics (49 TR + 49 EN).
+
+### `src/retrieval.py` (new): embeddings and search
+- `embed()`: one 768-number vector per text, in batches. `query_text()` / `document_text()`: Google's formats. `build_index()`: embeds all chunks once and saves them to `data/kb_index.json` (so later searches need only one API call). `load_index()`, `similarity()` (cosine; the vectors have length 1, so it is the dot product), `search(ticket, index, k=3)`.
+- No new library: comparing 98 vectors of 768 numbers is instant in plain Python.
+- Test with 3 sentences: "Sınavıma hastalık yüzünden giremedim" vs "I missed my exam because I was sick" -> 0.908 (same meaning across languages); exam vs "Yemekhane kaçta açılıyor?" -> 0.608. Vector length 1.0 (normalized).
+- Problem: building the index hit `429 RESOURCE_EXHAUSTED`, `EmbedContentRequestsPerMinutePerUserPerProjectPerModel-FreeTier`, limit 100: every text in a batch counts as one request. Fix: `BATCH_SIZE = 40` and `BATCH_PAUSE = 60` seconds between batches. Then: 98 vectors saved, `data/kb_index.json` 855 KB.
+- First searches (top 3), all with the exact right section first: en-020 -> sinavlar.en#4 "Excused (mazeret) exams (Article 21)"; tr-023 -> harc_ucretler.tr#5 "Kayıt sildirince iade"; tr-t03 -> devam_sure_mezuniyet.tr#3 "Azami süre dolduğunda"; en-t14 -> yaz_okulu.en#3 "Registration and course limit (Article 10)".
+- Found: the top 3 often holds the same rule twice (TR and EN versions), wasting a slot. Next fix: search only the chunks in the ticket's language.
+- Bundle: `data/kb_index.json` is listed with a note instead of its numbers, and left out of the history diffs.
+- Bug in my own edit: the bundle jumped to 1.28 million characters because the 855 KB index was still pasted in. The search-and-replace edit to make_context.py silently did not match (wrong indentation). Fixed: `SUMMARY_ONLY` is now a tuple of patterns (`eval/*.json`, `data/kb_index.json`) used both for the file list and the history pathspecs, and every scripted edit now asserts that its text was found. Bundle back to 436,329 characters.
