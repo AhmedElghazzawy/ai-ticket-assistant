@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BŞEÜ Öğrenci Yardım Masası</title>
+  <!-- Montserrat: the font used on bilecik.edu.tr -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <!-- Header: badge + title on the left, language and theme switches on the right -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="badge">BŞEÜ</span>
+      <div>
+        <h1 data-i18n="title"></h1>
+        <p data-i18n="tagline"></p>
+      </div>
+    </div>
+    <div class="controls">
+      <div class="segmented">
+        <button type="button" data-lang="tr">TR</button>
+        <button type="button" data-lang="en">EN</button>
+      </div>
+      <button type="button" id="theme-toggle" class="icon-button" aria-label="Theme"></button>
+    </div>
+  </header>
+
+  <main class="chat">
+    <!-- Hero: shown only before the first message -->
+    <section id="welcome" class="hero">
+      <p class="eyebrow" data-i18n="eyebrow"></p>
+      <h2 data-i18n="welcome_title"></h2>
+      <p class="lead" data-i18n="welcome_text"></p>
+      <div id="examples" class="example-grid"></div>
+    </section>
+
+    <!-- The conversation: messages are added here by app.js -->
+    <section id="messages" class="messages" aria-live="polite"></section>
+  </main>
+
+  <!-- Floating input bar -->
+  <div class="composer-wrap">
+    <form id="ask-form" class="composer">
+      <textarea id="question" rows="1" required maxlength="2000"></textarea>
+      <button type="submit" id="send" class="send" aria-label="Send">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+          <path d="M4 12h14M12 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </form>
+    <p class="contact" data-i18n="footer"></p>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
