@@ -671,3 +671,48 @@ A script compared every quoted sentence in the Turkish documents with the offici
 - Answers found for tickets: tr-t03 ("azami sürem doluyor, 2 dersim kaldı, atılacak mıyım?") -> not dismissed: two extra exams and extra semesters (md. 31); tr-007 (kayıt dondurma) -> md. 36.
 - Precision fix before showing: "students with more than five courses left are dismissed" was looser than md. 33/6; rewritten to "after using the extra exams, more than five courses left, or more than five never-taken and absence-failed courses".
 - Quote check: one quote failed only because the official text uses a curly apostrophe (`%70’ine`) and the draft used a straight one; fixed. All 4 Turkish documents: **22/22 quotes verbatim**.
+- Commit and push: `a87db0d` Phase 3: KB documents 1-4 (TR+EN) from the official regulation, 22/22 quotes verified.
+
+## Reading BŞEÜ PDFs without adding a project dependency
+- Downloaded official PDFs with `curl -m 30 -A <browser user agent>` into the scratchpad (not the repo).
+- Extracted text with `uv run --no-project --with pypdf`: pypdf runs in a temporary environment, so `.venv` and `requirements.txt` are unchanged (checked: requirements.txt unchanged). The project only stores the finished Markdown documents and never reads PDFs.
+- PDF text has broken words ("Yüks eköğretim", "ç alışmalarının"), so the quote check now compares texts with all whitespace removed and treats ’ and ' as the same.
+
+## Document 5: `muafiyet_intibak.tr.md` / `.en.md`
+- Source: BŞEÜ Ders Açma, Muafiyet ve İntibak Esasları Yönergesi (Senate 12.12.2013, last amended 12.10.2022), md. 5-6.
+- Rules: exemption only for courses passed with CC or higher; the board decides within one week; keep attending until then; equal or higher ECTS or hours; 60% of a year's ECTS -> next year; horizontal transfer to the admitted year, vertical to year 3; objection within 5 working days; grades from Erasmus / other universities / summer school converted; Atatürk İlkeleri, Türk Dili, İngilizce from distance programs exempted; an elective with fewer than 10 students is closed and advisors move the students to another elective (md. 5/4; answers test ticket en-t13 in part).
+- Quotes: 2/2 verbatim.
+
+## Document 6: `yaz_okulu.tr.md` / `.en.md`
+- Source: BŞEÜ Yaz Okulu Yönetmeliği (RG 04.02.2009 no. 27131; last amended RG 12.07.2018 no. 30476), md. 5, 6, 9, 10, 11, 14.
+- Rules: does not count toward the study period; a course opens only with at least 25 students (associate/bachelor); at most 4 courses (answers test ticket en-t14); GPA 3.00+ may take upper-year courses; attendance 70/80%; another university's summer school under conditions (answers dev ticket tr-013); grades count in the GPA; in summer school, excused exams exist for midterms AND finals (different from the regular semester).
+- Quotes: 4/4 verbatim.
+
+## Document 7: `staj.tr.md` / `.en.md` (Faculty of Engineering only)
+- First downloaded directive was for the Faculty of Applied Sciences (Uygulamalı Bilimler), then Fine Arts and Agriculture: wrong faculties for a Computer Engineering student. An extended search found the right one: Mühendislik Fakültesi Öğrenci Staj Yönergesi (file 13520_82b1; Senate 03.05.2012, revised 25.12.2019, 230/2). A Mechanical Engineering guide (13307) was also found but is department-specific.
+- Rules: start after at least 4 semesters; 40 working days in total (2 x 20); mainly outside teaching periods (graduating students any month with approval); company needs Department Internship Commission approval; documents (petition, sealed evaluation form, stamped report); late report -> internship not accepted; not during summer school (overlap max 3 days); 3 unexcused days in a row -> internship ended; illness over 3 days -> stopped, days added (max half of the total); evaluation within one month (Başarılı / Kısmi Başarılı / Başarısız); transfer students up to 20 days accepted.
+- Gap written into the document: the directive does not cover SGK insurance registration (test ticket en-t10 cannot be answered from it; the assistant should send the student to the department instead of guessing).
+- Quotes: 4/4 verbatim.
+
+## Öğrenci İşleri FAQ: the official answers
+- The FAQ pages (bilecik.edu.tr/ogrenciisleri/Icerik/...) show only questions; each question links to its own answer page. A small script collected the 32 links from 5 FAQ pages and downloaded each answer with a 1-second pause between requests (polite to the university server). 32 pages, 0 errors (one answer page is empty on BŞEÜ's own site: "Yabancı uyruklu öğrenciyim neden OBS'ye giriş yapamıyorum?"). Saved in the scratchpad, not the repo.
+- Found the real Öğrenci İşleri contact: Gülümbe Kampüsü, 11230 Bilecik, 0228 214 10 71, ogrenciisleri@bilecik.edu.tr (the facts the model kept inventing as "[Phone Number]").
+
+## Document 8: `harc_ucretler.tr.md` / `.en.md` (billing)
+- Source: Öğrenci İşleri FAQ, Harç İşlemleri. Who pays the contribution (set yearly by Presidential Decree; free within the normal period for first-education students; second-education pays), second program, not paying on time (cannot register that semester), how to pay (Ziraat Bankası, official Tahsilat Rehberi link), **no refund after withdrawing at own request** (answers dev ticket tr-023), **overpayment refund by petition to the Harçlar Şube Müdürlüğü** (official confirmation of our billing routing), top-10% list. Quotes: 6/6 verbatim.
+
+## Document 9: `belgeler_hesaplar.tr.md` / `.en.md` (documents and accounts)
+- Source: Öğrenci İşleri FAQ (Diğer, Akıllı Kart, Mezuniyet, Kayıt Silme). Student number = T.C. kimlik no (YÖK/YU no for international students); OBS password sent automatically by SMS and e-mail at registration, problems -> faculty student affairs; student certificate and transcript by petition or via e-Devlet; graduation certificate via e-Devlet if the diploma is delayed; YÖKSİS updated one day after withdrawal; lost/damaged ID card: pay "Kart Basım Bedeli" to the university's Ziraat IBAN and bring the receipt.
+- Gap written into the document: no official BŞEÜ text found for SOFRA password steps, student e-mail or eduroam -> "contact Bilgi İşlem".
+- Honesty fix before showing: the first draft said "the university never asks for your password or IBAN through social media". Sensible, but not in any source; removed. Kept only "account details can change; check before paying".
+- Checker fix: a quote containing another quote ("...e-Devlet üzerinden "Mezun Belgesi" alınabilir") confused the pattern; inner quotes changed to ‘ ’ (normal convention) and the checker now ignores quote characters. Quotes: 7/7 verbatim.
+
+## Document 10: `kampus_yasami.tr.md` / `.en.md` (campus life)
+- Source: BŞEÜ Öğrenci Kulüpleri Yönergesi (Senate 30.06.2021, 295/8). Its definitions say "Daire Başkanlığı: Sağlık, Kültür ve Spor Daire Başkanlığı": official support for campus_life -> SKS routing. Founding a club (at least 15 founders; applications via the club advisor by the end of October or February; required forms), joining (form EK-5, board + advisor approval; no membership with a disciplinary penalty; several clubs allowed, board role in only one), leaving (petition).
+- KYK section marked as based on a non-official source (kariyer.net). The document states that it has no information on the cafeteria, counseling or sports facilities (no official text found) -> "contact SKS".
+- Quotes: 4/4 verbatim.
+
+## The knowledge base is complete (10 topics x 2 languages = 20 files)
+- 54 sections per language; every TR/EN pair has the same number of sections. 2,000-3,500 characters per file.
+- All quoted sentences checked against the official texts: 49/49 verbatim.
+- Known gaps (written inside the documents): SOFRA/e-mail/eduroam steps, cafeteria, counseling, sports facilities, SGK insurance for internships; internship rules are for the Faculty of Engineering only; the KYK section uses a non-official source.
