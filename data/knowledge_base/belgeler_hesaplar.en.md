@@ -3,7 +3,7 @@
 - Source: BŞEÜ Student Affairs (Öğrenci İşleri Daire Başkanlığı), Frequently Asked Questions: Diğer İşlemler, Akıllı Kart İşlemleri, Mezuniyet İşlemleri, Kayıt Silme İşlemleri
 - Link: https://bilecik.edu.tr/ogrenciisleri/Icerik/Diger_islemler
 - Responsible office: the student affairs office of the student's faculty/vocational school; Student Affairs, Gülümbe Kampüsü, 11230 Bilecik, 0228 214 10 71, ogrenciisleri@bilecik.edu.tr
-- Note: This is an English summary of the Turkish FAQ; the Turkish text is binding. This source does not explain the SOFRA password screen, student e-mail or eduroam settings; for those, contact the IT Department (Bilgi İşlem Daire Başkanlığı).
+- Note: This is an English summary of the Turkish FAQ; the Turkish text is binding. For SOFRA, student e-mail, UZEM and eduroam, see the 'IT Accounts' document.
 
 ## Student number
 The university uses the Turkish ID number (T.C. kimlik numarası) as the student number. International students use their YÖK number, or their YU number if they have one.

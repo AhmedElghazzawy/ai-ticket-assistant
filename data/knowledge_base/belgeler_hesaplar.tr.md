@@ -3,7 +3,7 @@
 - Kaynak: BŞEÜ Öğrenci İşleri Daire Başkanlığı, Sıkça Sorulan Sorular: Diğer İşlemler, Akıllı Kart İşlemleri, Mezuniyet İşlemleri, Kayıt Silme İşlemleri
 - Bağlantı: https://bilecik.edu.tr/ogrenciisleri/Icerik/Diger_islemler
 - İlgili birim: öğrencinin Fakülte/MYO öğrenci işleri; Öğrenci İşleri Daire Başkanlığı, Gülümbe Kampüsü, 11230 Bilecik, 0228 214 10 71, ogrenciisleri@bilecik.edu.tr
-- Not: Tırnak içindeki cümleler Öğrenci İşleri sayfasından aynen alınmıştır. Bu kaynak SOFRA şifre ekranı, öğrenci e-postası ve eduroam ayarlarını anlatmaz; bu konularda Bilgi İşlem Daire Başkanlığına başvurulmalıdır.
+- Not: Tırnak içindeki cümleler Öğrenci İşleri sayfasından aynen alınmıştır. SOFRA, öğrenci e-postası, UZEM ve eduroam için 'Bilişim Hesapları' belgesine bakınız.
 
 ## Öğrenci numarası
 "Üniversitemizde öğrenci numarası olarak T.C. kimlik numarası kullanılmaktadır. Yabancı uyruklu öğrencilerimiz ise öğrenci numarası olarak YÖK no veya var ise YU numaralarını kullanmaktadır."

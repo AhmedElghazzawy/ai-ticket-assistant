@@ -885,3 +885,28 @@ Page and static files are served; empty text -> 422; unknown language -> 422; a 
 - Auto-sent and correct: tr-t03 (azami süre: not dismissed, extra exams and extra semesters, md. 31) and en-t14 (summer school: at most 4 courses, md. 10).
 - 7 answerable tickets forwarded: 2 by escalation (tr-t01, en-t09), 1 by the new urgent rule (tr-t18), 4 because the model said the documents do not answer (tr-t15, en-t01, en-t10, en-t15), mostly true (no refund rule for a cancelled summer course, no residence-permit document list, no SGK, no installment payment method).
 - Honest summary: on unseen tickets, auto-send is rare (3/40) and 1 of the 3 should not have been sent. The covered check is the weakest link; the other checks never let a dangerous ticket through (0 escalated or urgent tickets were auto-sent).
+- Commit and push: `e44746a` Urgent tickets always go to a human (test-first); Phase 4 on locked test set: 1 low-harm unsafe auto-send (SOFRA gap).
+
+# Closing the SOFRA / IT gap with a real document (2026-10-10)
+
+## Why
+The answer model stretched the OBS-password FAQ to SOFRA questions: on dev (en-038, rated weak) and on the locked test set (tr-t06, the one unsafe auto-send). A fix must be based on dev evidence and must add real content, not tune the prompt.
+
+## Source found
+- Search -> BŞEÜ orientation presentations on bilecik.edu.tr. Downloaded the main one (45 MB, 182 pages; earlier too big for the page reader) and the 2025-2026 one for the Child Development department (1.9 MB, 61 pages) to /tmp, extracted with temporary pypdf. Both contain the same IT sections. The 2025-2026 version is the source (its IT, library and cafeteria sections describe university-wide systems; the document says so).
+- A first attempt to split the text with a complex regex got stuck (too many combinations, "catastrophic backtracking"); stopped it and searched for the exact headings instead.
+
+## Knowledge base changes
+- New document 11: `bilisim_hesaplar.tr.md` / `.en.md` (IT accounts): what SOFRA is and how to log in (ÖBS credentials; keep e-mail/phone up to date under Kimlik Bilgilerim), creating the @ogrenci.bilecik.edu.tr e-mail ("Hesabımı Oluştur"), OBS login (SOFRA password or e-Devlet), UZEM (which courses; log in to OBS once to activate the password), eduroam (portal.bilecik.edu.tr "Yeni Kullanıcı Bilgilerimi Oluştur"; connect with OBS username and password). Quotes: 7/7 verbatim.
+- `kampus_yasami`: new sections "Kütüphane ve 7/24 çalışma salonu" and "Yemekhane ve Akıllı Karta para yükleme" (unka.bilecik.edu.tr or kiosks); title, sources and notes updated. New quotes: 3/3 verbatim.
+- `belgeler_hesaplar`: the note "SOFRA/e-mail/eduroam not covered, ask Bilgi İşlem" now points to the new IT document.
+- Totals: 11 topics, 22 documents, 112 chunks (56 TR + 56 EN), 59/59 quotes verified. Index rebuilt: 112 vectors in 2 min 05 s (3 paced batches).
+
+## Expected-document labels updated (same rule as before)
+- Dev: en-008, tr-016, tr-024 none -> bilisim_hesaplar; tr-037, en-038 belgeler_hesaplar -> bilisim_hesaplar; tr-015, tr-008 none -> kampus_yasami. Test: tr-t06, en-t04 none -> bilisim_hesaplar; tr-t12 none -> kampus_yasami.
+- Honest note: the test labels were changed after the test results had been seen. Justification: the knowledge base changed (not the model or the prompt), and every change follows the written rule. The professor should know.
+
+## Results
+- Retrieval: dev 46 answerable (was 41), hit@1 91%, hit@3 100%; test 17 answerable (was 14), hit@1 94%, hit@3 100%.
+- Dev ticket en-038 through the pipeline: before, the off-topic OBS-password FAQ; now it retrieves the SOFRA/OBS sections and replies "log in with your SOFRA password or through e-Devlet; for login problems ask Student Affairs" (auto-sent, cited). The locked test ticket tr-t06 was NOT re-run on its own.
+- README updated with the new numbers.

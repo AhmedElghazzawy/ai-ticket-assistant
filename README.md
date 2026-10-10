@@ -104,10 +104,10 @@ Dev skoru yaklaşık 10 puan iyimserdi. Kaçırılan escalation testte de 0: kur
 
 ## Bilgi tabanı ve belge arama (Phase 3)
 
-- 10 konu × 2 dil = 20 belge, yalnızca resmî BŞEÜ kaynaklarından: Ön Lisans ve Lisans Eğitim-Öğretim Yönetmeliği (Resmî Gazete 07.07.2019), Muafiyet ve İntibak Yönergesi, Yaz Okulu Yönetmeliği, Mühendislik Fakültesi Staj Yönergesi, Öğrenci Kulüpleri Yönergesi, Öğrenci İşleri SSS. Tırnak içindeki 49 cümlenin 49'u resmî metinle birebir kontrol edildi.
-- Her `##` bölümü bir parça (chunk): 98 parça. Embedding: `gemini-embedding-2` (768 boyut, çok dilli). Ticket hangi dildeyse o dilde aranır.
-- Sonuç (doğru belge ilk 3 sonuçta, cevaplanabilir ticket'lar): **dev %100 (41), test %100 (14)**; ilk sırada: dev %90, test %93.
-- Ticket'ların yalnızca yaklaşık yarısı belgelerle cevaplanabiliyor (dev 41/80, test 14/40); en büyük eksik Bilgi İşlem konuları.
+- 11 konu × 2 dil = 22 belge, yalnızca resmî BŞEÜ kaynaklarından: Ön Lisans ve Lisans Eğitim-Öğretim Yönetmeliği (Resmî Gazete 07.07.2019), Muafiyet ve İntibak Yönergesi, Yaz Okulu Yönetmeliği, Mühendislik Fakültesi Staj Yönergesi, Öğrenci Kulüpleri Yönergesi, Öğrenci İşleri SSS, 2025-2026 Oryantasyon Sunumu (SOFRA, e-posta, OBS, UZEM, eduroam, kütüphane, yemekhane kartı). Tırnak içindeki 59 cümlenin 59'u resmî metinle birebir kontrol edildi.
+- Her `##` bölümü bir parça (chunk): 112 parça. Embedding: `gemini-embedding-2` (768 boyut, çok dilli). Ticket hangi dildeyse o dilde aranır.
+- Sonuç (doğru belge ilk 3 sonuçta, cevaplanabilir ticket'lar): **dev %100 (46), test %100 (17)**; ilk sırada: dev %91, test %94.
+- Ticket'ların yalnızca yaklaşık yarısı belgelerle cevaplanabiliyor (dev 46/80, test 17/40).
 
 ## Kaynaklı cevap ve karar (Phase 4)
 
@@ -119,7 +119,7 @@ Dev skoru yaklaşık 10 puan iyimserdi. Kaçırılan escalation testte de 0: kur
 ## Kapsam ve sınırlar (v1)
 
 - Her ticket **tek bir kategori** alır; iki farklı birimi ilgilendiren bir ticket'ın bir kısmı yanlış birime gidebilir.
-- Bilgi tabanı 10 konuyla sınırlı; tarihler, ücret tutarları ve Bilgi İşlem adımları belgelerde yok, bu yüzden bu sorular insana yönlendirilir.
+- Bilgi tabanı 11 konuyla sınırlı; tarihler ve ücret tutarları belgelerde yok, bu yüzden bu sorular insana yönlendirilir.
 - Staj kuralları yalnızca Mühendislik Fakültesi içindir; KYK bölümü resmî olmayan bir kaynağa dayanır.
 - KYK yurtları ve KYK burs/kredi devlete aittir; sistem bu konularda sadece yönlendirme yapar.
 - Ücretsiz katmanın sınırları var (bir model için günde 20 istek görüldü; embedding için dakikada 100 metin); bu yüzden Flash-Lite kullanılıyor ve çağrılar arasında bekleniyor.
@@ -164,7 +164,7 @@ src/api.py              FastAPI: öğrenci sayfası ve POST /api/tickets
 src/app.py              Streamlit personel paneli (Türkçe / İngilizce)
 web/                    Öğrenci sohbet sayfası (HTML, CSS, JavaScript; BŞEÜ stili, karanlık mod)
 tests/                  pytest testleri (karar kuralları ve API)
-data/knowledge_base/    20 resmî kaynaklı belge (TR + EN)
+data/knowledge_base/    22 resmî kaynaklı belge (TR + EN)
 src/try_one_ticket.py   İlk API çağrısı testi (Step 1)
 data/tickets/           Etiketli ticket'lar
 eval/                   Kaydedilen değerlendirme sonuçları
@@ -176,7 +176,7 @@ tools/make_context.py   Tüm projeyi tek dosyada toplar (öğrenmek için)
 
 ## Sonraki adımlar
 
-- Daha fazla içerik: akademik takvim, ücret tablosu, Bilgi İşlem kılavuzları (en büyük eksik).
+- Daha fazla içerik: akademik takvim, ücret tablosu, psikolojik danışmanlık ve yemekhane menüsü.
 - Sınıf arkadaşlarından gerçek ticket'lar toplayıp yeni bir kilitli test seti oluşturmak.
 - Kilitli test setinde tüm sistemin (Phase 4) değerlendirmesi.
 - LangGraph, insan inceleme kuyruğu, stres testleri (Phase 6-7).
