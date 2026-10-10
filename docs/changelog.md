@@ -845,3 +845,27 @@ A script compared every quoted sentence in the Turkish documents with the offici
 - `web/style.css` rewritten: light (background #f5f7fa, white cards, navy text, red accents) and dark mode (deep navy-black #0b1520, surfaces #13202c, lighter red #EF5A43, teal #2fb5a8); sticky frosted-glass header (`backdrop-filter`); example cards that lift on hover; message rows with an "AI" avatar; navy student bubble; white answer card; teal "verified" label and teal source box; amber "forwarded" card; red 112 box; bouncing typing dots; fade-up animations; one-column layout under 640 px.
 - `web/app.js`: example cards with icons; each message in a row (assistant row with avatar); typing dots instead of text; "✓ Resmî BŞEÜ belgelerine dayanır" label on auto-sent answers; removed the now unused `typing` texts. `node --check` OK. All texts still inserted with `textContent`.
 - Checked by looking: headless Chrome screenshots (`--headless=new --screenshot`): dark mode (follows the Mac's setting), light mode (forced with `--blink-settings=preferredColorScheme=1`), and 500 px width (cards stack in one column). A 390 px screenshot looked cut off, but that is headless Chrome's minimum window width (~500 px), not a layout bug.
+- Commit and push: `fe2be6f` New student chat page: FastAPI API + modern BŞEÜ-style HTML/CSS/JS with dark mode.
+
+# Phase 5: automatic tests with pytest (2026-10-09)
+
+## Why
+The safety rules were tested by hand once. Automatic tests check them every time the code changes, in under a second, with no API calls.
+
+## Libraries and settings
+- `pytest` 9.1.1 (the standard Python test tool: runs every `test_...` function and reports pass/fail). `pytest.ini`: `pythonpath = src`, `testpaths = tests`.
+- FastAPI's `TestClient` first ran with `httpx` and printed a deprecation warning ("install httpx2 instead"); installed `httpx2` 2.13.1 and the warning disappeared. requirements.txt lists `httpx2` for the tests (plain httpx stays installed because google-genai needs it).
+
+## `tests/test_decision.py` (8 tests, hand-made inputs, no AI)
+All checks pass -> auto-send; category other / escalated / weak match / not covered / citing a non-retrieved document -> never auto-sent; every failed check is reported (3 reasons for other + escalated + weak); every category has an office in both languages.
+- Checked that the tests can fail: removed the escalation check from decision.py on purpose -> 2 tests failed (`assert not True`, `assert 2 == 3`); restored the file (git diff empty) -> 8 passed.
+
+## `tests/test_api.py` (7 tests, fake pipeline via `monkeypatch`, no AI)
+Page and static files are served; empty text -> 422; unknown language -> 422; a forwarded ticket returns `reply: null`, no sources, and the draft text appears nowhere in the response; an auto-sent answer has the reply, the cited title + section and the right office; urgent + escalated -> `emergency: true`; a pipeline error -> 503 without internal details.
+
+## Result
+`.venv/bin/pytest` -> 15 passed in 0.39 s, no warnings.
+
+## README and CLAUDE.md brought up to date
+- README (Turkish): intro (RAG and the decision now exist), status table (Phases 1-5 done), new sections with the results of Phase 2 (locked test set), Phase 3 (knowledge base and retrieval) and Phase 4 (cited answers and the decision), updated limits, new run commands (uvicorn student page, Streamlit staff panel, pytest, the three evaluations), full file list, next steps. Fixed one word: "Bilet" -> "Ticket".
+- CLAUDE.md repo layout: added web/, tests/ and pytest.ini.

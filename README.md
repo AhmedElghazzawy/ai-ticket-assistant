@@ -2,7 +2,7 @@
 
 **Çalışma Tasarımı I** · Bilecik Şeyh Edebali Üniversitesi (BŞEÜ), Bilgisayar Mühendisliği
 
-Öğrencilerin yardım masasına yazdığı ticket'ları okuyan bir AI asistanı. Sistem ticket'ı etiketler (kategori, öncelik, escalation), ileride üniversitenin resmi belgelerinde cevabı arayacak (RAG), kaynağını gösteren bir taslak cevap yazacak ve karar verecek: cevabı otomatik göndermek mi, yoksa taslakla birlikte doğru birime (bir insana) yönlendirmek mi.
+Öğrencilerin yardım masasına yazdığı ticket'ları okuyan bir AI asistanı. Sistem ticket'ı etiketler (kategori, öncelik, escalation), üniversitenin resmî belgelerinde cevabı arar (RAG), kaynağını gösteren bir cevap yazar ve karar verir: cevabı otomatik göndermek mi, yoksa doğru birime (bir insana) yönlendirmek mi.
 
 ## Akış (pipeline)
 
@@ -14,9 +14,11 @@ ticket → sınıflandırma → belge arama (RAG) → kaynaklı taslak cevap →
 |---|---|
 | Sınıflandırma (classification) | ✅ Phase 1 |
 | Değerlendirme (evaluation) | ✅ Phase 1 |
-| Belge arama (RAG retrieval) | ⏳ Phase 3 |
-| Kaynaklı taslak cevap (answer generation) | ⏳ Phase 4 |
-| Gönder / gönderme kararı ve yönlendirme | ⏳ Phase 4 |
+| Kilitli test seti (güvenilir skor) | ✅ Phase 2 |
+| Belge arama (RAG retrieval) | ✅ Phase 3 |
+| Kaynaklı cevap (answer generation) | ✅ Phase 4 |
+| Gönder / gönderme kararı ve yönlendirme | ✅ Phase 4 |
+| Web sayfası (FastAPI) ve otomatik testler (pytest) | ✅ Phase 5 |
 
 ## Kategoriler ve birimler (7 kategori)
 
@@ -86,12 +88,41 @@ Sonuçlar `eval/results_low.json` ve `eval/results_high.json` dosyalarına kayde
 - **Etiketler tartışmalı olabilir:** özellikle öncelik. Ticket'ları ve etiketleri biz yazdık; gerçek öğrenci ticket'ları daha dağınıktır.
 - **Türkçe ticket'lar daha zor:** Türkçe skorlar İngilizceden düşük.
 
+## Güvenilir skor: kilitli test seti (Phase 2)
+
+40 yeni ticket (20 TR + 20 EN), prompt'u ayarlamak için hiç kullanılmadı. 2 çalıştırmanın ortalaması:
+
+| Ölçüt | Dev (80) | **Test (40)** |
+|---|---|---|
+| Kategori | %98,1 | **%90,0** |
+| Öncelik (tam) | %88,1 | **%85,0** |
+| Escalation | %96,2 | **%88,8** |
+| Üçü de doğru | %84,4 | **%73,8** |
+| **Kaçırılan escalation** | 0 | **0** |
+
+Dev skoru yaklaşık 10 puan iyimserdi. Kaçırılan escalation testte de 0: kural kitabında olmayan durumlar (oturma izni, gıda zehirlenmesi, intihardan bahseden bir arkadaş) bile insana yönlendirildi. Not: test ticket'larını araştırmaya dayanarak Claude taslak olarak yazdı; sınıf arkadaşlarından toplanan gerçek ticket'lar daha güçlü bir test olur.
+
+## Bilgi tabanı ve belge arama (Phase 3)
+
+- 10 konu × 2 dil = 20 belge, yalnızca resmî BŞEÜ kaynaklarından: Ön Lisans ve Lisans Eğitim-Öğretim Yönetmeliği (Resmî Gazete 07.07.2019), Muafiyet ve İntibak Yönergesi, Yaz Okulu Yönetmeliği, Mühendislik Fakültesi Staj Yönergesi, Öğrenci Kulüpleri Yönergesi, Öğrenci İşleri SSS. Tırnak içindeki 49 cümlenin 49'u resmî metinle birebir kontrol edildi.
+- Her `##` bölümü bir parça (chunk): 98 parça. Embedding: `gemini-embedding-2` (768 boyut, çok dilli). Ticket hangi dildeyse o dilde aranır.
+- Sonuç (doğru belge ilk 3 sonuçta, cevaplanabilir ticket'lar): **dev %100 (41), test %100 (14)**; ilk sırada: dev %90, test %93.
+- Ticket'ların yalnızca yaklaşık yarısı belgelerle cevaplanabiliyor (dev 41/80, test 14/40); en büyük eksik Bilgi İşlem konuları.
+
+## Kaynaklı cevap ve karar (Phase 4)
+
+- Model önce kurallardan cümleyi aynen alıntılar (`evidence`), sonra cevabın belgelerde olup olmadığına karar verir (`covered`), sonra cevabı yazar ve kaynağı gösterir.
+- Otomatik gönderim yalnızca şu kontrollerin **hepsi** geçerse: kategori `other` değil, escalation yok, benzerlik puanı ≥ 0,65, belgeler cevaplıyor, cevap gerçekten bulunan bir belgeyi kaynak gösteriyor. Karar fonksiyonu yapay zekâ değil, sade koddur (test edilebilir).
+- Dev sonucu (79 ticket): **hatalı otomatik gönderim 0**, yanlış belge gösteren cevap 0, otomatik gönderilen 15 cevaptan 11'i iyi, 1'i orta, 3'ü doğru ama az faydalı; hiçbirinde uydurma bilgi yok.
+- Öğrenciye gönderilmeyen taslak sunucudan hiç çıkmaz (`reply: null`).
+
 ## Kapsam ve sınırlar (v1)
 
 - Her ticket **tek bir kategori** alır; iki farklı birimi ilgilendiren bir ticket'ın bir kısmı yanlış birime gidebilir.
-- Henüz cevaplar üniversite belgelerine dayanmıyor (RAG Phase 3'te). Web sayfasındaki taslak cevap bilgi uydurabilir.
+- Bilgi tabanı 10 konuyla sınırlı; tarihler, ücret tutarları ve Bilgi İşlem adımları belgelerde yok, bu yüzden bu sorular insana yönlendirilir.
+- Staj kuralları yalnızca Mühendislik Fakültesi içindir; KYK bölümü resmî olmayan bir kaynağa dayanır.
 - KYK yurtları ve KYK burs/kredi devlete aittir; sistem bu konularda sadece yönlendirme yapar.
-- Ücretsiz katmanın günlük istek sınırları var (bir model için günde 20 istek görüldü); bu yüzden Flash-Lite kullanılıyor.
+- Ücretsiz katmanın sınırları var (bir model için günde 20 istek görüldü; embedding için dakikada 100 metin); bu yüzden Flash-Lite kullanılıyor ve çağrılar arasında bekleniyor.
 
 ## Kurulum ve çalıştırma
 
@@ -105,8 +136,12 @@ cp .env.example .env          # sonra .env içine kendi API anahtarınızı yaz�
 
 ```sh
 .venv/bin/python src/tickets.py            # veri setini kontrol et ve özetini göster
-.venv/bin/python src/evaluate.py high      # değerlendirme (yaklaşık 20 dakika, 160 API çağrısı)
-.venv/bin/streamlit run src/app.py         # web sayfası: ticket dene, veri seti, değerlendirme
+.venv/bin/uvicorn api:app --app-dir src    # öğrenci sayfası: http://127.0.0.1:8000
+.venv/bin/streamlit run src/app.py          # personel paneli: genel bakış, veri seti, değerlendirme
+.venv/bin/pytest                             # otomatik testler (API çağrısı yok, 1 saniyeden kısa)
+.venv/bin/python src/evaluate.py high       # sınıflandırma değerlendirmesi (yaklaşık 20 dakika)
+.venv/bin/python src/evaluate_retrieval.py  # belge arama değerlendirmesi
+.venv/bin/python src/evaluate_pipeline.py   # tüm sistem: hatalı otomatik gönderim sayısı
 ```
 
 `.env` dosyası API anahtarını tutar ve `.gitignore` sayesinde asla GitHub'a yüklenmez.
@@ -118,7 +153,18 @@ src/llm.py              Gemini bağlantısı: .env'den anahtar ve model, otomati
 src/tickets.py          Geçerli bir ticket'ın tanımı (pydantic) ve tickets.jsonl yükleyicisi
 src/classifier.py       Sınıflandırıcı: kural kitabından system prompt, structured output
 src/evaluate.py         Değerlendirme: skorlar, escalation hataları, tutarlılık
-src/app.py              Streamlit web sayfası (Türkçe / İngilizce)
+src/knowledge_base.py   Belgeleri parçalara (chunk) böler
+src/retrieval.py        Embedding ve belge arama
+src/evaluate_retrieval.py  Belge arama değerlendirmesi (hit@1, hit@3)
+src/answer.py           Kaynaklı cevap (önce alıntı, sonra cevap)
+src/decision.py         Otomatik gönder / yönlendir kararı ve birimler
+src/pipeline.py         Bir ticket için tüm adımlar
+src/evaluate_pipeline.py   Tüm sistemin değerlendirmesi
+src/api.py              FastAPI: öğrenci sayfası ve POST /api/tickets
+src/app.py              Streamlit personel paneli (Türkçe / İngilizce)
+web/                    Öğrenci sohbet sayfası (HTML, CSS, JavaScript; BŞEÜ stili, karanlık mod)
+tests/                  pytest testleri (karar kuralları ve API)
+data/knowledge_base/    20 resmî kaynaklı belge (TR + EN)
 src/try_one_ticket.py   İlk API çağrısı testi (Step 1)
 data/tickets/           Etiketli ticket'lar
 eval/                   Kaydedilen değerlendirme sonuçları
@@ -130,7 +176,7 @@ tools/make_context.py   Tüm projeyi tek dosyada toplar (öğrenmek için)
 
 ## Sonraki adımlar
 
-- **Phase 2:** 40 ticket'lık kilitli test seti, dev ve test skorlarının karşılaştırılması.
-- **Phase 3 (RAG):** 8-10 kısa BŞEÜ politika belgesi (Türkçe ve İngilizce): ör. harç ve iade, kayıt dondurma, ders kaydı ve ekle-bırak, mazeret sınavı, OBS/SOFRA şifre işlemleri, Akıllı Kart, staj, KYK yönlendirmesi. Parçalara bölme (chunking), embedding, arama; doğru belgenin ilk 3 sonuçta olma oranı ölçülecek.
-- **Phase 4:** kaynak gösteren taslak cevaplar, gönder / gönderme kararı ve birime yönlendirme.
-- **Sonra:** FastAPI, pytest, LangGraph, insan inceleme kuyruğu, stres testleri.
+- Daha fazla içerik: akademik takvim, ücret tablosu, Bilgi İşlem kılavuzları (en büyük eksik).
+- Sınıf arkadaşlarından gerçek ticket'lar toplayıp yeni bir kilitli test seti oluşturmak.
+- Kilitli test setinde tüm sistemin (Phase 4) değerlendirmesi.
+- LangGraph, insan inceleme kuyruğu, stres testleri (Phase 6-7).

@@ -4,3 +4,5 @@ pydantic==2.13.5       # check that every ticket has valid fields and labels
 streamlit==1.65.0      # the staff panel: overview, dataset, evaluation
 fastapi==0.143.0       # the web API (POST /api/tickets) behind the student chat page
 uvicorn==0.54.0        # the server that runs the FastAPI app
+pytest==9.1.1          # automatic tests for the safety rules (tests/)
+httpx2==2.13.1         # needed by FastAPI's TestClient in tests/test_api.py (httpx is deprecated for it)

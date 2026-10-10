@@ -63,7 +63,7 @@ Auto-send only if ALL pass: category is not "other"; the model did not ask to es
 Python 3.12 with a virtual environment in .venv (use uv if it is installed, otherwise ask me), google-genai, python-dotenv, pydantic, Streamlit and pandas for a small web page, later pgvector (Postgres), FastAPI, LangGraph, pytest.
 
 ## Repo layout (target)
-data/tickets/, data/knowledge_base/, src/, eval/, docs/, README.md, CLAUDE.md, requirements.txt, .env.example, .gitignore
+data/tickets/, data/knowledge_base/, src/, web/ (student chat page), tests/ (pytest), eval/, docs/, README.md, CLAUDE.md, requirements.txt, pytest.ini, .env.example, .gitignore
 
 ## Phase 1: rebuild from zero, understanding every step
 Everything was deleted on purpose so I can rebuild it slowly. Do NOT recreate the old code from memory or paste big files. Build it with me, step by step, using the teaching mode above.
