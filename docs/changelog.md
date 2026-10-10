@@ -952,3 +952,9 @@ Forwarded tickets told the student "a staff member will get back to you", but no
   - Staff panel progress list: added "İnceleme kuyruğu / Review queue" (8 of 8 steps).
 - Kept on purpose: "campus_life replaced housing" lines in CLAUDE.md, AGENTS.md and problem_catalog.md (they record the decision history).
 - Staff panel loads with 5 tabs and 8 progress items, no exceptions; the student page answers HTTP 200.
+- Commit and push: `219d714` Phase 6: human review queue, 22 tests; full review: docs, CLAUDE.md, AGENTS.md updated.
+
+## Session 2026-10-10 (short): picking up after the VS Code update
+- The VS Code update hid the chat list, but no history was lost: Claude Code keeps every chat in ~/.claude/projects/ (open with `/resume` or `claude --resume`).
+- Re-read the end of the last chat. Open next steps, none started yet: real tickets from classmates as a new test set, more content (academic calendar, fee amounts), stress tests (Phase 7), professor package (Phase 8), sending staff replies to students.
+- Decision: pause here; no code changed. Only this changelog was updated, committed and pushed.
