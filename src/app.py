@@ -1,6 +1,7 @@
 """Web page for the ticket assistant. Run with: .venv/bin/streamlit run src/app.py"""
 
 import json
+from contextlib import closing
 from pathlib import Path
 
 import streamlit as st
@@ -9,6 +10,7 @@ from decision import UNITS
 from llm import MODEL
 from pipeline import process_ticket
 from retrieval import load_index
+from store import connect, list_tickets, mark_handled
 from tickets import TEST_PATH, TICKETS_PATH, Ticket, load_tickets
 
 # Every text on the page, in both languages. Add new texts to both.
@@ -21,7 +23,8 @@ TEXTS = {
         "progress": "📊 Proje durumu",
         "menu": "Menü",
         "steps": ["Gemini bağlantısı", "Etiket kuralları", "80 ticket'lık veri seti", "Sınıflandırma",
-                  "Değerlendirme (skor)", "Belge arama (RAG)", "Karar ve yönlendirme"],
+                  "Değerlendirme (skor)", "Belge arama (RAG)", "Karar ve yönlendirme",
+                  "İnceleme kuyruğu"],
         "model": "Model",
         "view": "Görünüm",
         "student_view": "🎓 Öğrenci",
@@ -40,6 +43,18 @@ TEXTS = {
                      "Yaz okulunda en fazla kaç ders alabilirim?"],
         "source_label": "Kaynak",
         "demo_note": "Prototip: cevaplar yalnızca resmî BŞEÜ belgelerine dayanır; belgeler sorunuzu yanıtlamıyorsa talebiniz ilgili birime iletilir.",
+        "tab_queue": "📥 İnceleme kuyruğu",
+        "queue_open": "Açık talepler",
+        "queue_urgent": "Acil açık talepler",
+        "queue_handled": "İşlenen talepler",
+        "office_filter": "Birime göre filtrele",
+        "student_msg": "Öğrencinin mesajı",
+        "why_forwarded": "Neden otomatik gönderilmedi",
+        "draft_label": "Cevap (yapay zekâ taslağından başlayın, gerekirse düzenleyin)",
+        "mark_done": "✅ İşlendi",
+        "empty_queue": "Kuyrukta açık talep yok.",
+        "recently_handled": "Son işlenen talepler",
+        "queue_limit": "Not: personelin cevabı kaydedilir ama öğrenciye otomatik gönderilmez (bu prototipte e-posta sistemi yok).",
         "tab_overview": "🏠 Genel bakış",
         "pipeline": "Sistem nasıl çalışır",
         "key_results": "Temel sonuçlar",
@@ -110,7 +125,8 @@ TEXTS = {
         "progress": "📊 Project status",
         "menu": "Menu",
         "steps": ["Gemini connection", "Label rules", "80-ticket dataset", "Classification",
-                  "Evaluation (score)", "Document search (RAG)", "Decision and routing"],
+                  "Evaluation (score)", "Document search (RAG)", "Decision and routing",
+                  "Review queue"],
         "model": "Model",
         "view": "View",
         "student_view": "🎓 Student",
@@ -129,6 +145,18 @@ TEXTS = {
                      "How many courses can I take in summer school?"],
         "source_label": "Source",
         "demo_note": "Prototype: answers come only from official BŞEÜ documents; if they do not answer your question, your request is forwarded to the responsible office.",
+        "tab_queue": "📥 Review queue",
+        "queue_open": "Open requests",
+        "queue_urgent": "Urgent open requests",
+        "queue_handled": "Handled requests",
+        "office_filter": "Filter by office",
+        "student_msg": "Student's message",
+        "why_forwarded": "Why it was not auto-sent",
+        "draft_label": "Reply (start from the AI draft, edit if needed)",
+        "mark_done": "✅ Handled",
+        "empty_queue": "No open requests in the queue.",
+        "recently_handled": "Recently handled",
+        "queue_limit": "Note: the staff reply is saved but not sent to the student automatically (no e-mail system in this prototype).",
         "tab_overview": "🏠 Overview",
         "pipeline": "How the system works",
         "key_results": "Key results",
@@ -192,7 +220,7 @@ TEXTS = {
         "text_col": "Ticket text",
     },
 }
-DONE_STEPS = 7  # how many of the steps above are finished; raise it as the project grows
+DONE_STEPS = 8  # how many of the steps above are finished; raise it as the project grows
 
 # Readable names for the label IDs (the IDs themselves stay English in the data).
 CATEGORY_NAMES = {
@@ -221,8 +249,8 @@ def student_answer(ticket: str, t: dict, language: str) -> str:
     c = r.classification
     lines = [
         f"✅ {t['received']}",
-        f"📌 **{t['topic']}:** {CATEGORY_NAMES[language][c.category]} · "
-        f"**{t['priority']}:** {PRIORITY_NAMES[language][c.priority]}",
+        (f"📌 **{t['topic']}:** {CATEGORY_NAMES[language][c.category]} · "
+         f"**{t['priority']}:** {PRIORITY_NAMES[language][c.priority]}"),
         f"🏢 **{t['unit']}:** {UNITS[language][c.category]}",
     ]
     if r.decision.auto_send:  # every safety check passed: send the grounded, cited reply
@@ -332,7 +360,41 @@ if view == "student":
 tickets, data_error = read_dataset()
 
 st.caption(t["subtitle"])
-tab_overview, tab_try, tab_data, tab_eval = st.tabs([t["tab_overview"], t["tab_try"], t["tab_data"], t["tab_eval"]])
+tab_queue, tab_overview, tab_try, tab_data, tab_eval = st.tabs(
+    [t["tab_queue"], t["tab_overview"], t["tab_try"], t["tab_data"], t["tab_eval"]])
+
+with tab_queue:
+    with closing(connect()) as db:
+        open_tickets, handled = list_tickets(db, "open"), list_tickets(db, "handled")
+    q1, q2, q3 = st.columns(3)
+    q1.metric(t["queue_open"], len(open_tickets))
+    q2.metric(t["queue_urgent"], sum(row["priority"] == "urgent" for row in open_tickets))
+    q3.metric(t["queue_handled"], len(handled))
+    offices = sorted({row["office"] for row in open_tickets})
+    chosen_office = st.selectbox(t["office_filter"], [t["all"], *offices])
+    shown = [row for row in open_tickets if chosen_office in (t["all"], row["office"])]
+    if not shown:
+        st.info(t["empty_queue"])
+    for row in shown:  # already sorted: urgent first, then oldest first
+        title = (f"#{row['id']} · {PRIORITY_NAMES[language][row['priority']]} · "
+                 f"{CATEGORY_NAMES[language][row['category']]} · {row['office']}")
+        with st.expander(title, expanded=row["priority"] == "urgent"):
+            st.caption(f"{row['created_at']} · {row['language'].upper()}")
+            st.markdown(f"**{t['student_msg']}:**")
+            st.text(row["text"])  # plain text: nothing a student types can change the page
+            st.markdown(f"**{t['why_forwarded']}:**")
+            for reason in json.loads(row["reasons"]):
+                st.markdown(f"- {reason}")
+            reply = st.text_area(t["draft_label"], value=row["draft"], key=f"reply_{row['id']}", height=140)
+            if st.button(t["mark_done"], key=f"done_{row['id']}", type="primary"):
+                with closing(connect()) as db:
+                    mark_handled(db, row["id"], reply)
+                st.rerun()
+    if handled:
+        st.subheader(t["recently_handled"])
+        st.dataframe([{"#": row["id"], t["office"]: row["office"], t["reply"]: row["final_reply"],
+                       "✓": row["handled_at"]} for row in handled[-10:]], hide_index=True)
+    st.caption(t["queue_limit"])
 
 with tab_overview:
     st.subheader(t["pipeline"])

@@ -910,3 +910,45 @@ The answer model stretched the OBS-password FAQ to SOFRA questions: on dev (en-0
 - Retrieval: dev 46 answerable (was 41), hit@1 91%, hit@3 100%; test 17 answerable (was 14), hit@1 94%, hit@3 100%.
 - Dev ticket en-038 through the pipeline: before, the off-topic OBS-password FAQ; now it retrieves the SOFRA/OBS sections and replies "log in with your SOFRA password or through e-Devlet; for login problems ask Student Affairs" (auto-sent, cited). The locked test ticket tr-t06 was NOT re-run on its own.
 - README updated with the new numbers.
+- Commit and push: `2ce5cd0` Knowledge base: official IT accounts document + library and cafeteria card; 59/59 quotes, hit@3 100%.
+
+# Phase 6: human review queue (2026-10-10)
+
+## Why
+Forwarded tickets told the student "a staff member will get back to you", but nothing was stored, so nothing reached any staff member. The professor's flow ends with "unresolved or special cases go to the relevant unit or person".
+
+## `src/store.py` (new): SQLite, built into Python (no new library)
+- One file `data/helpdesk.db`, table `tickets`: number (AUTOINCREMENT = the ticket number), time, language, text, category, priority, escalate, office, auto_send, reasons (JSON), the AI draft, sources (JSON), status (`auto_sent` / `open` / `handled`), staff final reply, handled time.
+- `connect()`, `save_ticket()` (returns the number; auto-sent tickets are stored too, for statistics), `list_tickets(status)` (urgent first, then oldest), `mark_handled(id, final_reply)`.
+- Values always go through `?` placeholders, never pasted into the SQL text: protection against SQL injection. The only f-string inserts our own fixed sorting rule.
+- Privacy: `data/helpdesk.db` holds student messages (personal data) -> added to .gitignore BEFORE anything created it (checked with `git check-ignore`).
+
+## `src/api.py`
+- After answering, saves the ticket with a short connection per request (`contextlib.closing`; requests run on different threads and an SQLite connection belongs to one thread). Returns `ticket_id`. `DB_FILE` can be pointed to a temporary file by tests.
+- The running server had to be restarted to load the new code.
+
+## `web/app.js`
+- A "Talep no #12" / "Ticket no #12" chip on every answer.
+
+## Staff panel: new first tab "📥 İnceleme kuyruğu / Review queue" (`src/app.py`)
+- Metrics: open, urgent open, handled. Filter by office. Each open ticket (urgent first, urgent ones already expanded): time and language, the student's message as plain text (`st.text`, so nothing a student types can change the page), the reasons it was not auto-sent, an editable reply box pre-filled with the AI's grounded draft, and a "✅ Handled" button. A table of recently handled tickets. Honest limit shown on the page: the staff reply is saved but not sent to the student (no e-mail system).
+
+## Tests
+- `tests/test_store.py` (5, temporary database via `tmp_path`): increasing ticket numbers; forwarded -> open, auto-sent -> not in the queue; urgent first; mark_handled moves a ticket out and saves the reply; the text "'; DROP TABLE tickets; --" is stored as plain text (SQL injection test).
+- `tests/test_api.py`: an autouse fixture points `api.DB_FILE` to a temporary file in every test; new test: every ticket gets the next number.
+- `.venv/bin/pytest` -> 22 passed; no real database was created by the tests.
+- Queue tab checked with AppTest and 2 fake tickets in a temporary real database: urgent #2 listed above low #1; the draft is pre-filled; editing the reply and pressing Handled -> 1 open / 0 urgent / 1 handled, final reply saved; then the test database was deleted.
+- README: Phase 6 row in the status table, staff panel description, src/store.py in the file list, next steps.
+
+## Full review before committing Phase 6 (my request: check every file and doc)
+- Code: `uvx ruff check src tests tools` (ruff in a temporary environment, nothing added to the project) found 1 issue: two f-strings on separate lines inside a list in app.py were silently joined into one (readability trap: looks like a missing comma). Wrapped them in parentheses (same behavior). Ruff: all checks passed.
+- Tests: 22 passed. `node --check web/app.js`: OK.
+- Data: dev 80 + test 40, no id overlap; 11 topics, each in TR and EN; 112 chunks; expected_docs.jsonl has exactly the 120 ticket ids and only real document names or none; kb_index.json has 112 vectors in the same order as the chunks.
+- Git: no .env, key.env, helpdesk.db or claude_context.md tracked. `data/helpdesk.db` now exists (created by my own use of the page) and is ignored.
+- Outdated text found and fixed:
+  - README: Phase 4 section was missing the locked test-set result (1 low-harm unsafe auto-send, tr-t06) and the note that the results predate the urgent rule and the IT document; added. New "İnsan inceleme kuyruğu (Phase 6)" section. Limits: the staff reply is saved but not sent to the student.
+  - CLAUDE.md: tech stack (was "Streamlit and pandas for a small web page"; now the real stack), Step 5 results file names (was eval/results.json), data files (test_tickets.jsonl, expected_docs.jsonl), current status (Phases 1-6 done). New rule: AGENTS.md is a copy for Codex and must be updated whenever CLAUDE.md changes.
+  - AGENTS.md: was completely stale ("Step 0 not started", old rules); regenerated from CLAUDE.md with only the tool names changed (diff shows exactly 3 intended lines).
+  - Staff panel progress list: added "İnceleme kuyruğu / Review queue" (8 of 8 steps).
+- Kept on purpose: "campus_life replaced housing" lines in CLAUDE.md, AGENTS.md and problem_catalog.md (they record the decision history).
+- Staff panel loads with 5 tabs and 8 progress items, no exceptions; the student page answers HTTP 200.

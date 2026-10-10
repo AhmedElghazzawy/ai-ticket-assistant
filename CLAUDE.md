@@ -32,6 +32,7 @@ It is also my FIRST AI engineering project. The goal is for me to learn and trul
 - Check the current Gemini model names and free-tier limits in Google's official docs instead of assuming. The model name lives in .env as GEMINI_MODEL, so it can change without editing code.
 - The free tier has request limits per minute. Add short waits between calls and automatic retries, and never loop over many tickets without that.
 - Never commit without asking me first. When I approve a commit, push it to GitHub too (git push origin main).
+- AGENTS.md is a copy of this file for Codex. Whenever this file changes, update AGENTS.md the same way.
 
 ## What my professor asked for (his feedback on my idea)
 He said the idea is feasible but too general. Before building, I must define clearly:
@@ -56,11 +57,11 @@ Auto-send only if ALL pass: category is not "other"; the model did not ask to es
 ## Data rules
 - Language: the system is bilingual, Turkish and English. The user picks the language in the app, and everything they see (UI text, draft replies) is in that language. Tickets come in both languages, and every knowledge-base document exists in both Turkish and English. docs/labels.md (the label rulebook) is in Turkish. Label IDs (account_access, ...), code and comments stay in English, because code needs simple ASCII names.
 - I write and label the tickets myself. You may suggest tickets that cover gaps (edge cases, tricky wording), but the final labels are my decision. Discuss each label with me and explain why.
-- Format: data/tickets/tickets.jsonl, one JSON object per line: id, text, language (tr or en), category, priority, escalate.
+- Format: data/tickets/tickets.jsonl (dev) and data/tickets/test_tickets.jsonl (locked test set), one JSON object per line: id, text, language (tr or en), category, priority, escalate. data/tickets/expected_docs.jsonl: for every ticket, the knowledge-base document that answers it, or none.
 - Phase 1 has about 80 tickets (40 Turkish + 40 English) and no more. Phase 2 adds about 40 more (20 + 20), and those 40 are a LOCKED TEST SET: never used to adjust the prompt, only for the final score. Never tune the prompt on the test set.
 
 ## Tech stack (introduced one at a time, when needed)
-Python 3.12 with a virtual environment in .venv (use uv if it is installed, otherwise ask me), google-genai, python-dotenv, pydantic, Streamlit and pandas for a small web page, later pgvector (Postgres), FastAPI, LangGraph, pytest.
+Python 3.12 with a virtual environment in .venv (use uv if it is installed, otherwise ask me). In use: google-genai (gemini-3.5-flash-lite + gemini-embedding-2), python-dotenv, pydantic, FastAPI + uvicorn + plain HTML/CSS/JS (student page, web/), Streamlit (staff panel), SQLite (built into Python, ticket store), pytest + httpx2 (tests). Possible later: pgvector (Postgres), LangGraph.
 
 ## Repo layout (target)
 data/tickets/, data/knowledge_base/, src/, web/ (student chat page), tests/ (pytest), eval/, docs/, README.md, CLAUDE.md, requirements.txt, pytest.ini, .env.example, .gitignore
@@ -72,7 +73,7 @@ Everything was deleted on purpose so I can rebuild it slowly. Do NOT recreate th
 - Step 2: Define the labels together. Before any code, we write the category definitions, priority definitions and escalation rules in plain words. I write them, you check them for overlaps and gaps.
 - Step 3: The data. src/tickets.py defines what a valid ticket is (pydantic model, Literal types for category and priority) and loads tickets.jsonl with clear errors. I write the first 20 tickets with you; we reach about 80 (half Turkish, half English) with a good mix in each language: every category, every priority, edge cases, and about a quarter that need escalation.
 - Step 4: The classifier. src/classifier.py: the system prompt built from our definitions, structured output (response schema), temperature left at the default 1.0 (Google's official Gemini 3 advice: below 1.0 can cause looping or degraded performance; consistency comes from structured output and clear rules, and is measured in Step 5 by running twice), thinking level "low" (compare with "high" in Step 5), and the "reason" field first. Explain why each choice matters. Run it on the tickets and read every mistake together.
-- Step 5: The evaluation. src/evaluate.py: score per label and overall, and missed escalations (the most dangerous error: a ticket that needed a human but was not escalated). Save the run to eval/results.json. Explain what the score does and does not prove.
+- Step 5: The evaluation. src/evaluate.py: score per label and overall, and missed escalations (the most dangerous error: a ticket that needed a human but was not escalated). Save the run to eval/results_<thinking level>.json (results_low.json, results_high.json; the locked test set: results_high_test.json). Explain what the score does and does not prove.
 - Step 6: A small web page. src/app.py with Streamlit: try one ticket, browse the dataset, run the evaluation. Keep it small and explain it block by block.
 - Step 7: Review and package. I explain the whole flow back in my own words, we write a short README, and prepare what I show my professor (in Turkish): the categories and units table, the dataset description, the evaluation method and the first score.
 
@@ -97,4 +98,4 @@ Phase 1 is done when:
 - The secrets file was once named key.env by mistake, so git did not ignore it. The name must be exactly .env.
 
 ## Current status
-(2026-10-10) Phases 1-5 done: classifier (thinking high), 80 dev + 40 locked test tickets (test: 73.8% all three, 0 missed escalations), knowledge base of 10 topics TR+EN from official BŞEÜ sources, embedding search (hit@3 100%), cited answers + auto-send decision (0 unsafe on dev), FastAPI student page in BŞEÜ style, Streamlit staff panel, 16 pytest tests. Next: Phase 4 evaluation on the locked test set, then Phase 6 (LangGraph, human review queue). Update this line at the end of each session, after asking me.
+(2026-10-10) Phases 1-6 done: classifier (thinking high), 80 dev + 40 locked test tickets (test: 73.8% all three, 0 missed escalations), knowledge base of 11 topics TR+EN from official BŞEÜ sources (59/59 quotes verified), embedding search (hit@3 100% dev and test), cited answers + auto-send decision incl. 'urgent -> human' (dev: 0 unsafe auto-sends; locked test: 1 low-harm, the SOFRA gap, since closed with the IT accounts document), FastAPI student page in BŞEÜ style with dark mode, Streamlit staff panel with a human review queue (SQLite), 22 pytest tests. Next ideas: send staff replies to students, more content (academic calendar, fees), real tickets from classmates as a new test set, LangGraph, stress tests. Update this line at the end of each session, after asking me.

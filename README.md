@@ -19,6 +19,7 @@ ticket → sınıflandırma → belge arama (RAG) → kaynaklı taslak cevap →
 | Kaynaklı cevap (answer generation) | ✅ Phase 4 |
 | Gönder / gönderme kararı ve yönlendirme | ✅ Phase 4 |
 | Web sayfası (FastAPI) ve otomatik testler (pytest) | ✅ Phase 5 |
+| İnsan inceleme kuyruğu (yönlendirilen talepler personele ulaşır) | ✅ Phase 6 |
 
 ## Kategoriler ve birimler (7 kategori)
 
@@ -114,10 +115,21 @@ Dev skoru yaklaşık 10 puan iyimserdi. Kaçırılan escalation testte de 0: kur
 - Model önce kurallardan cümleyi aynen alıntılar (`evidence`), sonra cevabın belgelerde olup olmadığına karar verir (`covered`), sonra cevabı yazar ve kaynağı gösterir.
 - Otomatik gönderim yalnızca şu kontrollerin **hepsi** geçerse: kategori `other` değil, escalation yok, öncelik `urgent` değil (acil durumda bir insan bugün harekete geçebilir), benzerlik puanı ≥ 0,65, belgeler cevaplıyor, cevap gerçekten bulunan bir belgeyi kaynak gösteriyor. Karar fonksiyonu yapay zekâ değil, sade koddur (test edilebilir).
 - Dev sonucu (79 ticket): **hatalı otomatik gönderim 0**, yanlış belge gösteren cevap 0, otomatik gönderilen 15 cevaptan 11'i iyi, 1'i orta, 3'ü doğru ama az faydalı; hiçbirinde uydurma bilgi yok.
+- **Kilitli test seti (40 ticket): hatalı otomatik gönderim 1** (tr-t06, SOFRA şifre hatası). Model, OBS şifresi kuralının bu soruyu cevapladığını yanlışlıkla söyledi; verilen tavsiye doğru ve zararsızdı ("fakülte öğrenci işlerine başvurun") ama bir hatadır. Escalation veya acil öncelikli hiçbir ticket otomatik gönderilmedi. Testte sistem 40 ticket'tan yalnızca 3'ünü otomatik gönderdi (temkinli davranış).
+- En zayıf halka, modelin "belgeler bu soruyu cevaplıyor mu" kararıdır; diğer kontroller tehlikeli bir ticket'ı hiç geçirmedi. Bu boşluk dev setinde de görüldü (en-038) ve resmî "Bilişim Hesapları" belgesi (SOFRA, e-posta, OBS, UZEM, eduroam) eklenerek kapatıldı.
+- Not: bu sonuçlar, "acil → her zaman insan" kuralı ve Bilişim Hesapları belgesi eklenmeden önce ölçüldü.
 - Öğrenciye gönderilmeyen taslak sunucudan hiç çıkmaz (`reply: null`).
+
+## İnsan inceleme kuyruğu (Phase 6)
+
+- Her talep `data/helpdesk.db` (SQLite) dosyasına kaydedilir; öğrenci bir talep numarası görür ("Talep no #12").
+- Personel panelindeki **İnceleme kuyruğu** sekmesi açık talepleri gösterir: önce acil olanlar, birime göre filtre, öğrencinin mesajı, neden otomatik gönderilmediği ve düzenlenebilir yapay zekâ taslağı; "İşlendi" düğmesi personelin son cevabını kaydeder.
+- Değerler SQL komutuna yapıştırılmaz, `?` yer tutucularıyla verilir (SQL injection'a karşı).
+- `data/helpdesk.db` öğrenci mesajları içerir (kişisel veri) ve `.gitignore` sayesinde GitHub'a yüklenmez.
 
 ## Kapsam ve sınırlar (v1)
 
+- Personelin cevabı kaydedilir ama öğrenciye otomatik ulaştırılmaz (bu prototipte e-posta sistemi yok).
 - Her ticket **tek bir kategori** alır; iki farklı birimi ilgilendiren bir ticket'ın bir kısmı yanlış birime gidebilir.
 - Bilgi tabanı 11 konuyla sınırlı; tarihler ve ücret tutarları belgelerde yok, bu yüzden bu sorular insana yönlendirilir.
 - Staj kuralları yalnızca Mühendislik Fakültesi içindir; KYK bölümü resmî olmayan bir kaynağa dayanır.
@@ -137,7 +149,7 @@ cp .env.example .env          # sonra .env içine kendi API anahtarınızı yaz�
 ```sh
 .venv/bin/python src/tickets.py            # veri setini kontrol et ve özetini göster
 .venv/bin/uvicorn api:app --app-dir src    # öğrenci sayfası: http://127.0.0.1:8000
-.venv/bin/streamlit run src/app.py          # personel paneli: genel bakış, veri seti, değerlendirme
+.venv/bin/streamlit run src/app.py          # personel paneli: inceleme kuyruğu, genel bakış, veri seti, değerlendirme
 .venv/bin/pytest                             # otomatik testler (API çağrısı yok, 1 saniyeden kısa)
 .venv/bin/python src/evaluate.py high       # sınıflandırma değerlendirmesi (yaklaşık 20 dakika)
 .venv/bin/python src/evaluate_retrieval.py  # belge arama değerlendirmesi
@@ -161,6 +173,7 @@ src/decision.py         Otomatik gönder / yönlendir kararı ve birimler
 src/pipeline.py         Bir ticket için tüm adımlar
 src/evaluate_pipeline.py   Tüm sistemin değerlendirmesi
 src/api.py              FastAPI: öğrenci sayfası ve POST /api/tickets
+src/store.py            Talepleri SQLite veritabanına kaydeder (data/helpdesk.db, kişisel veri: GitHub'a yüklenmez)
 src/app.py              Streamlit personel paneli (Türkçe / İngilizce)
 web/                    Öğrenci sohbet sayfası (HTML, CSS, JavaScript; BŞEÜ stili, karanlık mod)
 tests/                  pytest testleri (karar kuralları ve API)
@@ -179,4 +192,4 @@ tools/make_context.py   Tüm projeyi tek dosyada toplar (öğrenmek için)
 - Daha fazla içerik: akademik takvim, ücret tablosu, psikolojik danışmanlık ve yemekhane menüsü.
 - Sınıf arkadaşlarından gerçek ticket'lar toplayıp yeni bir kilitli test seti oluşturmak.
 - Kilitli test setinde tüm sistemin (Phase 4) değerlendirmesi.
-- LangGraph, insan inceleme kuyruğu, stres testleri (Phase 6-7).
+- Personelin cevabını öğrenciye ulaştırmak (e-posta); LangGraph, stres testleri (Phase 6-7).

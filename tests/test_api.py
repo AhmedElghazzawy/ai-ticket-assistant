@@ -11,6 +11,14 @@ from knowledge_base import Chunk
 from pipeline import TicketResult
 
 client = TestClient(api.app)
+
+
+@pytest.fixture(autouse=True)
+def temporary_database(tmp_path, monkeypatch: pytest.MonkeyPatch):
+    """Every API test writes to its own temporary database, never to the real one."""
+    monkeypatch.setattr(api, "DB_FILE", tmp_path / "test.db")
+
+
 CHUNK = Chunk(id="harc_ucretler.tr#5", doc="harc_ucretler", language="tr", title="Katkı Payı ve İadeler",
               source="Öğrenci İşleri SSS", text="Kayıt sildirince iade\nGeri ödenmez.")
 
@@ -71,3 +79,9 @@ def test_errors_do_not_leak_internal_details(monkeypatch: pytest.MonkeyPatch):
     response = ask()
     assert response.status_code == 503
     assert "internal secret details" not in response.text
+
+
+def test_every_ticket_gets_a_number(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setattr(api, "process_ticket", lambda *args: fake_result(auto_send=False))
+    first, second = ask().json()["ticket_id"], ask().json()["ticket_id"]
+    assert second == first + 1

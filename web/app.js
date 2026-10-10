@@ -17,6 +17,7 @@ const TEXTS = {
     forwarded: "Talebiniz yukarıdaki birime iletildi; bir personel size dönüş yapacak.",
     emergency: "🚨 Acil bir tehlike varsa hemen 112'yi arayın.",
     source: "Kaynak",
+    ticket_no: "Talep no",
     error: "Şu anda cevap veremiyoruz. Lütfen biraz sonra tekrar deneyin.",
     footer: "📞 Öğrenci İşleri Daire Başkanlığı · 0228 214 10 71 · ogrenciisleri@bilecik.edu.tr",
     categories: { account_access: "Hesap Erişimi", it_support: "Teknik Destek", registration: "Ders Kaydı",
@@ -37,6 +38,7 @@ const TEXTS = {
     forwarded: "Your request has been forwarded to the office above; a staff member will get back to you.",
     emergency: "🚨 If you are in immediate danger, call 112 now.",
     source: "Source",
+    ticket_no: "Ticket no",
     error: "We can't answer right now. Please try again in a moment.",
     footer: "📞 Student Affairs (Öğrenci İşleri) · 0228 214 10 71 · ogrenciisleri@bilecik.edu.tr",
     categories: { account_access: "Account access", it_support: "IT support", registration: "Course registration",
@@ -115,7 +117,8 @@ function botMessage(data) {
   const t = TEXTS[lang];
   const box = el("div", "msg bot" + (data.auto_send ? "" : " forwarded"));
   const meta = el("div", "meta");
-  meta.append(el("span", "chip", t.categories[data.category]), el("span", "chip " + data.priority, t.priorities[data.priority]));
+  meta.append(el("span", "chip", `${t.ticket_no} #${data.ticket_id}`), el("span", "chip", t.categories[data.category]),
+              el("span", "chip " + data.priority, t.priorities[data.priority]));
   box.append(meta, el("div", "office", "🏢 " + data.office));
   if (data.auto_send) {  // every safety check passed on the server: show the cited answer
     box.append(el("div", "", data.reply), el("div", "verified", t.verified));
