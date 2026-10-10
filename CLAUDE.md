@@ -51,7 +51,7 @@ Routing to units (real BŞEÜ offices): account_access and it_support go to Bilg
 BŞEÜ system names used in tickets and documents: OBS (student system), SOFRA (passwords and student e-mail), @ogrenci.bilecik.edu.tr e-mail, UZEM at ders.bilecik.edu.tr (distance courses), Akıllı Kart (student ID card). See docs/problem_catalog.md.
 
 Pipeline (target): ticket -> classify -> retrieve document chunks -> draft reply that cites its source -> decide -> auto-send or route to a unit.
-Auto-send only if ALL pass: category is not "other"; the model did not ask to escalate; retrieval found a strong match; the draft cites a source. Otherwise escalate.
+Auto-send only if ALL pass: category is not "other"; the model did not ask to escalate; priority is not "urgent" (a person can act today); retrieval found a strong match; the documents really answer the ticket; the draft cites a retrieved source. Otherwise route to the office (src/decision.py, tested in tests/test_decision.py).
 
 ## Data rules
 - Language: the system is bilingual, Turkish and English. The user picks the language in the app, and everything they see (UI text, draft replies) is in that language. Tickets come in both languages, and every knowledge-base document exists in both Turkish and English. docs/labels.md (the label rulebook) is in Turkish. Label IDs (account_access, ...), code and comments stay in English, because code needs simple ASCII names.
@@ -97,4 +97,4 @@ Phase 1 is done when:
 - The secrets file was once named key.env by mistake, so git did not ignore it. The name must be exactly .env.
 
 ## Current status
-Phase 1, Step 0 not started. Everything was deleted on purpose. Update this line at the end of each session, after asking me.
+(2026-10-10) Phases 1-5 done: classifier (thinking high), 80 dev + 40 locked test tickets (test: 73.8% all three, 0 missed escalations), knowledge base of 10 topics TR+EN from official BŞEÜ sources, embedding search (hit@3 100%), cited answers + auto-send decision (0 unsafe on dev), FastAPI student page in BŞEÜ style, Streamlit staff panel, 16 pytest tests. Next: Phase 4 evaluation on the locked test set, then Phase 6 (LangGraph, human review queue). Update this line at the end of each session, after asking me.

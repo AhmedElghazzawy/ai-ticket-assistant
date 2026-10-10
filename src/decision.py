@@ -39,6 +39,8 @@ def decide(result: Classification, top_score: float, answer: Answer, retrieved_i
         reasons.append("category is 'other'")
     if result.escalate:
         reasons.append("an escalation rule applies (a human must answer)")
+    if result.priority == "urgent":  # blocked within 24 h or a safety risk: a person can act today
+        reasons.append("urgent: a human answers")
     if top_score < MIN_SCORE:
         reasons.append(f"weak document match ({top_score:.2f} < {MIN_SCORE})")
     if not answer.covered:

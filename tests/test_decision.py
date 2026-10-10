@@ -50,3 +50,8 @@ def test_every_category_has_an_office_in_both_languages():
     categories = set(Classification.model_fields["category"].annotation.__args__)
     for language in ("tr", "en"):
         assert set(UNITS[language]) == categories
+
+
+def test_urgent_ticket_is_never_auto_sent():
+    urgent = Classification(reason="test", category="account_access", priority="urgent", escalate=False)
+    assert not decide(urgent, 0.80, GOOD_ANSWER, RETRIEVED).auto_send

@@ -112,7 +112,7 @@ Dev skoru yaklaşık 10 puan iyimserdi. Kaçırılan escalation testte de 0: kur
 ## Kaynaklı cevap ve karar (Phase 4)
 
 - Model önce kurallardan cümleyi aynen alıntılar (`evidence`), sonra cevabın belgelerde olup olmadığına karar verir (`covered`), sonra cevabı yazar ve kaynağı gösterir.
-- Otomatik gönderim yalnızca şu kontrollerin **hepsi** geçerse: kategori `other` değil, escalation yok, benzerlik puanı ≥ 0,65, belgeler cevaplıyor, cevap gerçekten bulunan bir belgeyi kaynak gösteriyor. Karar fonksiyonu yapay zekâ değil, sade koddur (test edilebilir).
+- Otomatik gönderim yalnızca şu kontrollerin **hepsi** geçerse: kategori `other` değil, escalation yok, öncelik `urgent` değil (acil durumda bir insan bugün harekete geçebilir), benzerlik puanı ≥ 0,65, belgeler cevaplıyor, cevap gerçekten bulunan bir belgeyi kaynak gösteriyor. Karar fonksiyonu yapay zekâ değil, sade koddur (test edilebilir).
 - Dev sonucu (79 ticket): **hatalı otomatik gönderim 0**, yanlış belge gösteren cevap 0, otomatik gönderilen 15 cevaptan 11'i iyi, 1'i orta, 3'ü doğru ama az faydalı; hiçbirinde uydurma bilgi yok.
 - Öğrenciye gönderilmeyen taslak sunucudan hiç çıkmaz (`reply: null`).
 

@@ -869,3 +869,19 @@ Page and static files are served; empty text -> 422; unknown language -> 422; a 
 ## README and CLAUDE.md brought up to date
 - README (Turkish): intro (RAG and the decision now exist), status table (Phases 1-5 done), new sections with the results of Phase 2 (locked test set), Phase 3 (knowledge base and retrieval) and Phase 4 (cited answers and the decision), updated limits, new run commands (uvicorn student page, Streamlit staff panel, pytest, the three evaluations), full file list, next steps. Fixed one word: "Bilet" -> "Ticket".
 - CLAUDE.md repo layout: added web/, tests/ and pytest.ini.
+- Commit and push: `9c922d3` Phase 5: pytest tests for decision rules and API (15 passing), README updated for Phases 2-5.
+
+## New rule: urgent tickets always go to a human (my decision: "what you see best")
+- Why: dev ticket tr-001 ("OBS şifremi unuttum... yarın ders kaydı bitiyor", urgent) was auto-answered with a generic "contact your faculty". A person can reset the password today.
+- Test first (test-driven development): added `test_urgent_ticket_is_never_auto_sent` -> it failed (`assert not True`, 1 failed, 15 passed) because the rule did not exist yet. Then added one check in `decide()`: `if result.priority == "urgent": reasons.append("urgent: a human answers")` -> 16 passed.
+- CLAUDE.md: the auto-send rule now lists all 6 checks (not other, no escalation, not urgent, strong match, documents answer, cites a retrieved source), pointing to src/decision.py and its tests, so a future session does not change the code back. README Phase 4 section updated the same way.
+- CLAUDE.md "Current status" updated (I approved): Phases 1-5 done, next: Phase 4 evaluation on the locked test set, then Phase 6.
+- Note: the dev results in eval/pipeline_results_dev.json were made before this rule; the next pipeline evaluation will include it.
+
+## Phase 4 on the LOCKED test set (`eval/pipeline_results_test.json`, with the urgent rule)
+- 40 tickets, 0 errors. Auto-sent: 3. **Unsafe auto-sends: 1 (tr-t06).** Wrong document cited: 1 (tr-t06). Helpfulness: 2 of 9 answerable tickets auto-sent.
+- tr-t06 "SOFRA'dan şifre sıfırlamaya çalışıyorum ama 'TC kimlik numarası bulunamadı' diyor. Yeni kayıt oldum." (label: no document answers it) -> auto-sent the OBS-password FAQ ("passwords are sent at registration; ask your faculty student affairs"). Every check passed: not other, no escalation, not urgent, good score, and the answer model said covered=true. The model's `covered` judgment was wrong: the document is about OBS passwords, not this SOFRA error. Harm is low (the advice "ask your faculty's student affairs" is true and safe), but it is a real failure of the covered check.
+- The same pattern already appeared on dev (en-038, "invalid password after SOFRA reset", rated weak). So this is not a one-off: the knowledge base has an OBS-password section but nothing on SOFRA, and the model stretches the OBS section to SOFRA questions. A fix may be based on the dev evidence (en-038), never on the test ticket itself, and must be checked on new tickets.
+- Auto-sent and correct: tr-t03 (azami süre: not dismissed, extra exams and extra semesters, md. 31) and en-t14 (summer school: at most 4 courses, md. 10).
+- 7 answerable tickets forwarded: 2 by escalation (tr-t01, en-t09), 1 by the new urgent rule (tr-t18), 4 because the model said the documents do not answer (tr-t15, en-t01, en-t10, en-t15), mostly true (no refund rule for a cancelled summer course, no residence-permit document list, no SGK, no installment payment method).
+- Honest summary: on unseen tickets, auto-send is rare (3/40) and 1 of the 3 should not have been sent. The covered check is the weakest link; the other checks never let a dangerous ticket through (0 escalated or urgent tickets were auto-sent).
