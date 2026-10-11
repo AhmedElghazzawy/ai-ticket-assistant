@@ -1,10 +1,11 @@
+import { RouterProvider } from "@tanstack/react-router";
 import { PreferencesProvider } from "@/app/preferences";
-import { ChatPage } from "@/features/chat/chat-page";
+import { router } from "@/router";
 
 export default function App() {
   return (
     <PreferencesProvider>
-      <ChatPage />
+      <RouterProvider router={router} />
     </PreferencesProvider>
   );
 }

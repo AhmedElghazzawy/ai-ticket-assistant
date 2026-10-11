@@ -1,7 +1,7 @@
 // Every text the student sees, in Turkish and English. The `satisfies` check makes
 // TypeScript fail the build if a key exists in one language but not the other.
 
-import type { Category, Language, Priority } from "@/lib/types";
+import type { Category, Language, OfficeId, Priority } from "@/lib/types";
 
 const tr = {
   university: "Bilecik Şeyh Edebali Üniversitesi",
@@ -31,6 +31,49 @@ const tr = {
   helpful: "Bu cevap işinize yaradı mı?",
   newChat: "Yeni talep",
   error: "Şu anda cevap veremiyoruz. Lütfen biraz sonra tekrar deneyin.",
+  staff: {
+    console: "Personel Paneli",
+    queue: "İnceleme kuyruğu",
+    insights: "İstatistikler",
+    soon: "yakında",
+    studentView: "Öğrenci sayfası",
+    signedInAs: "Demo personel",
+    open: "Açık talepler",
+    urgentOpen: "Acil",
+    handledToday: "Bugün yanıtlanan",
+    search: "Taleplerde ara…",
+    allOffices: "Tüm birimler",
+    allPriorities: "Tüm öncelikler",
+    emptyQueue: "Bu filtrelerle açık talep yok.",
+    back: "Kuyruğa dön",
+    studentMessage: "Öğrencinin mesajı",
+    aiAnalysis: "Yapay zekâ analizi",
+    aiReasonNote: "Modelin kendi açıklaması (İngilizce)",
+    whyForwarded: "Neden otomatik gönderilmedi",
+    reply: "Cevabınız",
+    replyHint:
+      "Yapay zekâ taslağı, kaynaklara dayanarak hazırlandı. Göndermeden önce kontrol edip düzenleyin.",
+    noDraft: "Belgeler bu talebi yanıtlamıyor; taslak yok. Cevabı siz yazın.",
+    sourcesUsed: "Taslağın kullandığı kaynaklar",
+    noSources: "Bu talep için güçlü bir belge eşleşmesi bulunamadı.",
+    send: "Cevabı gönder",
+    sent: "Cevap gönderildi",
+    sentNote: "Talep kapatıldı ve öğrenciye iletildi (prototip: e-posta gönderimi henüz yok).",
+    reassign: "Birimi değiştir",
+    category: "Kategori",
+    escalated: "İnsan incelemesi gerekli",
+    received: "Alındı",
+    handled: "Yanıtlandı",
+    reasons: {
+      category_other: "Kategori 'Diğer': hangi birimin sorumlu olduğu belli değil.",
+      escalation: "Bir yükseltme kuralı geçerli: bu talebi bir insan yanıtlamalı.",
+      urgent: "Acil: bugün bir personelin ilgilenmesi gerekiyor.",
+      weak_match: (score: number, min: number) =>
+        `Belge eşleşmesi zayıf (${score.toFixed(3)} < ${min.toFixed(3)}).`,
+      not_covered: "Belgeler talebi yanıtlamıyor.",
+      no_citation: "Taslak, bulunan bir belgeye kaynak göstermiyor.",
+    },
+  },
   theme: { light: "Açık", dark: "Koyu", system: "Sistem" },
   categories: {
     account_access: "Hesap Erişimi",
@@ -47,6 +90,13 @@ const tr = {
     medium: "Orta",
     low: "Düşük",
   } satisfies Record<Priority, string>,
+  offices: {
+    it: "Bilgi İşlem Daire Başkanlığı",
+    student_affairs: "Öğrenci İşleri Daire Başkanlığı",
+    fees: "Öğrenci İşleri, İstatistik Disiplin ve Harçlar Şube Müdürlüğü",
+    sks: "Sağlık, Kültür ve Spor (SKS) Daire Başkanlığı",
+    duty: "Öğrenci İşleri nöbetçi personeli",
+  } satisfies Record<OfficeId, string>,
 };
 
 export type Texts = typeof tr;
@@ -79,6 +129,49 @@ const en: Texts = {
   helpful: "Was this answer helpful?",
   newChat: "New request",
   error: "We can't answer right now. Please try again in a moment.",
+  staff: {
+    console: "Staff Console",
+    queue: "Review queue",
+    insights: "Insights",
+    soon: "soon",
+    studentView: "Student page",
+    signedInAs: "Demo staff",
+    open: "Open tickets",
+    urgentOpen: "Urgent",
+    handledToday: "Handled today",
+    search: "Search tickets…",
+    allOffices: "All offices",
+    allPriorities: "All priorities",
+    emptyQueue: "No open tickets match these filters.",
+    back: "Back to queue",
+    studentMessage: "Student's message",
+    aiAnalysis: "AI analysis",
+    aiReasonNote: "The model's own explanation",
+    whyForwarded: "Why it was not sent automatically",
+    reply: "Your reply",
+    replyHint: "AI draft, grounded in the sources. Check and edit it before sending.",
+    noDraft:
+      "The documents do not answer this ticket, so there is no usable draft. Write the reply yourself.",
+    sourcesUsed: "Sources used by the draft",
+    noSources: "No strong document match was found for this ticket.",
+    send: "Send reply",
+    sent: "Reply sent",
+    sentNote: "The ticket is closed and the reply delivered (prototype: no e-mail sending yet).",
+    reassign: "Reassign office",
+    category: "Category",
+    escalated: "Needs human review",
+    received: "Received",
+    handled: "Handled",
+    reasons: {
+      category_other: "Category 'other': no office is clearly responsible.",
+      escalation: "An escalation rule applies: a human must answer.",
+      urgent: "Urgent: a staff member must act today.",
+      weak_match: (score: number, min: number) =>
+        `Weak document match (${score.toFixed(3)} < ${min.toFixed(3)}).`,
+      not_covered: "The documents do not answer the ticket.",
+      no_citation: "The draft does not cite a retrieved document.",
+    },
+  },
   theme: { light: "Light", dark: "Dark", system: "System" },
   categories: {
     account_access: "Account access",
@@ -90,6 +183,13 @@ const en: Texts = {
     other: "Other",
   },
   priorities: { urgent: "Urgent", high: "High", medium: "Medium", low: "Low" },
+  offices: {
+    it: "IT Department (Bilgi İşlem)",
+    student_affairs: "Student Affairs (Öğrenci İşleri)",
+    fees: "Student Affairs, Fees Office (Harçlar Şube Müdürlüğü)",
+    sks: "Health, Culture and Sports Office (SKS)",
+    duty: "Student Affairs duty staff",
+  },
 };
 
 export const TEXTS: Record<Language, Texts> = { tr, en };

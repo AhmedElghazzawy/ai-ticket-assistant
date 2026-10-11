@@ -14,6 +14,9 @@ export type Category =
 
 export type Priority = "low" | "medium" | "high" | "urgent";
 
+// The five BŞEÜ offices tickets are routed to (src/decision.py UNITS).
+export type OfficeId = "it" | "student_affairs" | "fees" | "sks" | "duty";
+
 export interface Source {
   title: string;
   section: string;

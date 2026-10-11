@@ -1099,3 +1099,26 @@ The plain HTML/CSS/JS student page and the Streamlit staff panel look too basic 
 ## CI and bundle
 - New CI job "Frontend (lint, types, build)": actions/setup-node v7.1.0 pinned by SHA, Node 24.21.0 (same as my laptop), `npm ci` (exact lockfile), `biome ci`, typecheck, build. Ran the same commands locally: all pass; backend checks still pass (ruff, mypy 22 files, 28 tests).
 - tools/make_context.py: frontend/package-lock.json is summary-only (203 kB of machine-written versions).
+- Commit and push: `56fdfbf` Frontend F1. CI run: both jobs green (Python; Frontend: npm ci, biome ci, typecheck, build).
+
+# Phase F2: staff console prototype (2026-10-11)
+
+## Mock data from the real dataset (frontend/src/mocks/staff-tickets.json)
+- 64 of 79 dev tickets are forwarded in the saved pipeline run, so the staff console is the main workplace.
+- Built 16 queue tickets from real data: text from tickets.jsonl; category, priority, escalate AND the model's own explanation (`reason`) from eval/results_high.json (run 1), so staff see the model's labels, not mine; drafts, sources and retrieval checks from eval/pipeline_results_dev.json; section names and official links from the knowledge base.
+- First attempts: (1) 10 of 16 urgent because I sorted by priority -> picked by quota (urgent 3, high 4, medium 5, low 4, at most 3 per category); (2) a ticket labelled "other" without the 'other' reason, because labels came from my file but reasons from the model -> labels now from the model.
+- Found in the backend output (to fix with a test when connecting): the reason "weak document match (0.65 < 0.65)": the score was rounded for display. Planned API change: reasons as CODES with data ({code: "weak_match", score, min}) and offices as IDs (it, student_affairs, fees, sks, duty), so the page translates them into the staff member's language. The prototype already uses this format; the score shows 3 decimals ("0.578 < 0.650").
+- The dev results predate the urgent rule; the mock adds the "urgent" reason so it shows today's rules.
+
+## Code
+- TanStack Router 1.170.42 (code-based routes): / = student chat, /staff = queue, /staff/tickets/$ticketId = detail. Staff pages are lazy-loaded (separate files in the build), so students never download them. The router's types are registered, so every link and parameter is type-checked: this caught a real hole (the priority filter could put any text into the URL).
+- Queue filters live in the URL (?q=...&office=it&priority=urgent): refresh keeps them, links can be shared; invalid values are ignored (validateSearch).
+- shadcn: select, avatar, input, sonner (toasts). sonner's shadcn wrapper imported next-themes (a Next.js theme library) -> pointed it at our own preferences and removed next-themes (two theme systems would conflict).
+- features/staff/: types (Reason codes, OfficeId), store (prototype data: send reply, reassign office; times shifted so the newest ticket is minutes old), parts (priority badge, "time ago" with the browser's Intl.RelativeTimeFormat, reason list with safety reasons first), staff-layout (sidebar on desktop, top bar on mobile, open count, Insights marked "soon"), queue-page (3 stats, search, office and priority filters, urgent first then oldest first), ticket-page (student message, why not auto-sent, AI analysis with the model's explanation, office reassign, editable reply pre-filled with the draft only when the documents answer the ticket, sources with chunk IDs and official links).
+- i18n: staff texts and office names in TR and EN (office names from decision.py); a script check confirmed no Turkish text was left in the English version.
+
+## Checks (Playwright, real browser)
+- Queue 16 -> open #142 -> send the pre-filled draft -> back to queue, 15 left, toast shown. ?priority=urgent&office=it -> 2 (#142, #147). ?priority=banana -> ignored, 16. No console errors.
+- My review fixed: label and value swapped in the AI analysis box; office names in the ticket's language instead of the staff member's (-> office IDs); "Demo pe..." cut off in the sidebar; mobile ticket page overflowed by 86 px (found with a script listing elements past the screen edge: the one-column grid sized itself to the long office name -> grid-cols-1 + truncate); filters at odd widths on mobile. Two failures were in my test script (counted rows before the lazy page appeared; matched the hidden sidebar link), not in the app.
+- Final: overflow 0 px on all pages (desktop and mobile), Biome clean, TypeScript 0 errors, build OK; student chat re-checked after adding the router.
+- Removed shadcn avatar.tsx: added but not used (no dead code).

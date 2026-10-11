@@ -1,0 +1,451 @@
+[
+  {
+    "id": 140,
+    "dataset_id": "en-006",
+    "created_at": "2026-10-11T13:56:00",
+    "language": "en",
+    "text": "This is the third time I'm writing about my double-charged tuition and nobody answers. If it isn't fixed this week I'll contact a lawyer.",
+    "category": "billing",
+    "priority": "high",
+    "escalate": true,
+    "ai_reason": "The student reports a double-charged tuition fee, which falls under billing and high priority. Escalation is required due to a legal threat and unanswered repeated requests.",
+    "office": "fees",
+    "reasons": [
+      {
+        "code": "escalation"
+      }
+    ],
+    "top_score": 0.689,
+    "draft": "Dear student, we understand your concern regarding the overpayment of your tuition. To resolve this, you must apply with a refund petition to the official at Student Affairs' Fees Office (Harçlar Şube Müdürlüğü). The extra amount paid is then refunded to the bank account (IBAN) in the student's name given in the petition (Source: BŞEÜ Student Affairs (Öğrenci İşleri Daire Başkanlığı), Frequently Asked Questions: Harç İşlemleri).",
+    "sources": [
+      {
+        "id": "harc_ucretler.en#6",
+        "title": "Tuition Contribution (Katkı Payı), Tuition Fees and Refunds",
+        "section": "Refund of an overpayment",
+        "url": "https://bilecik.edu.tr/ogrenciisleri/Icerik/HARc_isLEMLERi"
+      }
+    ]
+  },
+  {
+    "id": 141,
+    "dataset_id": "en-015",
+    "created_at": "2026-10-11T13:33:00",
+    "language": "en",
+    "text": "Respectfully, I believe my Physics II midterm was graded incorrectly. Question 3 was marked wrong but my answer matches the solution key. Could someone review it?",
+    "category": "academic_records",
+    "priority": "medium",
+    "escalate": true,
+    "ai_reason": "The student is requesting a grade review for an exam, which belongs to academic records. Per escalation rule 5, grade and exam objections require human escalation, and the priority is medium as there is no urgent deadline mentioned.",
+    "office": "student_affairs",
+    "reasons": [
+      {
+        "code": "escalation"
+      },
+      {
+        "code": "weak_match",
+        "score": 0.635,
+        "min": 0.65
+      }
+    ],
+    "top_score": 0.635,
+    "draft": "To object to an exam result, you must submit a written objection to the teaching unit's management within five working days after the results are announced. Please keep in mind that exam results are only changed to correct material errors made when adding up the grades, and the unit's board decides on the objection. (Source: BŞEÜ Ön Lisans ve Lisans Eğitim-Öğretim Yönetmeliği, Article 20)",
+    "sources": [
+      {
+        "id": "sinavlar.en#3",
+        "title": "Exams: Make-up (Bütünleme), Grade Objections, Excused Exams and the Single-Course Exam",
+        "section": "Objecting to exam results (Article 20)",
+        "url": "https://www.resmigazete.gov.tr/eskiler/2019/07/20190707-1.htm"
+      }
+    ]
+  },
+  {
+    "id": 142,
+    "dataset_id": "tr-001",
+    "created_at": "2026-10-11T13:10:00",
+    "language": "tr",
+    "text": "OBS şifremi unuttum, sıfırlama maili gelmiyor. Yarın sabah ders kaydı bitiyor.",
+    "category": "account_access",
+    "priority": "urgent",
+    "escalate": false,
+    "ai_reason": "The student cannot log into OBS because they forgot their password and the reset email is not arriving, which falls under account_access. Priority is urgent because course registration ends within 24 hours. Escalation is false as it is a standard password reset issue with no rule exceptions or security threats.",
+    "office": "it",
+    "reasons": [
+      {
+        "code": "urgent"
+      }
+    ],
+    "top_score": 0.782,
+    "draft": "Merhaba. OBS şifrenizle ilgili yaşanan herhangi bir sorunda kayıtlı olduğunuz Fakülte veya MYO öğrenci işlerinden yardım talep edebilirsiniz. Lütfen bu konuda ilgili birimle iletişime geçiniz. (Kaynak: BŞEÜ Öğrenci İşleri Daire Başkanlığı, Sıkça Sorulan Sorular: Diğer İşlemler, Akıllı Kart İşlemleri, Mezuniyet İşlemleri, Kayıt Silme İşlemleri)",
+    "sources": [
+      {
+        "id": "belgeler_hesaplar.tr#2",
+        "title": "Öğrenci Numarası, OBS Şifresi, Belgeler ve Öğrenci Kimlik Kartı",
+        "section": "OBS şifresi",
+        "url": "https://bilecik.edu.tr/ogrenciisleri/Icerik/Diger_islemler"
+      }
+    ]
+  },
+  {
+    "id": 143,
+    "dataset_id": "tr-003",
+    "created_at": "2026-10-11T12:47:00",
+    "language": "tr",
+    "text": "Harç ücreti kartımdan iki kez çekildi, fazla ödenen tutarın iadesini istiyorum.",
+    "category": "billing",
+    "priority": "high",
+    "escalate": true,
+    "ai_reason": "The issue involves a double tuition charge and a request for a refund, fitting the billing category and high priority for erroneous money charges. It requires escalation due to the financial correction needed (Escalation Rule 4).",
+    "office": "fees",
+    "reasons": [
+      {
+        "code": "escalation"
+      }
+    ],
+    "top_score": 0.757,
+    "draft": "Merhaba. Fazla ödenen tutarların iadesi için Öğrenci İşleri Daire Başkanlığı Harçlar Şube Müdürlüğü Yetkilisine başvurmanız gerekmektedir. İade dilekçesi ile başvurmanız halinde fazladan yatırılan ücret, dilekçede beyan ettiğiniz kendi adınıza olan banka IBAN numarasına iade edilir. (Kaynak: BŞEÜ Öğrenci İşleri Daire Başkanlığı, Sıkça Sorulan Sorular: Harç İşlemleri)",
+    "sources": [
+      {
+        "id": "harc_ucretler.tr#6",
+        "title": "Katkı Payı, Öğrenim Ücreti ve İadeler",
+        "section": "Fazla veya yanlış ödemenin iadesi",
+        "url": "https://bilecik.edu.tr/ogrenciisleri/Icerik/HARc_isLEMLERi"
+      }
+    ]
+  },
+  {
+    "id": 144,
+    "dataset_id": "tr-005",
+    "created_at": "2026-10-11T12:24:00",
+    "language": "tr",
+    "text": "Final notum sisteme yanlış girilmiş, sınav kağıdımı görmek ve itiraz etmek istiyorum.",
+    "category": "academic_records",
+    "priority": "medium",
+    "escalate": true,
+    "ai_reason": "The student is objecting to an incorrect final grade, which falls under academic records and requires escalation because it is a grade/exam objection (Escalation Rule 5).",
+    "office": "student_affairs",
+    "reasons": [
+      {
+        "code": "escalation"
+      }
+    ],
+    "top_score": 0.765,
+    "draft": "Sınav sonuçlarına itiraz etmek için, sınav sonuçlarının ilanını izleyen beş iş günü içerisinde ilgili öğretim birimi yönetimine yazılı olarak başvuru yapmanız gerekmektedir. Sınav sonuçlarında, öğretim elemanlarının notları sayısal olarak toplarken yaptığı maddi hataların düzeltilmesi dışında herhangi bir değişiklik yapılmamaktadır. İtirazınız ilgili birimin yönetim kurulu tarafından karara bağlanacaktır. (Kaynak: BŞEÜ Ön Lisans ve Lisans Eğitim-Öğretim Yönetmeliği, Madde 20)",
+    "sources": [
+      {
+        "id": "sinavlar.tr#3",
+        "title": "Sınavlar: Bütünleme, Sınav İtirazı, Mazeret Sınavı ve Tek Ders Sınavı",
+        "section": "Sınav sonuçlarına itiraz (Madde 20)",
+        "url": "https://www.resmigazete.gov.tr/eskiler/2019/07/20190707-1.htm"
+      }
+    ]
+  },
+  {
+    "id": 145,
+    "dataset_id": "tr-034",
+    "created_at": "2026-10-11T12:01:00",
+    "language": "tr",
+    "text": "Ekle-bırak süresi dün bitti ama danışmanım izindeydi ve onay alamadım. Ders kaydımı şimdi yapabilir miyim?",
+    "category": "registration",
+    "priority": "high",
+    "escalate": true,
+    "ai_reason": "The student is asking about course registration after the add-drop deadline has passed, falling under registration. Escalation is true because the student needs an exception to a passed deadline (Rule 3), and priority is high as it blocks their course schedule.",
+    "office": "student_affairs",
+    "reasons": [
+      {
+        "code": "escalation"
+      }
+    ],
+    "top_score": 0.784,
+    "draft": "Merhaba, ders ekleme, bırakma ve değiştirme işlemleri danışman onayı ile yarıyıl derslerinin başlangıcını izleyen ilk hafta içinde gerçekleştirilmektedir. Öğrenciler süresi içinde usulüne uygun olarak almadıkları ya da kayıt yaptırmadıkları derslere devam edemez ve bu derslerin sınavına giremezler. Bu doğrultuda süresi geçen işlemler için ders kaydı yapılması mümkün değildir (Kaynak: Ön Lisans ve Lisans Eğitim-Öğretim Yönetmeliği, Madde 16).",
+    "sources": [
+      {
+        "id": "ders_kaydi.tr#3",
+        "title": "Kayıt Yenileme, Ders Kaydı ve Ekle-Bırak",
+        "section": "Ders ekleme, bırakma ve değiştirme (Madde 16)",
+        "url": "https://www.resmigazete.gov.tr/eskiler/2019/07/20190707-1.htm"
+      }
+    ]
+  },
+  {
+    "id": 146,
+    "dataset_id": "tr-035",
+    "created_at": "2026-10-11T11:38:00",
+    "language": "tr",
+    "text": "AKTS sınırım 30 ama bu dönem 36 AKTS almak istiyorum, mümkün mü?",
+    "category": "registration",
+    "priority": "low",
+    "escalate": true,
+    "ai_reason": "The ticket relates to course registration limits, fitting the registration category. It requires escalation because the student is asking to exceed the standard ECTS limit, which constitutes a rule exception.",
+    "office": "student_affairs",
+    "reasons": [
+      {
+        "code": "escalation"
+      }
+    ],
+    "top_score": 0.728,
+    "draft": "Genel not ortalamanız 2,00 veya üzerinde ise (ön lisansta 1,75), normal ders kredi yükünüzün %50 fazlası kadar derse kayıt yaptırabilirsiniz. Bu şartı sağladığınız takdirde normal kredi yükünüzün üzerine çıkıp 36 AKTS ders almanız mümkündür. Öğrenciler öncelikle alt dönemdeki dersleri seçmelidir.",
+    "sources": [
+      {
+        "id": "ders_kaydi.tr#2",
+        "title": "Kayıt Yenileme, Ders Kaydı ve Ekle-Bırak",
+        "section": "Ders kaydı ve kredi yükü (Madde 15)",
+        "url": "https://www.resmigazete.gov.tr/eskiler/2019/07/20190707-1.htm"
+      }
+    ]
+  },
+  {
+    "id": 147,
+    "dataset_id": "tr-039",
+    "created_at": "2026-10-11T11:15:00",
+    "language": "tr",
+    "text": "OBS hesabımdan benim yapmadığım bir ders bırakma işlemi yapılmış! Biri şifremi biliyor olabilir.",
+    "category": "account_access",
+    "priority": "urgent",
+    "escalate": true,
+    "ai_reason": "The student reports that unauthorized actions were taken and suspects their OBS account was compromised, fitting account access, urgent priority, and escalation for a compromised account.",
+    "office": "it",
+    "reasons": [
+      {
+        "code": "escalation"
+      },
+      {
+        "code": "urgent"
+      }
+    ],
+    "top_score": 0.73,
+    "draft": "Merhaba, OBS şifrenizle ilgili yaşanan herhangi bir sorunda kayıtlı olduğunuz Fakülte/MYO öğrenci işlerinden yardım talep edebilirsiniz. (Kaynak: BŞEÜ Öğrenci İşleri Daire Başkanlığı, Sıkça Sorulan Sorular: Diğer İşlemler, Akıllı Kart İşlemleri, Mezuniyet İşlemleri, Kayıt Silme İşlemleri)",
+    "sources": [
+      {
+        "id": "belgeler_hesaplar.tr#2",
+        "title": "Öğrenci Numarası, OBS Şifresi, Belgeler ve Öğrenci Kimlik Kartı",
+        "section": "OBS şifresi",
+        "url": "https://bilecik.edu.tr/ogrenciisleri/Icerik/Diger_islemler"
+      }
+    ]
+  },
+  {
+    "id": 148,
+    "dataset_id": "en-001",
+    "created_at": "2026-10-11T10:52:00",
+    "language": "en",
+    "text": "The Wi-Fi in the library keeps disconnecting every few minutes.",
+    "category": "it_support",
+    "priority": "medium",
+    "escalate": false,
+    "ai_reason": "The issue is a technical problem with the campus Wi-Fi, which falls under it_support. It is an active technical inconvenience without an urgent deadline, making it medium priority, and it does not meet any escalation criteria.",
+    "office": "it",
+    "reasons": [
+      {
+        "code": "weak_match",
+        "score": 0.604,
+        "min": 0.65
+      },
+      {
+        "code": "not_covered"
+      },
+      {
+        "code": "no_citation"
+      }
+    ],
+    "top_score": 0.604,
+    "draft": "Your request regarding the library Wi-Fi is not covered by the current rules and will be forwarded to the responsible office. Thank you for your understanding and patience while we process your inquiry.",
+    "sources": []
+  },
+  {
+    "id": 149,
+    "dataset_id": "en-002",
+    "created_at": "2026-10-11T10:29:00",
+    "language": "en",
+    "text": "I can't add CENG 301, the system says I'm missing a prerequisite but I passed it last year.",
+    "category": "registration",
+    "priority": "medium",
+    "escalate": true,
+    "ai_reason": "The ticket is about adding a course with a prerequisite error, falling under registration. It requires escalation because the student is reporting an incorrect system record regarding a passed prerequisite (escalation rule 4).",
+    "office": "student_affairs",
+    "reasons": [
+      {
+        "code": "escalation"
+      },
+      {
+        "code": "not_covered"
+      },
+      {
+        "code": "no_citation"
+      }
+    ],
+    "top_score": 0.688,
+    "draft": "Your request regarding the prerequisite issue for CENG 301 is not covered by the current official rules and will be forwarded to the responsible office for further assistance.",
+    "sources": []
+  },
+  {
+    "id": 150,
+    "dataset_id": "en-005",
+    "created_at": "2026-10-11T10:06:00",
+    "language": "en",
+    "text": "Where is the lost and found office on campus? I lost my student ID card.",
+    "category": "other",
+    "priority": "low",
+    "escalate": false,
+    "ai_reason": "The user is asking for the location of the lost and found office, which maps to the other category. Since it is a general information query with no urgency or deadlines, the priority is low and escalation is false.",
+    "office": "duty",
+    "reasons": [
+      {
+        "code": "category_other"
+      },
+      {
+        "code": "not_covered"
+      },
+      {
+        "code": "no_citation"
+      }
+    ],
+    "top_score": 0.734,
+    "draft": "Hello! Your request regarding the location of the lost and found office will be forwarded to the responsible office.",
+    "sources": []
+  },
+  {
+    "id": 151,
+    "dataset_id": "en-007",
+    "created_at": "2026-10-11T09:43:00",
+    "language": "en",
+    "text": "help",
+    "category": "other",
+    "priority": "low",
+    "escalate": false,
+    "ai_reason": "The ticket is completely unclear and contains no specific problem, fitting the other category with low priority and no escalation.",
+    "office": "duty",
+    "reasons": [
+      {
+        "code": "category_other"
+      },
+      {
+        "code": "weak_match",
+        "score": 0.644,
+        "min": 0.65
+      },
+      {
+        "code": "not_covered"
+      },
+      {
+        "code": "no_citation"
+      }
+    ],
+    "top_score": 0.644,
+    "draft": "Hello. Since your request is general, it will be forwarded to the responsible office. Please reach out with specific details about your inquiry so we can assist you better.",
+    "sources": []
+  },
+  {
+    "id": 152,
+    "dataset_id": "en-008",
+    "created_at": "2026-10-11T09:20:00",
+    "language": "en",
+    "text": "My SOFRA password works but I never got my @ogrenci.bilecik.edu.tr email, it says the account doesn't exist.",
+    "category": "account_access",
+    "priority": "medium",
+    "escalate": false,
+    "ai_reason": "The student is unable to access or find their university email account, which fits the account_access category. Since no urgent deadline is specified for this access issue, the priority is medium, and no escalation rules apply.",
+    "office": "it",
+    "reasons": [
+      {
+        "code": "not_covered"
+      },
+      {
+        "code": "no_citation"
+      }
+    ],
+    "top_score": 0.712,
+    "draft": "Your request has been received and will be forwarded to the responsible office.",
+    "sources": []
+  },
+  {
+    "id": 153,
+    "dataset_id": "en-009",
+    "created_at": "2026-10-11T08:57:00",
+    "language": "en",
+    "text": "Is there a shuttle bus from the city center to campus on weekends?",
+    "category": "campus_life",
+    "priority": "low",
+    "escalate": false,
+    "ai_reason": "The user is asking about campus transportation, which falls under campus_life. It is a general information question with no blocks, so priority is low and escalation is false.",
+    "office": "sks",
+    "reasons": [
+      {
+        "code": "weak_match",
+        "score": 0.612,
+        "min": 0.65
+      },
+      {
+        "code": "not_covered"
+      },
+      {
+        "code": "no_citation"
+      }
+    ],
+    "top_score": 0.612,
+    "draft": "Hello. Unfortunately, the provided rules do not contain information regarding shuttle buses from the city center to the campus on weekends. Your request will be forwarded to the responsible office so that they can assist you further. Thank you for your patience.",
+    "sources": []
+  },
+  {
+    "id": 154,
+    "dataset_id": "en-017",
+    "created_at": "2026-10-11T08:34:00",
+    "language": "en",
+    "text": "A classmate keeps sending me threatening messages after I refused to share my homework. I'm scared to come to class.",
+    "category": "other",
+    "priority": "urgent",
+    "escalate": true,
+    "ai_reason": "Harassment and threats from a classmate fall under the other category. Because it involves a safety threat and harassment, the priority is urgent and escalation is required.",
+    "office": "duty",
+    "reasons": [
+      {
+        "code": "category_other"
+      },
+      {
+        "code": "escalation"
+      },
+      {
+        "code": "urgent"
+      },
+      {
+        "code": "weak_match",
+        "score": 0.578,
+        "min": 0.65
+      },
+      {
+        "code": "not_covered"
+      },
+      {
+        "code": "no_citation"
+      }
+    ],
+    "top_score": 0.578,
+    "draft": "Hello. Your issue regarding the threatening messages from your classmate is not covered by our current rules. Please rest assured that your request will be forwarded to the responsible office for further assistance. We hope you stay safe.",
+    "sources": []
+  },
+  {
+    "id": 155,
+    "dataset_id": "en-024",
+    "created_at": "2026-10-11T08:11:00",
+    "language": "en",
+    "text": "I paid my tuition on time but a late fee was added to my account. Please remove it.",
+    "category": "billing",
+    "priority": "high",
+    "escalate": true,
+    "ai_reason": "The student is reporting an incorrect late fee despite paying tuition on time, which falls under billing and requires a financial correction (escalation rule 4). Financial errors and incorrect fee charges are classified as high priority.",
+    "office": "fees",
+    "reasons": [
+      {
+        "code": "escalation"
+      },
+      {
+        "code": "not_covered"
+      },
+      {
+        "code": "no_citation"
+      }
+    ],
+    "top_score": 0.69,
+    "draft": "Hello. Your request regarding the late fee is not addressed in our current rules. Therefore, your request will be forwarded to the responsible office for further assistance. They will get back to you soon.",
+    "sources": []
+  }
+]

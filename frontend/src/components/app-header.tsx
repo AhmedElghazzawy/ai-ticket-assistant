@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 const THEME_ICONS = { light: Sun, dark: Moon, system: Monitor } satisfies Record<Theme, unknown>;
 
 /** BŞEÜ mark: a navy tile with the initials (the official logo can replace it). */
-function BrandMark() {
+export function BrandMark() {
   return (
     <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary font-heading text-[0.62rem] font-bold tracking-tight text-primary-foreground">
       BŞEÜ
@@ -22,7 +22,7 @@ function BrandMark() {
   );
 }
 
-function LanguageSwitch() {
+export function LanguageSwitch() {
   const { language, setLanguage } = usePreferences();
   return (
     <fieldset className="flex rounded-lg border bg-muted/50 p-0.5 text-xs font-semibold">
@@ -47,7 +47,7 @@ function LanguageSwitch() {
   );
 }
 
-function ThemeMenu() {
+export function ThemeMenu() {
   const { theme, setTheme, t } = usePreferences();
   const Icon = THEME_ICONS[theme];
   return (
