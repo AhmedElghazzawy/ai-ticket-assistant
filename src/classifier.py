@@ -5,7 +5,7 @@ from pathlib import Path
 from google.genai import types
 from pydantic import BaseModel, ConfigDict, Field
 
-from llm import MODEL, client
+from llm import MODEL, client, response_text
 from tickets import Category, Priority
 
 LABELS_PATH = Path(__file__).resolve().parent.parent / "docs" / "labels.md"
@@ -28,7 +28,9 @@ class Classification(BaseModel):
 
     model_config = ConfigDict(extra="forbid", strict=True)
 
-    reason: str = Field(description="1-2 short sentences in English: which rules from the rulebook apply and why.")
+    reason: str = Field(
+        description="1-2 short sentences in English: which rules from the rulebook apply and why."
+    )
     category: Category
     priority: Priority
     escalate: bool
@@ -49,8 +51,10 @@ def make_config(thinking_level: types.ThinkingLevel) -> types.GenerateContentCon
     )
 
 
-def classify(ticket_text: str, thinking_level: types.ThinkingLevel = THINKING_LEVEL) -> Classification:
+def classify(
+    ticket_text: str, thinking_level: types.ThinkingLevel = THINKING_LEVEL
+) -> Classification:
     """Send one ticket to Gemini and return its validated labels."""
     config = make_config(thinking_level)
     response = client.models.generate_content(model=MODEL, contents=ticket_text, config=config)
-    return Classification.model_validate_json(response.text)
+    return Classification.model_validate_json(response_text(response))

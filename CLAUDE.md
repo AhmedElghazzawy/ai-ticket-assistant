@@ -20,7 +20,7 @@ It is also my FIRST AI engineering project. The goal is for me to learn and trul
   5. Run it and show me the real output.
   6. Ask me 2-3 short questions to check I understood, and wait for my answers. If I'm wrong, correct me kindly and re-explain.
   7. Suggest a commit message. Only commit when I say so. Every approved commit is pushed to GitHub right away, so GitHub is always up to date.
-- After EVERY change (new file, code change, decision, problem found, command run and its result), add it to docs/changelog.md with the reason, then run `.venv/bin/python tools/make_context.py` so claude_context.md is up to date. claude_context.md is the full project in one file, which I paste into a Claude chat to be taught.
+- After EVERY change (new file, code change, decision, problem found, command run and its result), add it to docs/changelog.md with the reason, then run `uv run python tools/make_context.py` so claude_context.md is up to date. claude_context.md is the full project in one file, which I paste into a Claude chat to be taught.
 - You may add the libraries, tools and setup the project really needs to reach production level. Before adding one, say what it is, why we need it, and what the simpler alternative would be. Every tool must earn its place: complexity that adds nothing is a weakness, not a strength.
 - Keep code short and readable: small functions, type hints, short English comments, snake_case names.
 - Tell me honestly when something is weak or may be misleading (for example an inflated score), even if I did not ask.
@@ -74,14 +74,14 @@ Auto-send only if ALL pass: category is not "other"; the model did not ask to es
 - Phase 1 has about 80 tickets (40 Turkish + 40 English) and no more. Phase 2 adds about 40 more (20 + 20), and those 40 are a LOCKED TEST SET: never used to adjust the prompt, only for the final score. Never tune the prompt on the test set.
 
 ## Tech stack (introduced one at a time, when needed)
-Python 3.12 with a virtual environment in .venv (use uv if it is installed, otherwise ask me). In use: google-genai (gemini-3.5-flash-lite + gemini-embedding-2), python-dotenv, pydantic, FastAPI + uvicorn + plain HTML/CSS/JS (student page, web/), Streamlit (staff panel), SQLite (built into Python, ticket store), pytest + httpx2 (tests). Planned (roadmap): ruff, mypy, pydantic-settings, Docker, GitHub Actions, Postgres + pgvector. Possible: LangGraph.
+Python 3.12 with a virtual environment in .venv (use uv if it is installed, otherwise ask me). In use: google-genai (gemini-3.5-flash-lite + gemini-embedding-2), python-dotenv, pydantic, FastAPI + uvicorn + plain HTML/CSS/JS (student page, web/), Streamlit (staff panel), SQLite (built into Python, ticket store), pytest + httpx2 (tests), uv (pyproject.toml + uv.lock), ruff (lint + format), mypy (strict). Planned (roadmap): pydantic-settings, Docker, GitHub Actions, Postgres + pgvector. Possible: LangGraph.
 
 ## Repo layout (target)
-data/tickets/, data/knowledge_base/, src/, web/ (student chat page), tests/ (pytest), eval/, docs/, README.md, CLAUDE.md, requirements.txt, pytest.ini, .env.example, .gitignore
+data/tickets/, data/knowledge_base/, src/, web/ (student chat page), tests/ (pytest), eval/, docs/, README.md, CLAUDE.md, pyproject.toml, uv.lock, .env.example, .gitignore
 
 ## Phase 1: rebuild from zero, understanding every step
 Everything was deleted on purpose so I can rebuild it slowly. Do NOT recreate the old code from memory or paste big files. Build it with me, step by step, using the teaching mode above.
-- Step 0: Environment. Check Python 3.12, the virtual environment, .gitignore, .env.example, requirements.txt. Help me create .env without ever reading it. Explain what each file is for.
+- Step 0: Environment. Check Python 3.12, the virtual environment, .gitignore, .env.example, pyproject.toml. Help me create .env without ever reading it. Explain what each file is for.
 - Step 1: First model call. Create src/llm.py (shared Gemini setup: key from .env, model name from GEMINI_MODEL, automatic retries) and a tiny test script that sends one ticket and prints the reply. Explain what an API call is.
 - Step 2: Define the labels together. Before any code, we write the category definitions, priority definitions and escalation rules in plain words. I write them, you check them for overlaps and gaps.
 - Step 3: The data. src/tickets.py defines what a valid ticket is (pydantic model, Literal types for category and priority) and loads tickets.jsonl with clear errors. I write the first 20 tickets with you; we reach about 80 (half Turkish, half English) with a good mix in each language: every category, every priority, edge cases, and about a quarter that need escalation.

@@ -1,6 +1,6 @@
 """The web API behind the student chat page.
 
-Run: .venv/bin/uvicorn api:app --app-dir src     then open http://127.0.0.1:8000
+Run: uv run uvicorn api:app --app-dir src     then open http://127.0.0.1:8000
 """
 
 import logging
@@ -67,13 +67,20 @@ def create_ticket(ticket: TicketIn) -> TicketOut:
         r = process_ticket(ticket.text, ticket.language, INDEX)
     except Exception as error:  # log the details for us, show students a short message only
         logger.exception("process_ticket failed")
-        raise HTTPException(status_code=503, detail="The assistant is not available right now.") from error
+        raise HTTPException(
+            status_code=503, detail="The assistant is not available right now."
+        ) from error
     c = r.classification
     office = UNITS[ticket.language][c.category]
-    with closing(connect(DB_FILE)) as db:  # one short connection per request (requests run on different threads)
+    with closing(
+        connect(DB_FILE)
+    ) as db:  # one short connection per request (requests run on different threads)
         ticket_id = save_ticket(db, ticket.text, ticket.language, r, office)
     cited = {chunk.id: chunk for _, chunk in r.hits}
-    sources = [Source(title=cited[s].title, section=cited[s].text.splitlines()[0]) for s in r.answer.sources]
+    sources = [
+        Source(title=cited[s].title, section=cited[s].text.splitlines()[0])
+        for s in r.answer.sources
+    ]
     return TicketOut(
         ticket_id=ticket_id,
         category=c.category,

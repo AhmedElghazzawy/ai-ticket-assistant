@@ -42,21 +42,38 @@ def connect(db_path: Path = DB_PATH) -> sqlite3.Connection:
     return connection
 
 
-def save_ticket(connection: sqlite3.Connection, text: str, language: str, result: "TicketResult", office: str) -> int:
+def save_ticket(
+    connection: sqlite3.Connection, text: str, language: str, result: "TicketResult", office: str
+) -> int:
     """Store one processed ticket and return its number. Auto-sent tickets are stored too (for statistics)."""
     c, decision = result.classification, result.decision
     cursor = connection.execute(
         "INSERT INTO tickets (created_at, language, text, category, priority, escalate, office, auto_send,"
         " reasons, draft, sources, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        (datetime.now().isoformat(timespec="seconds"), language, text, c.category, c.priority, int(c.escalate),
-         office, int(decision.auto_send), json.dumps(decision.reasons), result.answer.reply,
-         json.dumps(result.answer.sources), "auto_sent" if decision.auto_send else "open"),
+        (
+            datetime.now().isoformat(timespec="seconds"),
+            language,
+            text,
+            c.category,
+            c.priority,
+            int(c.escalate),
+            office,
+            int(decision.auto_send),
+            json.dumps(decision.reasons),
+            result.answer.reply,
+            json.dumps(result.answer.sources),
+            "auto_sent" if decision.auto_send else "open",
+        ),
     )  # the ? placeholders let SQLite insert the values safely (no SQL injection)
     connection.commit()
+    if cursor.lastrowid is None:  # always set after an INSERT; checked so the type is a plain int
+        raise RuntimeError("SQLite did not return the new ticket number.")
     return cursor.lastrowid
 
 
-PRIORITY_ORDER = "CASE priority WHEN 'urgent' THEN 0 WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END"
+PRIORITY_ORDER = (
+    "CASE priority WHEN 'urgent' THEN 0 WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END"
+)
 
 
 def list_tickets(connection: sqlite3.Connection, status: str) -> list[sqlite3.Row]:

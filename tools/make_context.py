@@ -8,10 +8,13 @@ OUTPUT = ROOT / "claude_context.md"
 FIRST = ["CLAUDE.md", "docs/changelog.md"]  # shown before all other files
 RESTART = "facb85a"  # the "Start over from scratch" commit; history starts after it
 # Big generated data files: listed with a note instead of their content (their numbers are in the changelog).
-SUMMARY_ONLY = ("eval/*.json", "data/kb_index.json")
+SUMMARY_ONLY = ("eval/*.json", "data/kb_index.json", "uv.lock")
 # Git pathspecs left out of the history diffs: raw results (too big), and files already shown in full above.
-NOT_IN_HISTORY = [*(f":(exclude){p}" for p in SUMMARY_ONLY), ":(exclude)docs/changelog.md",
-                  ":(exclude)data/knowledge_base"]
+NOT_IN_HISTORY = [
+    *(f":(exclude){p}" for p in SUMMARY_ONLY),
+    ":(exclude)docs/changelog.md",
+    ":(exclude)data/knowledge_base",
+]
 
 INTRO = """# AI Ticket Assistant: full project context
 
@@ -32,14 +35,26 @@ def git(*args: str) -> str:
 
 def project_files() -> list[Path]:
     """Return every file git can see (tracked or new), never ignored ones like .env."""
-    files = [ROOT / line for line in git("ls-files", "--cached", "--others", "--exclude-standard").splitlines()]
+    files = [
+        ROOT / line
+        for line in git("ls-files", "--cached", "--others", "--exclude-standard").splitlines()
+    ]
     return [f for f in files if f.exists() and f.name != ".env" and f != OUTPUT]
 
 
 def history_section() -> str:
     """Every commit since the restart with its changed lines, plus uncommitted changes."""
-    log = git("log", "--reverse", "-p", "--format=%n### Commit %h: %s (%ad)", "--date=short",
-              f"{RESTART}..HEAD", "--", ".", *NOT_IN_HISTORY)
+    log = git(
+        "log",
+        "--reverse",
+        "-p",
+        "--format=%n### Commit %h: %s (%ad)",
+        "--date=short",
+        f"{RESTART}..HEAD",
+        "--",
+        ".",
+        *NOT_IN_HISTORY,
+    )
     pending = git("diff", "HEAD", "--", ".", *NOT_IN_HISTORY)
     return (
         "\n---\n\n# History: every change, line by line\n\n"

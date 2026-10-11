@@ -1,7 +1,7 @@
 """Phase 4 evaluation: run the whole pipeline and count tickets auto-sent that should not have been.
 
-Run: .venv/bin/python src/evaluate_pipeline.py        (dev tickets)
-     .venv/bin/python src/evaluate_pipeline.py test   (the locked test tickets: measure only)
+Run: uv run python src/evaluate_pipeline.py        (dev tickets)
+     uv run python src/evaluate_pipeline.py test   (the locked test tickets: measure only)
 """
 
 import json
@@ -11,14 +11,14 @@ from pathlib import Path
 
 from pipeline import process_ticket
 from retrieval import load_index
-from tickets import TEST_PATH, TICKETS_PATH, load_tickets
+from tickets import TEST_PATH, TICKETS_PATH, Ticket, load_tickets
 
 EXPECTED_PATH = TICKETS_PATH.parent / "expected_docs.jsonl"
 RESULTS_DIR = Path(__file__).resolve().parent.parent / "eval"
 WAIT_SECONDS = 5  # pause between tickets (free-tier limits)
 
 
-def should_auto_send(ticket, expected_doc: str) -> bool:
+def should_auto_send(ticket: Ticket, expected_doc: str) -> bool:
     """By my labels: no escalation, not 'other', and a document really answers it."""
     return not ticket.escalate and ticket.category != "other" and expected_doc != "none"
 
@@ -26,7 +26,10 @@ def should_auto_send(ticket, expected_doc: str) -> bool:
 def main() -> None:
     on_test = len(sys.argv) > 1 and sys.argv[1] == "test"
     tickets = load_tickets(TEST_PATH if on_test else TICKETS_PATH)
-    expected = {r["id"]: r["doc"] for r in map(json.loads, EXPECTED_PATH.read_text(encoding="utf-8").splitlines())}
+    expected = {
+        r["id"]: r["doc"]
+        for r in map(json.loads, EXPECTED_PATH.read_text(encoding="utf-8").splitlines())
+    }
     index = load_index()
     rows = []
     for number, t in enumerate(tickets, start=1):
@@ -37,11 +40,21 @@ def main() -> None:
             print(f"[{number}/{len(tickets)}] {t.id} ERROR {type(error).__name__}: {error}")
             continue
         cited_docs = {s.split(".")[0] for s in r.answer.sources}
-        rows.append({"id": t.id, "text": t.text, "expected_doc": expected[t.id],
-                     "should_auto_send": should_auto_send(t, expected[t.id]), "auto_send": r.decision.auto_send,
-                     "reasons": r.decision.reasons, "covered": r.answer.covered, "sources": r.answer.sources,
-                     "cites_expected_doc": expected[t.id] in cited_docs, "top_score": round(r.hits[0][0], 3),
-                     "reply": r.answer.reply})
+        rows.append(
+            {
+                "id": t.id,
+                "text": t.text,
+                "expected_doc": expected[t.id],
+                "should_auto_send": should_auto_send(t, expected[t.id]),
+                "auto_send": r.decision.auto_send,
+                "reasons": r.decision.reasons,
+                "covered": r.answer.covered,
+                "sources": r.answer.sources,
+                "cites_expected_doc": expected[t.id] in cited_docs,
+                "top_score": round(r.hits[0][0], 3),
+                "reply": r.answer.reply,
+            }
+        )
         print(f"[{number}/{len(tickets)}] {t.id} auto_send={r.decision.auto_send}", flush=True)
 
     unsafe = [r["id"] for r in rows if r["auto_send"] and not r["should_auto_send"]]
@@ -56,7 +69,10 @@ def main() -> None:
     }
     print(json.dumps(summary, ensure_ascii=False, indent=1))
     path = RESULTS_DIR / f"pipeline_results_{'test' if on_test else 'dev'}.json"
-    path.write_text(json.dumps({"summary": summary, "rows": rows}, ensure_ascii=False, indent=1), encoding="utf-8")
+    path.write_text(
+        json.dumps({"summary": summary, "rows": rows}, ensure_ascii=False, indent=1),
+        encoding="utf-8",
+    )
     print(f"Saved to {path.relative_to(RESULTS_DIR.parent)}")
 
 

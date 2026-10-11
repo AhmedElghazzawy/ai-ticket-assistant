@@ -141,20 +141,29 @@ Dev skoru yaklaşık 10 puan iyimserdi. Kaçırılan escalation testte de 0: kur
 Gereken: Python 3.12, [uv](https://docs.astral.sh/uv/) ve bir Gemini API anahtarı ([Google AI Studio](https://aistudio.google.com/apikey)).
 
 ```sh
-uv venv --python 3.12 .venv
-uv pip install --python .venv/bin/python -r requirements.txt
+uv sync                       # .venv'i oluşturur ve uv.lock'taki tam sürümleri kurar
 cp .env.example .env          # sonra .env içine kendi API anahtarınızı yazın
 ```
 
 ```sh
-.venv/bin/python src/tickets.py            # veri setini kontrol et ve özetini göster
-.venv/bin/uvicorn api:app --app-dir src    # öğrenci sayfası: http://127.0.0.1:8000
-.venv/bin/streamlit run src/app.py          # personel paneli: inceleme kuyruğu, genel bakış, veri seti, değerlendirme
-.venv/bin/pytest                             # otomatik testler (API çağrısı yok, 1 saniyeden kısa)
-.venv/bin/python src/evaluate.py high       # sınıflandırma değerlendirmesi (yaklaşık 20 dakika)
-.venv/bin/python src/evaluate_retrieval.py  # belge arama değerlendirmesi
-.venv/bin/python src/evaluate_pipeline.py   # tüm sistem: hatalı otomatik gönderim sayısı
+uv run python src/tickets.py            # veri setini kontrol et ve özetini göster
+uv run uvicorn api:app --app-dir src    # öğrenci sayfası: http://127.0.0.1:8000
+uv run streamlit run src/app.py         # personel paneli: inceleme kuyruğu, genel bakış, veri seti, değerlendirme
+uv run python src/evaluate.py high      # sınıflandırma değerlendirmesi (yaklaşık 20 dakika)
+uv run python src/evaluate_retrieval.py # belge arama değerlendirmesi
+uv run python src/evaluate_pipeline.py  # tüm sistem: hatalı otomatik gönderim sayısı
 ```
+
+Kod kalitesi kontrolleri (API çağrısı yok, birkaç saniye):
+
+```sh
+uv run pytest                 # otomatik testler
+uv run ruff check             # linter: hata kalıpları, import sırası, modern Python
+uv run ruff format --check    # kod biçimi
+uv run mypy                   # tip kontrolü (strict mod)
+```
+
+Proje ayarları tek bir dosyadadır: `pyproject.toml` (kütüphaneler, pytest, ruff, mypy). Tam sürümler `uv.lock` içinde kilitlidir; böylece kurulum her bilgisayarda aynıdır.
 
 `.env` dosyası API anahtarını tutar ve `.gitignore` sayesinde asla GitHub'a yüklenmez.
 

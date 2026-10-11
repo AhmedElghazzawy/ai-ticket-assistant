@@ -977,3 +977,45 @@ Strong already: locked test set, missed-escalation metric, 59/59 verified quotes
 - Old phases 7-8 replaced by "Roadmap to production" phases 7-14: Foundation, Data, Evaluation, Retrieval, Security and stress tests, Staff product, Deployment, Showcase.
 - Tech stack: planned tools listed. Current status: production standard adopted; next is Phase 7 Foundation.
 - Check: AGENTS.md still differs from CLAUDE.md only in the 4 tool-name lines.
+
+# Phase 7 Foundation, piece 1: pyproject.toml, uv.lock, ruff, mypy (2026-10-11)
+
+## Why
+Settings were spread over requirements.txt and pytest.ini, installs were not reproducible (no lockfile), and nothing checked the code automatically. This is the base for CI and Docker.
+
+## pyproject.toml (new) and uv.lock (new)
+- `[project]`: name, version 0.7.0, Python 3.12 only, the 6 runtime libraries with lower bounds (`>=`). `[dependency-groups] dev`: pytest, httpx2, ruff, mypy (developer/CI only, not in the production image). `[tool.pytest.ini_options]`: same settings as the old pytest.ini.
+- Latest versions checked on PyPI first: ruff 0.17.0 (2026-10-09), mypy 2.4.0 (2026-10-01).
+- `uv lock` resolved 73 packages. It wanted to upgrade google-genai 2.28.0 -> 2.29.0, pydantic 2.13.5 -> 2.14.0 and 5 sub-libraries (google-auth, httptools, narwhals, numpy, pycparser). Rule "one change at a time": pinned all of them to the installed versions with `uv lock -P name==version`; upgrades will be a separate, tested step.
+- `uv sync --dry-run` first, then `uv sync`: only 6 packages added (ruff, mypy and helpers), nothing removed or upgraded.
+- Deleted requirements.txt and pytest.ini. `uv run pytest`: 22 passed (pytest reads pyproject.toml).
+
+## ruff
+- Rules: E, W, F, I, B, UP, SIM, ISC. First run: 141 long lines (E501) and 4 `zip()` without `strict=` (B905).
+- `ruff format` reformatted 16 files (whitespace, line breaks, quotes only; tests still 22 passed).
+- E501 switched off: the formatter owns line length; the remaining long lines are mostly prompt text, and splitting it by hand could change the prompt and invalidate the saved scores.
+- B905 fixed with `strict=True` in 4 places, all real silent-wrong-result risks: chunks paired with vectors when building the index, the similarity of two vectors of different sizes, tickets paired with embeddings in the retrieval evaluation, example buttons in the staff panel.
+- Ruff also caught an import I had put in the wrong order (auto-fixed).
+
+## mypy (strict)
+First run: 125 findings in 12 files. Now: no issues in 20 files.
+- Real bugs fixed:
+  - `response.text` can be None (safety block, early stop): classifier and answer would crash with a confusing JSON error. New `llm.response_text()` raises a clear error with Gemini's finish reason. New `tests/test_llm.py` (2 tests, hand-made responses, no API call).
+  - `retrieval.embed()`: `result.embeddings` or a vector can be None, or fewer vectors can come back than asked for -> clear error instead of a broken index.
+  - `store.save_ticket()`: `lastrowid` is checked instead of assumed.
+- Precise types: `Index` type alias in retrieval.py (used in pipeline, evaluations, app); `dict[str, Any]` for JSON-style evaluation reports; evaluate.py skips a ticket the model never answered explicitly (`if p is None: continue`) instead of by luck.
+- app.py: `TEXTS: dict[str, dict[str, Any]]` (texts mix strings and lists; app.py will be replaced by the staff dashboard in Phase 12, so no big exact type now). The variable `shown` was used for two different things (queue rows and dataset tickets) -> queue one renamed `queue_rows`. `format_func=names.get` (may return None) -> `lambda c: names[c]`.
+- Tests: `-> None` on every test, `tmp_path: Path`, helper parameters typed with the real `Category` / `Priority` Literal types (a typo in a test is now caught before running), `typing.get_args(Category)` instead of `__args__`, `NoReturn` for the always-failing fake.
+
+## Checks
+- `uv run ruff check`: all passed. `uv run ruff format --check`: all formatted. `uv run mypy`: no issues in 20 source files. `uv run pytest`: 24 passed.
+- Staff panel loaded headless with Streamlit AppTest: staff view, 5 tabs, no exceptions; billing + urgent filters work; categories shown with readable names.
+
+## Docs
+- README (Turkish) setup: `uv sync` instead of `uv venv` + `pip install -r requirements.txt`; every command now `uv run ...`; new "Kod kalitesi kontrolleri" block; one sentence on pyproject.toml and uv.lock.
+- Docstrings in api.py, app.py, evaluate*.py, retrieval.py and the staff panel hints: `uv run ...`.
+- CLAUDE.md and AGENTS.md: make_context command, repo layout (pyproject.toml, uv.lock), Step 0 wording, tech stack (uv, ruff, mypy now in use).
+
+## Known issue for the next pieces
+Importing `llm` needs GEMINI_API_KEY and GEMINI_MODEL at import time, so tests that import the pipeline need a .env. CI has no .env -> fixed by the typed config piece (pydantic-settings) before the CI piece.
+- Bundle: tools/make_context.py now lists uv.lock as "summary only" (147k characters of machine-written versions, nothing to learn from); the bundle went 960k -> 814k characters.

@@ -14,14 +14,24 @@ MIN_SCORE = 0.65
 
 # Where each category is routed: the real BŞEÜ offices decided in CLAUDE.md.
 UNITS = {
-    "tr": {"account_access": "Bilgi İşlem Daire Başkanlığı", "it_support": "Bilgi İşlem Daire Başkanlığı",
-           "registration": "Öğrenci İşleri Daire Başkanlığı", "academic_records": "Öğrenci İşleri Daire Başkanlığı",
-           "billing": "Öğrenci İşleri, İstatistik Disiplin ve Harçlar Şube Müdürlüğü",
-           "campus_life": "Sağlık, Kültür ve Spor (SKS) Daire Başkanlığı", "other": "Öğrenci İşleri nöbetçi personeli"},
-    "en": {"account_access": "IT Department (Bilgi İşlem)", "it_support": "IT Department (Bilgi İşlem)",
-           "registration": "Student Affairs (Öğrenci İşleri)", "academic_records": "Student Affairs (Öğrenci İşleri)",
-           "billing": "Student Affairs, Fees Office (Harçlar Şube Müdürlüğü)",
-           "campus_life": "Health, Culture and Sports Office (SKS)", "other": "Student Affairs duty staff"},
+    "tr": {
+        "account_access": "Bilgi İşlem Daire Başkanlığı",
+        "it_support": "Bilgi İşlem Daire Başkanlığı",
+        "registration": "Öğrenci İşleri Daire Başkanlığı",
+        "academic_records": "Öğrenci İşleri Daire Başkanlığı",
+        "billing": "Öğrenci İşleri, İstatistik Disiplin ve Harçlar Şube Müdürlüğü",
+        "campus_life": "Sağlık, Kültür ve Spor (SKS) Daire Başkanlığı",
+        "other": "Öğrenci İşleri nöbetçi personeli",
+    },
+    "en": {
+        "account_access": "IT Department (Bilgi İşlem)",
+        "it_support": "IT Department (Bilgi İşlem)",
+        "registration": "Student Affairs (Öğrenci İşleri)",
+        "academic_records": "Student Affairs (Öğrenci İşleri)",
+        "billing": "Student Affairs, Fees Office (Harçlar Şube Müdürlüğü)",
+        "campus_life": "Health, Culture and Sports Office (SKS)",
+        "other": "Student Affairs duty staff",
+    },
 }
 
 
@@ -32,7 +42,9 @@ class Decision(BaseModel):
     reasons: list[str]
 
 
-def decide(result: Classification, top_score: float, answer: Answer, retrieved_ids: set[str]) -> Decision:
+def decide(
+    result: Classification, top_score: float, answer: Answer, retrieved_ids: set[str]
+) -> Decision:
     """Auto-send only if ALL checks pass (CLAUDE.md). Every failed check is recorded as a reason."""
     reasons = []
     if result.category == "other":

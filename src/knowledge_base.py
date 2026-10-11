@@ -10,12 +10,12 @@ KB_DIR = Path(__file__).resolve().parent.parent / "data" / "knowledge_base"
 class Chunk(BaseModel):
     """One searchable piece of a document: a single rule with its heading."""
 
-    id: str        # e.g. "sinavlar.tr#3": document name, language, section number
-    doc: str       # e.g. "sinavlar": the same for the TR and EN versions
+    id: str  # e.g. "sinavlar.tr#3": document name, language, section number
+    doc: str  # e.g. "sinavlar": the same for the TR and EN versions
     language: str  # "tr" or "en"
-    title: str     # the document title (first "# " line)
-    source: str    # the official source line, so answers can cite it
-    text: str      # the section heading and its text
+    title: str  # the document title (first "# " line)
+    source: str  # the official source line, so answers can cite it
+    text: str  # the section heading and its text
 
 
 def split_document(path: Path) -> list[Chunk]:
@@ -23,10 +23,19 @@ def split_document(path: Path) -> list[Chunk]:
     doc, language = path.name.removesuffix(".md").split(".")  # "sinavlar.tr.md" -> "sinavlar", "tr"
     header, *sections = path.read_text(encoding="utf-8").split("\n## ")
     title = header.splitlines()[0].removeprefix("# ").strip()
-    source = next(line for line in header.splitlines() if line.startswith(("- Kaynak:", "- Source:")))
+    source = next(
+        line for line in header.splitlines() if line.startswith(("- Kaynak:", "- Source:"))
+    )
     source = source.split(":", 1)[1].strip()
     return [
-        Chunk(id=f"{doc}.{language}#{n}", doc=doc, language=language, title=title, source=source, text=section.strip())
+        Chunk(
+            id=f"{doc}.{language}#{n}",
+            doc=doc,
+            language=language,
+            title=title,
+            source=source,
+            text=section.strip(),
+        )
         for n, section in enumerate(sections, start=1)
     ]
 
@@ -42,4 +51,6 @@ if __name__ == "__main__":
     for language in ("tr", "en"):
         print(f"  {language}: {sum(c.language == language for c in chunks)} chunks")
     example = chunks[0]
-    print(f"\nExample {example.id} | {example.title} | source: {example.source[:60]}...\n{example.text[:200]}...")
+    print(
+        f"\nExample {example.id} | {example.title} | source: {example.source[:60]}...\n{example.text[:200]}..."
+    )

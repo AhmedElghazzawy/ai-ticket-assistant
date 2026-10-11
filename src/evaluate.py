@@ -1,7 +1,7 @@
 """Score the classifier against my labels and save the run to eval/.
 
-Run: .venv/bin/python src/evaluate.py high        (dev tickets, thinking level high)
-     .venv/bin/python src/evaluate.py high test   (the LOCKED test tickets: measure only, never tune on them)
+Run: uv run python src/evaluate.py high        (dev tickets, thinking level high)
+     uv run python src/evaluate.py high test   (the LOCKED test tickets: measure only, never tune on them)
 """
 
 import json
@@ -9,6 +9,7 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 from google.genai import errors, types
 
@@ -19,7 +20,9 @@ from tickets import TEST_PATH, TICKETS_PATH, Ticket, load_tickets
 RUNS = 2  # each ticket is classified twice, to measure consistency
 WAIT_SECONDS = 5  # pause between calls to stay under the free-tier requests-per-minute limit
 
-Predictions = dict[str, dict]  # ticket id -> {"reason", "category", "priority", "escalate"}
+Predictions = dict[
+    str, dict[str, Any]
+]  # ticket id -> {"reason", "category", "priority", "escalate"}
 
 
 def predict_all(tickets: list[Ticket], thinking_level: types.ThinkingLevel) -> list[Predictions]:
@@ -34,12 +37,18 @@ def predict_all(tickets: list[Ticket], thinking_level: types.ThinkingLevel) -> l
                 predictions[ticket.id] = classify(ticket.text, thinking_level).model_dump()
             except errors.ClientError as error:
                 if error.code == 429:
-                    print(f"Quota used up (429) in run {run_number}. Stopping; partial results are kept.")
+                    print(
+                        f"Quota used up (429) in run {run_number}. Stopping; partial results are kept."
+                    )
                     return runs
-                print(f"run {run_number} [{number}/{len(tickets)}] {ticket.id} ERROR {error.code}: {error.message}")
+                print(
+                    f"run {run_number} [{number}/{len(tickets)}] {ticket.id} ERROR {error.code}: {error.message}"
+                )
                 continue
             except Exception as error:  # noqa: BLE001 - e.g. a timeout: skip this ticket instead of losing the whole run
-                print(f"run {run_number} [{number}/{len(tickets)}] {ticket.id} ERROR {type(error).__name__}: {error}")
+                print(
+                    f"run {run_number} [{number}/{len(tickets)}] {ticket.id} ERROR {type(error).__name__}: {error}"
+                )
                 continue
             print(f"run {run_number} [{number}/{len(tickets)}] {ticket.id}", flush=True)
     return runs
@@ -49,44 +58,55 @@ FIELDS = ("category", "priority", "escalate")
 PRIORITY_ORDER = ["low", "medium", "high", "urgent"]
 
 
-def score(tickets: list[Ticket], predictions: Predictions) -> dict:
+def score(tickets: list[Ticket], predictions: Predictions) -> dict[str, Any]:
     """Compare one run with my labels: accuracy per label, all three, priority within one level, escalation errors."""
     done = [t for t in tickets if t.id in predictions]
     if not done:
         return {"n": 0}
-    result: dict = {"n": len(done)}
+    result: dict[str, Any] = {"n": len(done)}
     for field in FIELDS:
         result[field] = sum(predictions[t.id][field] == getattr(t, field) for t in done) / len(done)
-    result["all_three"] = sum(all(predictions[t.id][f] == getattr(t, f) for f in FIELDS) for t in done) / len(done)
+    result["all_three"] = sum(
+        all(predictions[t.id][f] == getattr(t, f) for f in FIELDS) for t in done
+    ) / len(done)
     result["priority_within_one"] = sum(
-        abs(PRIORITY_ORDER.index(predictions[t.id]["priority"]) - PRIORITY_ORDER.index(t.priority)) <= 1
+        abs(PRIORITY_ORDER.index(predictions[t.id]["priority"]) - PRIORITY_ORDER.index(t.priority))
+        <= 1
         for t in done
     ) / len(done)
     # The most dangerous error: the ticket needed a human, but the model did not escalate.
-    result["missed_escalations"] = [t.id for t in done if t.escalate and not predictions[t.id]["escalate"]]
+    result["missed_escalations"] = [
+        t.id for t in done if t.escalate and not predictions[t.id]["escalate"]
+    ]
     # The safe error: a human gets a ticket that did not need one.
-    result["over_escalations"] = [t.id for t in done if not t.escalate and predictions[t.id]["escalate"]]
+    result["over_escalations"] = [
+        t.id for t in done if not t.escalate and predictions[t.id]["escalate"]
+    ]
     return result
 
 
-def consistency(first: Predictions, second: Predictions) -> dict:
+def consistency(first: Predictions, second: Predictions) -> dict[str, Any]:
     """How often the model gives the same label to the same ticket in two runs."""
     both = [tid for tid in first if tid in second]
     if not both:
         return {"n": 0}
-    result: dict = {"n": len(both)}
+    result: dict[str, Any] = {"n": len(both)}
     for field in FIELDS:
         result[field] = sum(first[tid][field] == second[tid][field] for tid in both) / len(both)
-    result["changed"] = [tid for tid in both if any(first[tid][f] != second[tid][f] for f in FIELDS)]
+    result["changed"] = [
+        tid for tid in both if any(first[tid][f] != second[tid][f] for f in FIELDS)
+    ]
     return result
 
 
 RESULTS_DIR = Path(__file__).resolve().parent.parent / "eval"
 
 
-def print_report(results: dict) -> None:
+def print_report(results: dict[str, Any]) -> None:
     """Show the main numbers in the terminal."""
-    print(f"\nModel {results['model']}, thinking {results['thinking_level']}, runs completed: {results['runs']}")
+    print(
+        f"\nModel {results['model']}, thinking {results['thinking_level']}, runs completed: {results['runs']}"
+    )
     print(f"{'':22}{'all':>7}{'tr':>7}{'en':>7}")
     for key in ("category", "priority", "escalate", "all_three", "priority_within_one"):
         row = [results[s].get(key) for s in ("score_run1", "score_run1_tr", "score_run1_en")]
@@ -95,8 +115,10 @@ def print_report(results: dict) -> None:
     print("over-escalations:  ", results["score_run1"].get("over_escalations") or "none")
     if results["consistency"]:
         c = results["consistency"]
-        print(f"consistency (run 1 vs run 2, {c['n']} tickets): category {c['category']:.0%}, "
-              f"priority {c['priority']:.0%}, escalate {c['escalate']:.0%}; changed: {c['changed'] or 'none'}")
+        print(
+            f"consistency (run 1 vs run 2, {c['n']} tickets): category {c['category']:.0%}, "
+            f"priority {c['priority']:.0%}, escalate {c['escalate']:.0%}; changed: {c['changed'] or 'none'}"
+        )
 
 
 def print_mistakes(tickets: list[Ticket], predictions: Predictions) -> None:
@@ -104,7 +126,9 @@ def print_mistakes(tickets: list[Ticket], predictions: Predictions) -> None:
     print("\nMistakes in run 1:")
     for t in tickets:
         p = predictions.get(t.id)
-        wrong = [f for f in FIELDS if p and p[f] != getattr(t, f)]
+        if p is None:  # the model never answered this ticket
+            continue
+        wrong = [f for f in FIELDS if p[f] != getattr(t, f)]
         if wrong:
             diffs = ", ".join(f"{f}: model={p[f]} mine={getattr(t, f)}" for f in wrong)
             print(f"- {t.id} | {diffs}\n    {t.text}\n    reason: {p['reason']}")

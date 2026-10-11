@@ -4,7 +4,7 @@ from google.genai import types
 from pydantic import BaseModel, ConfigDict, Field
 
 from knowledge_base import Chunk
-from llm import MODEL, client
+from llm import MODEL, client, response_text
 
 
 class Answer(BaseModel):
@@ -12,10 +12,18 @@ class Answer(BaseModel):
 
     model_config = ConfigDict(extra="forbid", strict=True)
 
-    evidence: str = Field(description="The exact sentence(s) copied from the rules that answer the ticket, or an empty string if none do.")
-    covered: bool = Field(description="True only if the rules really answer the student's question.")
-    reply: str = Field(description="A short, polite reply to the student, using only facts from the rules.")
-    sources: list[str] = Field(description="The ids of the rules used (e.g. 'sinavlar.tr#4'); empty if not covered.")
+    evidence: str = Field(
+        description="The exact sentence(s) copied from the rules that answer the ticket, or an empty string if none do."
+    )
+    covered: bool = Field(
+        description="True only if the rules really answer the student's question."
+    )
+    reply: str = Field(
+        description="A short, polite reply to the student, using only facts from the rules."
+    )
+    sources: list[str] = Field(
+        description="The ids of the rules used (e.g. 'sinavlar.tr#4'); empty if not covered."
+    )
 
 
 SYSTEM_PROMPT = """You are the student helpdesk of Bilecik Şeyh Edebali Üniversitesi (BŞEÜ).
@@ -47,7 +55,9 @@ def format_rules(chunks: list[Chunk]) -> str:
 
 def draft_answer(ticket: str, chunks: list[Chunk], language: str) -> Answer:
     """Ask the model for a grounded reply in the given language ("tr" or "en")."""
-    contents = (f"Reply language: {LANGUAGE_NAMES[language]}\n\nTICKET:\n{ticket}\n\n"
-                f"OFFICIAL RULES:\n{format_rules(chunks)}")
+    contents = (
+        f"Reply language: {LANGUAGE_NAMES[language]}\n\nTICKET:\n{ticket}\n\n"
+        f"OFFICIAL RULES:\n{format_rules(chunks)}"
+    )
     response = client.models.generate_content(model=MODEL, contents=contents, config=CONFIG)
-    return Answer.model_validate_json(response.text)
+    return Answer.model_validate_json(response_text(response))

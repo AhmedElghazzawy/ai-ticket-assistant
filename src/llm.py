@@ -40,6 +40,14 @@ NO_AFC = types.GenerateContentConfig(
 )
 
 
+def response_text(response: types.GenerateContentResponse) -> str:
+    """The reply text, or a clear error when Gemini returned none (e.g. blocked by a safety filter)."""
+    if not response.text:
+        reason = response.candidates[0].finish_reason if response.candidates else "no candidates"
+        raise RuntimeError(f"Gemini returned no text (finish reason: {reason}).")
+    return response.text
+
+
 def ask(prompt: str) -> str:
     """Send one prompt to Gemini and return its text reply."""
     response = client.models.generate_content(model=MODEL, contents=prompt, config=NO_AFC)
