@@ -1,16 +1,17 @@
+import { useQuery } from "@tanstack/react-query";
 import { Link, Outlet } from "@tanstack/react-router";
 import { ChartColumn, Inbox, MessageSquare } from "lucide-react";
 import { usePreferences } from "@/app/preferences";
+import { staffListOptions } from "@/client/@tanstack/react-query.gen";
 import { BrandMark, LanguageSwitch, ThemeMenu } from "@/components/app-header";
 import { Toaster } from "@/components/ui/sonner";
-import { StaffStoreProvider, useStaffStore } from "./store";
 
 function OpenCount() {
-  const { tickets } = useStaffStore();
-  const open = tickets.filter((ticket) => ticket.status === "open").length;
+  const { data } = useQuery(staffListOptions({ query: { status: "open" } }));
+  if (!data) return null;
   return (
     <span className="ml-auto rounded-md bg-primary px-1.5 text-xs font-semibold text-primary-foreground tabular-nums">
-      {open}
+      {data.length}
     </span>
   );
 }
@@ -82,7 +83,7 @@ function MobileBar() {
 
 export function StaffLayout() {
   return (
-    <StaffStoreProvider>
+    <>
       <div className="flex min-h-dvh">
         <Sidebar />
         <div className="min-w-0 flex-1">
@@ -91,6 +92,6 @@ export function StaffLayout() {
         </div>
       </div>
       <Toaster position="bottom-right" />
-    </StaffStoreProvider>
+    </>
   );
 }

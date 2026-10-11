@@ -47,7 +47,7 @@ def main() -> None:
                 "expected_doc": expected[t.id],
                 "should_auto_send": should_auto_send(t, expected[t.id]),
                 "auto_send": r.decision.auto_send,
-                "reasons": r.decision.reasons,
+                "reasons": [reason.model_dump() for reason in r.decision.reasons],
                 "covered": r.answer.covered,
                 "sources": r.answer.sources,
                 "cites_expected_doc": expected[t.id] in cited_docs,

@@ -15,7 +15,13 @@ class Chunk(BaseModel):
     language: str  # "tr" or "en"
     title: str  # the document title (first "# " line)
     source: str  # the official source line, so answers can cite it
+    url: str  # the official link (the "- Bağlantı:" / "- Link:" line), so readers can check it
     text: str  # the section heading and its text
+
+    @property
+    def section(self) -> str:
+        """The section heading, e.g. "Bütünleme sınavı (Madde 19)"."""
+        return self.text.splitlines()[0].strip()
 
 
 def split_document(path: Path) -> list[Chunk]:
@@ -27,6 +33,8 @@ def split_document(path: Path) -> list[Chunk]:
         line for line in header.splitlines() if line.startswith(("- Kaynak:", "- Source:"))
     )
     source = source.split(":", 1)[1].strip()
+    url = next(line for line in header.splitlines() if line.startswith(("- Bağlantı:", "- Link:")))
+    url = url.split(":", 1)[1].strip()
     return [
         Chunk(
             id=f"{doc}.{language}#{n}",
@@ -34,6 +42,7 @@ def split_document(path: Path) -> list[Chunk]:
             language=language,
             title=title,
             source=source,
+            url=url,
             text=section.strip(),
         )
         for n, section in enumerate(sections, start=1)

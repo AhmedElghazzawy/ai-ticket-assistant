@@ -1122,3 +1122,50 @@ The plain HTML/CSS/JS student page and the Streamlit staff panel look too basic 
 - My review fixed: label and value swapped in the AI analysis box; office names in the ticket's language instead of the staff member's (-> office IDs); "Demo pe..." cut off in the sidebar; mobile ticket page overflowed by 86 px (found with a script listing elements past the screen edge: the one-column grid sized itself to the long office name -> grid-cols-1 + truncate); filters at odd widths on mobile. Two failures were in my test script (counted rows before the lazy page appeared; matched the hidden sidebar link), not in the app.
 - Final: overflow 0 px on all pages (desktop and mobile), Biome clean, TypeScript 0 errors, build OK; student chat re-checked after adding the router.
 - Removed shadcn avatar.tsx: added but not used (no dead code).
+- Commit and push: `caf02df` Frontend F2. CI: both jobs green.
+
+# Phase B1: connecting the frontend to the real backend (2026-10-11)
+
+## Piece 1: decision reasons as codes, offices as IDs (test-first)
+- Tests written first and seen failing: reason codes in order; `test_weak_match_keeps_the_exact_score` (the "0.65 < 0.65" bug: 0.6497 must keep its exact value); every category routed to an office; every office named in TR and EN.
+- decision.py: `Reason` is a discriminated union (pydantic picks the class by `code`): SimpleReason (category_other, escalation, urgent, not_covered, no_citation) or WeakMatch (score, min). `OfficeId` (it, student_affairs, fees, sks, duty), `OFFICE_OF` (category -> office), `OFFICE_NAMES` (TR/EN) replace the old UNITS. `describe()` gives plain English (3 decimals) for command-line output and the Streamlit panel.
+- mypy listed every place that broke (UNITS imports, and a Streamlit loop over plain strings that OFFICE_OF rejects). store.py and evaluate_pipeline.py save reasons as structured JSON (json.dumps accepts anything, so mypy could not see these two; the tests did).
+- 30 passed at that point.
+
+## Piece 2: richer store, single source of truth for chunks
+- knowledge_base.Chunk: new `url` (each document's "- Bağlantı:" / "- Link:" line; all 22 documents have one) and `section` (the heading).
+- Design fix: kb_index.json kept a COPY of every chunk, which would silently go stale when a document is edited. load_index() now takes chunks from the documents and only vectors from the file, and refuses an index whose ids or texts no longer match ("Rebuild it: uv run python src/retrieval.py"). All 112 chunks match, no rebuild needed. tests/test_retrieval.py (3): matching index loads, edited text refused, every chunk has an https link.
+- store.py rewritten: new columns ai_reason, top_score, covered, sources (id, title, section, url); office saved as an ID; results returned as pydantic-checked `StoredTicket` objects instead of raw rows; new get_ticket() and reassign(); schema version in SQLite's `user_version` (2): an older database file is refused with a clear message. tests/test_store.py: 9 tests (all fields read back, unknown number -> None, reassign, old database refused, plus the earlier ones).
+- Retired the Streamlit review-queue tab (replaced by the React staff console; one queue, not two) and its 12 texts in both languages (checked: each was only defined, never used). The panel keeps its overview, try, dataset and evaluation tabs: loads with 4 tabs, no exceptions.
+- My local data/helpdesk.db was refused by the new check as expected ("schema version 0, this code needs 2"); it held 0 tickets; deleted (created again on first use).
+- 37 tests pass; ruff and mypy clean.
+
+## Piece 3: staff API endpoints
+- api.py: student POST /api/tickets now returns office as an ID and sources with id, title, section and official url; the response is built from the SAVED ticket, so students and staff always see the same data.
+- Staff endpoints (APIRouter at /api/staff): GET /tickets?status=open (queue, urgent first), GET /tickets/{id} (404 if unknown), POST /tickets/{id}/reply (409 if already handled: two staff members cannot both answer), PATCH /tickets/{id} (reassign; only the 5 real office IDs, else 422).
+- Security until staff login (Phase 12): every staff endpoint runs the `local_only` dependency: requests not from this computer get 403 and no student data.
+- My mistake, caught before testing: I first mounted the staff endpoints as a separate FastAPI sub-app; a sub-app has its own OpenAPI schema, so the generated frontend types would have missed them. Switched to an APIRouter: the schema lists all 5 endpoints.
+- tests/test_api.py: existing tests updated (office ID, source with url) + 6 staff tests (queue shows the draft to staff, one ticket + 404, reply closes the ticket and a second reply gets 409, empty reply 422, reassign only to real offices, an outside address gets 403 with no student data). 43 tests pass; ruff, mypy clean.
+- Live check with real Gemini: an OLD uvicorn from yesterday (22:31) was still running on port 8000, answered my first request with old code and created a database in the old format (1 test ticket). Stopped it, deleted that file, restarted. Real fee-refund question: auto-sent, office "fees", source with official link; staff API shows score 0.817, the cited chunk and the model's explanation. Real grade-objection question: forwarded, student sees no draft; staff queue shows reason {"code": "escalation"} and a grounded draft (covered: true).
+
+## Piece 4: TypeScript types generated from the API schema
+- tools/export_openapi.py (new): writes FastAPI's OpenAPI schema to frontend/openapi.json (committed, sorted keys).
+- @hey-api/openapi-ts 0.99.0 (dev) + frontend/openapi-ts.config.ts: generates frontend/src/client (types, typed API functions, TanStack Query hooks). The docs did not list plugin names, so I read them from the package's type definitions: @hey-api/client-fetch, @hey-api/typescript, @hey-api/sdk, @tanstack/react-query. `npm run generate`. Biome ignores generated files. @tanstack/react-query 5.104.1 added.
+- Two problems in the first output, fixed at the source: (1) names like staffListApiStaffTicketsGet -> `generate_unique_id_function=lambda route: route.name` in FastAPI (its own advice for client generation) -> createTicket, staffList, staffGet, staffReply, staffReassign; (2) WeakMatch.code came out optional (it has a default) -> `json_schema_serialization_defaults_required=True`, so `reasons` is a proper union TypeScript can tell apart by code.
+
+## Piece 5: the web app on real data
+- Vite dev proxy: /api -> http://127.0.0.1:8000 (one address in the browser, no CORS setup; the staff guard sees 127.0.0.1).
+- lib/types.ts now only re-exports and derives names from the generated client (Category = TicketOut["category"], ...): defined once, in Python.
+- Student chat calls the real `createTicket`; the generated types immediately listed every place the old mock no longer matched (office names, sources without id). Mocks deleted (chat mock, staff store, staff types, staff-tickets.json).
+- Staff console on TanStack Query: queue refreshes every 15 s, loading skeletons, error state with retry; "handled today" now really counts today (it counted everything); the browser's copy of the sort rule removed (the server sorts: one rule, one place). Ticket page: draft usable when `covered` (real field); reply via staffReply with the HTTP status, so 409 shows "already handled" and a network failure (no response, caught by strict TypeScript) shows "could not be sent"; reassign via the generated mutation; queries re-read after each change.
+- Honesty fix: the prototype said the reply was "delivered to the student"; nothing delivers replies yet -> "the reply is saved (delivery to the student is not built yet)".
+- Backend: times saved in UTC ("+00:00"), so any browser shows its own local time (test added). Local test database cleared again (2 of my test tickets).
+- End to end in a real browser with real Gemini: "harç iade" answered in 7.4 s with the official link; grade objection forwarded in 8.3 s (no draft shown to the student); staff queue 1 -> open -> grounded 496-character draft citing Madde 20 -> send -> queue empty; database: handled, staff reply, UTC time; a second reply via the API -> 409. No console errors.
+
+## Piece 6: one server, CI drift checks
+- api.py serves the built React app (frontend/dist): files as they are, any other non-/api address gets index.html so the app's router picks the page (/staff/tickets/2); unknown /api addresses stay JSON 404. Path traversal guard: a file is served only if it really is inside dist. web/ deleted (replaced by the React app).
+- Tests (with a tiny fake build, no npm needed): files served, app addresses get the app, /api/nope is a 404, and /../.env, /%2e%2e/.env, /assets/../../.env never return the secret. 46 tests pass.
+- Checked with FastAPI alone on port 8000: /, /staff, /staff/tickets/2, /favicon.svg 200; API JSON 200; /api/nope 404; /../.env returns the app page, 0 secrets leaked. (A failed first attempt was my shell's fault: in zsh `path` is a special variable tied to PATH, so a loop variable named `path` broke every command.)
+- CI: Python job checks that frontend/openapi.json matches the API; frontend job checks that src/client matches openapi.json. First proved generation is deterministic (two runs, identical files).
+- README (Turkish): Node in requirements, `npm ci`, two-terminal development, one-server mode, security note (staff API local-only until login), the frontend checks, how to regenerate types, file list. CLAUDE.md and AGENTS.md: real tech stack and repo layout.
+- Bundle: generated client and openapi.json are summary-only. Note: the bundle is now 1.2 million characters (mostly the full git history of every changed line), possibly too big to paste into one chat; to discuss.

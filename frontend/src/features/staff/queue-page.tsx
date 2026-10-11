@@ -1,6 +1,9 @@
+import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { ChevronRight, Inbox, Search, ShieldAlert } from "lucide-react";
 import { usePreferences } from "@/app/preferences";
+import { staffListOptions } from "@/client/@tanstack/react-query.gen";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -9,20 +12,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { OfficeId, Priority } from "@/lib/types";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { OfficeId, Priority, StoredTicket } from "@/lib/types";
 import type { QueueSearch } from "@/router";
 import { PriorityBadge, timeAgo } from "./parts";
-import { useStaffStore } from "./store";
-import type { StaffTicket } from "./types";
 
 const PRIORITY_ORDER: Priority[] = ["urgent", "high", "medium", "low"];
 const ALL = "all";
-
-/** Urgent first, then high, ...; inside a priority the oldest first (it has waited longest). */
-function byUrgency(a: StaffTicket, b: StaffTicket): number {
-  const rank = PRIORITY_ORDER.indexOf(a.priority) - PRIORITY_ORDER.indexOf(b.priority);
-  return rank || Date.parse(a.created_at) - Date.parse(b.created_at);
-}
 
 function Stat({ label, value, tone }: { label: string; value: number; tone?: "danger" }) {
   return (
@@ -37,7 +33,7 @@ function Stat({ label, value, tone }: { label: string; value: number; tone?: "da
   );
 }
 
-function TicketRow({ ticket }: { ticket: StaffTicket }) {
+function TicketRow({ ticket }: { ticket: StoredTicket }) {
   const { language, t } = usePreferences();
   return (
     <Link
@@ -71,19 +67,27 @@ function TicketRow({ ticket }: { ticket: StaffTicket }) {
 
 export function QueuePage() {
   const { t } = usePreferences();
-  const { tickets } = useStaffStore();
+  // The open queue refreshes itself every 15 s, so new tickets appear without reloading.
+  const openQuery = useQuery({
+    ...staffListOptions({ query: { status: "open" } }),
+    refetchInterval: 15_000,
+  });
+  const handledQuery = useQuery(staffListOptions({ query: { status: "handled" } }));
   const { q = "", office = ALL, priority = ALL } = useSearch({ from: "/staff/" });
   const navigate = useNavigate({ from: "/staff/" });
   const setFilter = (change: QueueSearch) =>
     navigate({ search: (current) => ({ ...current, ...change }), replace: true });
 
-  const open = tickets.filter((ticket) => ticket.status === "open");
+  const open = openQuery.data ?? []; // already sorted by the server: urgent first, then oldest
+  const today = new Date().toDateString();
+  const handledToday = (handledQuery.data ?? []).filter(
+    (ticket) => ticket.handled_at && new Date(ticket.handled_at).toDateString() === today,
+  ).length;
   const offices = Object.keys(t.offices) as OfficeId[];
   const shown = open
     .filter((ticket) => office === ALL || ticket.office === office)
     .filter((ticket) => priority === ALL || ticket.priority === priority)
-    .filter((ticket) => ticket.text.toLocaleLowerCase().includes(q.toLocaleLowerCase()))
-    .sort(byUrgency);
+    .filter((ticket) => ticket.text.toLocaleLowerCase().includes(q.toLocaleLowerCase()));
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 px-4 py-8 lg:px-8">
@@ -95,7 +99,7 @@ export function QueuePage() {
           value={open.filter((ticket) => ticket.priority === "urgent").length}
           tone="danger"
         />
-        <Stat label={t.staff.handledToday} value={tickets.length - open.length} />
+        <Stat label={t.staff.handledToday} value={handledToday} />
       </div>
 
       <div className="flex flex-col gap-2 sm:flex-row">
@@ -148,7 +152,21 @@ export function QueuePage() {
       </div>
 
       <div className="overflow-hidden rounded-xl border bg-card">
-        {shown.length === 0 ? (
+        {openQuery.isPending ? (
+          ["a", "b", "c"].map((key) => (
+            <div key={key} className="space-y-2 border-b px-4 py-4 last:border-b-0">
+              <Skeleton className="h-4 w-48" />
+              <Skeleton className="h-4 w-full" />
+            </div>
+          ))
+        ) : openQuery.isError ? (
+          <div className="flex flex-col items-center gap-3 py-16 text-sm text-muted-foreground">
+            {t.staff.loadError}
+            <Button variant="outline" size="sm" onClick={() => openQuery.refetch()}>
+              {t.staff.retry}
+            </Button>
+          </div>
+        ) : shown.length === 0 ? (
           <p className="flex flex-col items-center gap-2 py-16 text-sm text-muted-foreground">
             <Inbox className="size-6" /> {t.staff.emptyQueue}
           </p>

@@ -46,6 +46,9 @@ jobs:
       - name: Tests (pytest)
         run: uv run pytest
 
+      - name: API schema is up to date (frontend/openapi.json)
+        run: uv run python tools/export_openapi.py && git diff --exit-code frontend/openapi.json
+
   frontend:
     name: Frontend (lint, types, build)
     runs-on: ubuntu-latest
@@ -70,6 +73,9 @@ jobs:
 
       - name: Type check (TypeScript strict)
         run: npm run typecheck
+
+      - name: Generated API client is up to date (src/client)
+        run: npm run generate && git diff --exit-code src/client
 
       - name: Production build
         run: npm run build

@@ -3,60 +3,113 @@
 Plain code, not AI: a safety rule must be predictable and testable.
 """
 
-from pydantic import BaseModel
+from typing import Annotated, Literal
+
+from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 
 from answer import Answer
 from classifier import Classification
+from tickets import Category
 
 # Retrieval scores of answerable and unanswerable tickets overlap (Phase 3), so the score is only a weak
 # floor; the main check is that the model found the answer in the rules (`covered`) and cited them.
 MIN_SCORE = 0.65
 
-# Where each category is routed: the real BŞEÜ offices decided in CLAUDE.md.
-UNITS = {
+# The real BŞEÜ offices (CLAUDE.md). IDs travel through the system; the page shows the name
+# in the reader's language.
+OfficeId = Literal["it", "student_affairs", "fees", "sks", "duty"]
+
+OFFICE_OF: dict[Category, OfficeId] = {
+    "account_access": "it",
+    "it_support": "it",
+    "registration": "student_affairs",
+    "academic_records": "student_affairs",
+    "billing": "fees",
+    "campus_life": "sks",
+    "other": "duty",
+}
+
+OFFICE_NAMES: dict[str, dict[OfficeId, str]] = {
     "tr": {
-        "account_access": "Bilgi İşlem Daire Başkanlığı",
-        "it_support": "Bilgi İşlem Daire Başkanlığı",
-        "registration": "Öğrenci İşleri Daire Başkanlığı",
-        "academic_records": "Öğrenci İşleri Daire Başkanlığı",
-        "billing": "Öğrenci İşleri, İstatistik Disiplin ve Harçlar Şube Müdürlüğü",
-        "campus_life": "Sağlık, Kültür ve Spor (SKS) Daire Başkanlığı",
-        "other": "Öğrenci İşleri nöbetçi personeli",
+        "it": "Bilgi İşlem Daire Başkanlığı",
+        "student_affairs": "Öğrenci İşleri Daire Başkanlığı",
+        "fees": "Öğrenci İşleri, İstatistik Disiplin ve Harçlar Şube Müdürlüğü",
+        "sks": "Sağlık, Kültür ve Spor (SKS) Daire Başkanlığı",
+        "duty": "Öğrenci İşleri nöbetçi personeli",
     },
     "en": {
-        "account_access": "IT Department (Bilgi İşlem)",
-        "it_support": "IT Department (Bilgi İşlem)",
-        "registration": "Student Affairs (Öğrenci İşleri)",
-        "academic_records": "Student Affairs (Öğrenci İşleri)",
-        "billing": "Student Affairs, Fees Office (Harçlar Şube Müdürlüğü)",
-        "campus_life": "Health, Culture and Sports Office (SKS)",
-        "other": "Student Affairs duty staff",
+        "it": "IT Department (Bilgi İşlem)",
+        "student_affairs": "Student Affairs (Öğrenci İşleri)",
+        "fees": "Student Affairs, Fees Office (Harçlar Şube Müdürlüğü)",
+        "sks": "Health, Culture and Sports Office (SKS)",
+        "duty": "Student Affairs duty staff",
     },
 }
+
+
+class SimpleReason(BaseModel):
+    """A failed check that needs no extra data."""
+
+    code: Literal["category_other", "escalation", "urgent", "not_covered", "no_citation"]
+
+
+class WeakMatch(BaseModel):
+    """The best document match was below the floor. Exact numbers: the page formats them."""
+
+    # `code` has a default, but must be REQUIRED in the API schema, so the frontend can tell the
+    # reason types apart by their code.
+    model_config = ConfigDict(json_schema_serialization_defaults_required=True)
+
+    code: Literal["weak_match"] = "weak_match"
+    score: float
+    min: float
+
+
+# pydantic picks the right class by looking at `code` (a "discriminated union").
+Reason = Annotated[SimpleReason | WeakMatch, Field(discriminator="code")]
+
+ENGLISH: dict[str, str] = {
+    "category_other": "category is 'other'",
+    "escalation": "an escalation rule applies (a human must answer)",
+    "urgent": "urgent: a human answers",
+    "not_covered": "the documents do not answer the ticket",
+    "no_citation": "the reply does not cite a retrieved document",
+}
+
+
+def describe(reason: SimpleReason | WeakMatch) -> str:
+    """One reason in plain English, for command-line output and the old staff panel."""
+    if isinstance(reason, WeakMatch):
+        return f"weak document match ({reason.score:.3f} < {reason.min:.3f})"
+    return ENGLISH[reason.code]
+
+
+# Reads a saved JSON list of reasons back into Reason objects.
+REASON_LIST: TypeAdapter[list[SimpleReason | WeakMatch]] = TypeAdapter(list[Reason])
 
 
 class Decision(BaseModel):
     """auto_send is True only if every check passed; otherwise `reasons` says which checks failed."""
 
     auto_send: bool
-    reasons: list[str]
+    reasons: list[Reason]
 
 
 def decide(
     result: Classification, top_score: float, answer: Answer, retrieved_ids: set[str]
 ) -> Decision:
     """Auto-send only if ALL checks pass (CLAUDE.md). Every failed check is recorded as a reason."""
-    reasons = []
+    reasons: list[SimpleReason | WeakMatch] = []
     if result.category == "other":
-        reasons.append("category is 'other'")
+        reasons.append(SimpleReason(code="category_other"))
     if result.escalate:
-        reasons.append("an escalation rule applies (a human must answer)")
+        reasons.append(SimpleReason(code="escalation"))
     if result.priority == "urgent":  # blocked within 24 h or a safety risk: a person can act today
-        reasons.append("urgent: a human answers")
+        reasons.append(SimpleReason(code="urgent"))
     if top_score < MIN_SCORE:
-        reasons.append(f"weak document match ({top_score:.2f} < {MIN_SCORE})")
+        reasons.append(WeakMatch(score=top_score, min=MIN_SCORE))
     if not answer.covered:
-        reasons.append("the documents do not answer the ticket")
+        reasons.append(SimpleReason(code="not_covered"))
     if not answer.sources or not set(answer.sources) <= retrieved_ids:
-        reasons.append("the reply does not cite a retrieved document")
+        reasons.append(SimpleReason(code="no_citation"))
     return Decision(auto_send=not reasons, reasons=reasons)

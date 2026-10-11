@@ -11,9 +11,9 @@ import {
 } from "lucide-react";
 import { usePreferences } from "@/app/preferences";
 import { Button } from "@/components/ui/button";
-import type { Source, TicketOut } from "@/lib/types";
+import type { StoredSource, TicketOut } from "@/lib/types";
 
-function SourceCard({ source }: { source: Source }) {
+function SourceCard({ source }: { source: StoredSource }) {
   const body = (
     <>
       <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-accent text-accent-foreground">
@@ -81,7 +81,7 @@ function AnsweredCard({ result }: { result: TicketOut }) {
         </p>
         <div className="grid gap-2 sm:grid-cols-2">
           {result.sources.map((source) => (
-            <SourceCard key={`${source.title}-${source.section}`} source={source} />
+            <SourceCard key={source.id} source={source} />
           ))}
         </div>
       </div>
@@ -114,7 +114,7 @@ function ForwardedCard({ result }: { result: TicketOut }) {
           <Building2 className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
           <div>
             <p className="text-xs text-muted-foreground">{t.office}</p>
-            <p className="text-sm font-semibold">{result.office}</p>
+            <p className="text-sm font-semibold">{t.offices[result.office]}</p>
           </div>
         </div>
         <div className="flex items-start gap-3">

@@ -1,0 +1,687 @@
+{
+  "components": {
+    "schemas": {
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "OfficeIn": {
+        "properties": {
+          "office": {
+            "enum": [
+              "it",
+              "student_affairs",
+              "fees",
+              "sks",
+              "duty"
+            ],
+            "title": "Office",
+            "type": "string"
+          }
+        },
+        "required": [
+          "office"
+        ],
+        "title": "OfficeIn",
+        "type": "object"
+      },
+      "ReplyIn": {
+        "properties": {
+          "reply": {
+            "maxLength": 5000,
+            "minLength": 1,
+            "title": "Reply",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reply"
+        ],
+        "title": "ReplyIn",
+        "type": "object"
+      },
+      "SimpleReason": {
+        "description": "A failed check that needs no extra data.",
+        "properties": {
+          "code": {
+            "enum": [
+              "category_other",
+              "escalation",
+              "urgent",
+              "not_covered",
+              "no_citation"
+            ],
+            "title": "Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code"
+        ],
+        "title": "SimpleReason",
+        "type": "object"
+      },
+      "StoredSource": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "section": {
+            "title": "Section",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "section",
+          "url"
+        ],
+        "title": "StoredSource",
+        "type": "object"
+      },
+      "StoredTicket": {
+        "description": "One row, checked by pydantic: a broken row fails here, not later on the page.",
+        "properties": {
+          "ai_reason": {
+            "title": "Ai Reason",
+            "type": "string"
+          },
+          "auto_send": {
+            "title": "Auto Send",
+            "type": "boolean"
+          },
+          "category": {
+            "enum": [
+              "account_access",
+              "it_support",
+              "registration",
+              "academic_records",
+              "billing",
+              "campus_life",
+              "other"
+            ],
+            "title": "Category",
+            "type": "string"
+          },
+          "covered": {
+            "title": "Covered",
+            "type": "boolean"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "draft": {
+            "title": "Draft",
+            "type": "string"
+          },
+          "escalate": {
+            "title": "Escalate",
+            "type": "boolean"
+          },
+          "final_reply": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Final Reply"
+          },
+          "handled_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Handled At"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "language": {
+            "enum": [
+              "tr",
+              "en"
+            ],
+            "title": "Language",
+            "type": "string"
+          },
+          "office": {
+            "enum": [
+              "it",
+              "student_affairs",
+              "fees",
+              "sks",
+              "duty"
+            ],
+            "title": "Office",
+            "type": "string"
+          },
+          "priority": {
+            "enum": [
+              "low",
+              "medium",
+              "high",
+              "urgent"
+            ],
+            "title": "Priority",
+            "type": "string"
+          },
+          "reasons": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "category_other": "#/components/schemas/SimpleReason",
+                  "escalation": "#/components/schemas/SimpleReason",
+                  "no_citation": "#/components/schemas/SimpleReason",
+                  "not_covered": "#/components/schemas/SimpleReason",
+                  "urgent": "#/components/schemas/SimpleReason",
+                  "weak_match": "#/components/schemas/WeakMatch"
+                },
+                "propertyName": "code"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/SimpleReason"
+                },
+                {
+                  "$ref": "#/components/schemas/WeakMatch"
+                }
+              ]
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/StoredSource"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "auto_sent",
+              "open",
+              "handled"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "top_score": {
+            "title": "Top Score",
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "created_at",
+          "language",
+          "text",
+          "category",
+          "priority",
+          "escalate",
+          "ai_reason",
+          "office",
+          "auto_send",
+          "reasons",
+          "top_score",
+          "draft",
+          "covered",
+          "sources",
+          "status",
+          "final_reply",
+          "handled_at"
+        ],
+        "title": "StoredTicket",
+        "type": "object"
+      },
+      "TicketIn": {
+        "description": "What the page sends: the student's message and the page language.",
+        "properties": {
+          "language": {
+            "enum": [
+              "tr",
+              "en"
+            ],
+            "title": "Language",
+            "type": "string"
+          },
+          "text": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text",
+          "language"
+        ],
+        "title": "TicketIn",
+        "type": "object"
+      },
+      "TicketOut": {
+        "description": "What the student sees. `reply` is only filled when every safety check passed.",
+        "properties": {
+          "auto_send": {
+            "title": "Auto Send",
+            "type": "boolean"
+          },
+          "category": {
+            "enum": [
+              "account_access",
+              "it_support",
+              "registration",
+              "academic_records",
+              "billing",
+              "campus_life",
+              "other"
+            ],
+            "title": "Category",
+            "type": "string"
+          },
+          "emergency": {
+            "title": "Emergency",
+            "type": "boolean"
+          },
+          "office": {
+            "enum": [
+              "it",
+              "student_affairs",
+              "fees",
+              "sks",
+              "duty"
+            ],
+            "title": "Office",
+            "type": "string"
+          },
+          "priority": {
+            "enum": [
+              "low",
+              "medium",
+              "high",
+              "urgent"
+            ],
+            "title": "Priority",
+            "type": "string"
+          },
+          "reply": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reply"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/StoredSource"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "ticket_id": {
+            "title": "Ticket Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "ticket_id",
+          "category",
+          "priority",
+          "office",
+          "auto_send",
+          "reply",
+          "sources",
+          "emergency"
+        ],
+        "title": "TicketOut",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "WeakMatch": {
+        "description": "The best document match was below the floor. Exact numbers: the page formats them.",
+        "properties": {
+          "code": {
+            "const": "weak_match",
+            "default": "weak_match",
+            "title": "Code",
+            "type": "string"
+          },
+          "min": {
+            "title": "Min",
+            "type": "number"
+          },
+          "score": {
+            "title": "Score",
+            "type": "number"
+          }
+        },
+        "required": [
+          "code",
+          "score",
+          "min"
+        ],
+        "title": "WeakMatch",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "BŞEÜ Helpdesk Assistant",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/staff/tickets": {
+      "get": {
+        "description": "The review queue: urgent first, then oldest first.",
+        "operationId": "staff_list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "default": "open",
+              "enum": [
+                "auto_sent",
+                "open",
+                "handled"
+              ],
+              "title": "Status",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/StoredTicket"
+                  },
+                  "title": "Response Staff List",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Staff List",
+        "tags": [
+          "staff"
+        ]
+      }
+    },
+    "/api/staff/tickets/{ticket_id}": {
+      "get": {
+        "operationId": "staff_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ticket_id",
+            "required": true,
+            "schema": {
+              "title": "Ticket Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoredTicket"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Staff Get",
+        "tags": [
+          "staff"
+        ]
+      },
+      "patch": {
+        "operationId": "staff_reassign",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ticket_id",
+            "required": true,
+            "schema": {
+              "title": "Ticket Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OfficeIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoredTicket"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Staff Reassign",
+        "tags": [
+          "staff"
+        ]
+      }
+    },
+    "/api/staff/tickets/{ticket_id}/reply": {
+      "post": {
+        "description": "Send the staff reply and close the ticket. 409 if someone already handled it.",
+        "operationId": "staff_reply",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ticket_id",
+            "required": true,
+            "schema": {
+              "title": "Ticket Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReplyIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoredTicket"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Staff Reply",
+        "tags": [
+          "staff"
+        ]
+      }
+    },
+    "/api/tickets": {
+      "post": {
+        "description": "Run the whole pipeline for one student message.",
+        "operationId": "create_ticket",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TicketIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Ticket"
+      }
+    }
+  }
+}

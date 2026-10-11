@@ -1,3 +1,4 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import {
   ArrowLeft,
@@ -11,6 +12,8 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 import { usePreferences } from "@/app/preferences";
+import { staffReply } from "@/client";
+import { staffGetOptions, staffReassignMutation } from "@/client/@tanstack/react-query.gen";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -19,11 +22,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
-import type { OfficeId } from "@/lib/types";
+import type { OfficeId, StoredSource, StoredTicket } from "@/lib/types";
 import { PriorityBadge, ReasonList, timeAgo } from "./parts";
-import { useStaffStore } from "./store";
-import type { StaffSource, StaffTicket } from "./types";
 
 function Panel({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -36,7 +38,7 @@ function Panel({ title, children }: { title: string; children: React.ReactNode }
   );
 }
 
-function SourceItem({ source }: { source: StaffSource }) {
+function SourceItem({ source }: { source: StoredSource }) {
   return (
     <li className="flex items-start gap-3 rounded-lg border bg-background p-3">
       <FileText className="mt-0.5 size-4 shrink-0 text-accent-foreground" />
@@ -45,28 +47,42 @@ function SourceItem({ source }: { source: StaffSource }) {
         <p className="truncate text-xs text-muted-foreground">{source.title}</p>
         <p className="mt-1 font-mono text-[0.7rem] text-muted-foreground">{source.id}</p>
       </div>
-      {source.url && (
-        <a
-          href={source.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label={source.title}
-          className="text-muted-foreground hover:text-foreground"
-        >
-          <ArrowUpRight className="size-4" />
-        </a>
-      )}
+      <a
+        href={source.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={source.title}
+        className="text-muted-foreground hover:text-foreground"
+      >
+        <ArrowUpRight className="size-4" />
+      </a>
     </li>
   );
 }
 
 /** The editable reply. A draft is only offered when the documents really answer the ticket. */
-function ReplyEditor({ ticket }: { ticket: StaffTicket }) {
+function ReplyEditor({ ticket }: { ticket: StoredTicket }) {
   const { t } = usePreferences();
-  const { handle } = useStaffStore();
   const navigate = useNavigate();
-  const usable = !ticket.reasons.some((reason) => reason.code === "not_covered");
-  const [reply, setReply] = useState(usable ? ticket.draft : "");
+  const queryClient = useQueryClient();
+  const [reply, setReply] = useState(ticket.covered ? ticket.draft : "");
+  const send = useMutation({
+    mutationFn: async (text: string) => {
+      const { data, response } = await staffReply({
+        path: { ticket_id: ticket.id },
+        body: { reply: text },
+      });
+      if (response?.status === 409) throw new Error(t.staff.alreadyHandled); // someone was faster
+      if (!data) throw new Error(t.staff.sendError);
+      return data;
+    },
+    onSuccess: () => {
+      toast.success(t.staff.sent, { description: t.staff.sentNote });
+      void navigate({ to: "/staff" });
+    },
+    onError: (error) => toast.error(error.message),
+    onSettled: () => queryClient.invalidateQueries(), // queue and ticket are re-read from the server
+  });
 
   if (ticket.status === "handled") {
     return (
@@ -79,16 +95,10 @@ function ReplyEditor({ ticket }: { ticket: StaffTicket }) {
     );
   }
 
-  function send() {
-    handle(ticket.id, reply.trim());
-    toast.success(t.staff.sent, { description: t.staff.sentNote });
-    void navigate({ to: "/staff" });
-  }
-
   return (
     <Panel title={t.staff.reply}>
       <p className="flex gap-2 text-xs text-muted-foreground">
-        <Bot className="size-4 shrink-0" /> {usable ? t.staff.replyHint : t.staff.noDraft}
+        <Bot className="size-4 shrink-0" /> {ticket.covered ? t.staff.replyHint : t.staff.noDraft}
       </p>
       <Textarea
         value={reply}
@@ -98,7 +108,10 @@ function ReplyEditor({ ticket }: { ticket: StaffTicket }) {
         className="text-[0.95rem] leading-relaxed"
       />
       <div className="flex justify-end">
-        <Button onClick={send} disabled={!reply.trim()}>
+        <Button
+          onClick={() => send.mutate(reply.trim())}
+          disabled={!reply.trim() || send.isPending}
+        >
           <Send /> {t.staff.send}
         </Button>
       </div>
@@ -106,16 +119,20 @@ function ReplyEditor({ ticket }: { ticket: StaffTicket }) {
   );
 }
 
-function OfficeSelect({ ticket }: { ticket: StaffTicket }) {
+function OfficeSelect({ ticket }: { ticket: StoredTicket }) {
   const { t } = usePreferences();
-  const { reassign } = useStaffStore();
+  const queryClient = useQueryClient();
+  const reassign = useMutation({
+    ...staffReassignMutation(),
+    onSettled: () => queryClient.invalidateQueries(),
+  });
   const offices = Object.keys(t.offices) as OfficeId[];
   return (
     <Select
       value={ticket.office}
       onValueChange={(value) => {
         const office = offices.find((o) => o === value);
-        if (office) reassign(ticket.id, office);
+        if (office) reassign.mutate({ path: { ticket_id: ticket.id }, body: { office } });
       }}
       items={t.offices}
     >
@@ -135,14 +152,26 @@ function OfficeSelect({ ticket }: { ticket: StaffTicket }) {
 
 export function TicketPage() {
   const { language, t } = usePreferences();
-  const { tickets } = useStaffStore();
   const { ticketId } = useParams({ from: "/staff/tickets/$ticketId" });
-  const ticket = tickets.find((x) => String(x.id) === ticketId);
+  const query = useQuery(staffGetOptions({ path: { ticket_id: Number(ticketId) } }));
+  const ticket = query.data;
+
+  if (query.isPending) {
+    return (
+      <div className="mx-auto max-w-6xl space-y-6 px-4 py-8 lg:px-8">
+        <Skeleton className="h-8 w-40" />
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <Skeleton className="h-64" />
+          <Skeleton className="h-64" />
+        </div>
+      </div>
+    );
+  }
 
   if (!ticket) {
     return (
       <div className="px-4 py-16 text-center text-sm text-muted-foreground">
-        #{ticketId} ·{" "}
+        #{ticketId}: {t.staff.notFound}{" "}
         <Link to="/staff" className="underline">
           {t.staff.back}
         </Link>

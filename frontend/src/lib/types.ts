@@ -1,35 +1,12 @@
-// Mirrors the API's TicketOut (src/api.py). Temporary: in the next step this file is
-// replaced by types generated from FastAPI's OpenAPI schema, so the two can never drift.
+// Short names for the API's types. Everything here comes from the GENERATED client
+// (src/client, built from FastAPI's OpenAPI schema), so it can never drift from the backend.
 
-export type Language = "tr" | "en";
+import type { StoredSource, StoredTicket, TicketIn, TicketOut } from "@/client";
 
-export type Category =
-  | "account_access"
-  | "it_support"
-  | "registration"
-  | "academic_records"
-  | "billing"
-  | "campus_life"
-  | "other";
-
-export type Priority = "low" | "medium" | "high" | "urgent";
-
-// The five BŞEÜ offices tickets are routed to (src/decision.py UNITS).
-export type OfficeId = "it" | "student_affairs" | "fees" | "sks" | "duty";
-
-export interface Source {
-  title: string;
-  section: string;
-  url?: string; // planned: the API will send the official link stored in each document
-}
-
-export interface TicketOut {
-  ticket_id: number;
-  category: Category;
-  priority: Priority;
-  office: string;
-  auto_send: boolean;
-  reply: string | null; // null: a human answers, the unchecked AI draft never reaches the browser
-  sources: Source[];
-  emergency: boolean; // urgent and escalated: show the 112 line
-}
+export type { StoredSource, StoredTicket, TicketOut };
+export type Language = TicketIn["language"];
+export type Category = TicketOut["category"];
+export type Priority = TicketOut["priority"];
+export type OfficeId = TicketOut["office"];
+export type Reason = StoredTicket["reasons"][number];
+export type Status = StoredTicket["status"];

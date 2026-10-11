@@ -4,7 +4,7 @@ from typing import get_args
 
 from answer import Answer
 from classifier import Classification
-from decision import MIN_SCORE, UNITS, decide
+from decision import MIN_SCORE, OFFICE_NAMES, OFFICE_OF, WeakMatch, decide
 from tickets import Category
 
 RETRIEVED = {"sinavlar.en#4", "sinavlar.en#1"}
@@ -46,13 +46,27 @@ def test_citing_a_document_that_was_not_retrieved_is_not_auto_sent() -> None:
 
 def test_every_failed_check_is_reported() -> None:
     decision = decide(labels(category="other", escalate=True), 0.10, GOOD_ANSWER, RETRIEVED)
-    assert len(decision.reasons) == 3  # other + escalation + weak match
+    assert [reason.code for reason in decision.reasons] == [
+        "category_other",
+        "escalation",
+        "weak_match",
+    ]
 
 
-def test_every_category_has_an_office_in_both_languages() -> None:
-    categories = set(get_args(Category))
+def test_weak_match_keeps_the_exact_score() -> None:
+    # Bug found in the staff console: 0.6497 was shown as "0.65 < 0.65". The reason now carries
+    # the exact numbers and the page formats them.
+    decision = decide(labels(), 0.6497, GOOD_ANSWER, RETRIEVED)
+    assert decision.reasons == [WeakMatch(score=0.6497, min=MIN_SCORE)]
+
+
+def test_every_category_is_routed_to_an_office() -> None:
+    assert set(OFFICE_OF) == set(get_args(Category))
+
+
+def test_every_office_has_a_name_in_both_languages() -> None:
     for language in ("tr", "en"):
-        assert set(UNITS[language]) == categories
+        assert set(OFFICE_NAMES[language]) == set(OFFICE_OF.values())
 
 
 def test_urgent_ticket_is_never_auto_sent() -> None:

@@ -1,9 +1,9 @@
 import { CircleAlert } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { usePreferences } from "@/app/preferences";
+import { createTicket } from "@/client";
 import { AppHeader } from "@/components/app-header";
 import type { TicketOut } from "@/lib/types";
-import { mockAsk } from "@/mocks/ask";
 import { AnswerCard } from "./answer-card";
 import { Composer } from "./composer";
 import { EmptyState } from "./empty-state";
@@ -31,7 +31,10 @@ export function ChatPage() {
     const id = Date.now();
     setTurns((current) => [...current, { id, question }]);
     try {
-      const result = await mockAsk(question, language);
+      const { data: result } = await createTicket({
+        body: { text: question, language },
+        throwOnError: true, // network or server errors land in the catch below
+      });
       setTurns((current) => current.map((turn) => (turn.id === id ? { ...turn, result } : turn)));
     } catch {
       setTurns((current) =>

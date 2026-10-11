@@ -74,10 +74,10 @@ Auto-send only if ALL pass: category is not "other"; the model did not ask to es
 - Phase 1 has about 80 tickets (40 Turkish + 40 English) and no more. Phase 2 adds about 40 more (20 + 20), and those 40 are a LOCKED TEST SET: never used to adjust the prompt, only for the final score. Never tune the prompt on the test set.
 
 ## Tech stack (introduced one at a time, when needed)
-Python 3.12 with a virtual environment in .venv (use uv if it is installed, otherwise ask me). In use: google-genai (gemini-3.5-flash-lite + gemini-embedding-2), python-dotenv, pydantic, FastAPI + uvicorn + plain HTML/CSS/JS (student page, web/), Streamlit (staff panel), SQLite (built into Python, ticket store), pytest + httpx2 (tests), uv (pyproject.toml + uv.lock), ruff (lint + format), mypy (strict). Planned (roadmap): pydantic-settings, Docker, GitHub Actions, Postgres + pgvector. Possible: LangGraph.
+Python 3.12 with a virtual environment in .venv (use uv if it is installed, otherwise ask me). In use: google-genai (gemini-3.5-flash-lite + gemini-embedding-2), pydantic + pydantic-settings, FastAPI + uvicorn (API, also serves the built web app), SQLite (built into Python, ticket store), pytest + httpx2 (tests), uv (pyproject.toml + uv.lock), ruff (lint + format), mypy (strict), GitHub Actions (CI). Web app (frontend/): React 19 + TypeScript + Vite, Tailwind CSS + shadcn/ui (Base UI), TanStack Router + Query, types generated from the OpenAPI schema (@hey-api/openapi-ts), Biome, Playwright. Streamlit (old panel: overview, dataset, evaluation; to be replaced by the Insights page). Planned (roadmap): structured logging, Docker, Postgres + pgvector. Possible: LangGraph.
 
 ## Repo layout (target)
-data/tickets/, data/knowledge_base/, src/, web/ (student chat page), tests/ (pytest), eval/, docs/, README.md, CLAUDE.md, pyproject.toml, uv.lock, .env.example, .gitignore
+data/tickets/, data/knowledge_base/, src/, frontend/ (React web app: student chat + staff console), tests/ (pytest), tools/, eval/, docs/, README.md, CLAUDE.md, pyproject.toml, uv.lock, .env.example, .gitignore
 
 ## Phase 1: rebuild from zero, understanding every step
 Everything was deleted on purpose so I can rebuild it slowly. Do NOT recreate the old code from memory or paste big files. Build it with me, step by step, using the teaching mode above.

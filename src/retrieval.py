@@ -79,11 +79,17 @@ def build_index() -> None:
 
 
 def load_index() -> Index:
-    """The saved chunks with their vectors."""
-    rows = json.loads(INDEX_PATH.read_text(encoding="utf-8"))["chunks"]
-    return [
-        (Chunk(**{k: v for k, v in row.items() if k != "vector"}), row["vector"]) for row in rows
-    ]
+    """Every chunk with its saved vector. The documents are the source of truth for the chunks;
+    the index file only adds the vectors, and must still match the documents."""
+    saved = {row["id"]: row for row in json.loads(INDEX_PATH.read_text(encoding="utf-8"))["chunks"]}
+    chunks = load_chunks()
+    stale = [c.id for c in chunks if c.id not in saved or saved[c.id]["text"] != c.text]
+    if stale or len(saved) != len(chunks):
+        raise RuntimeError(
+            f"The search index is out of date ({len(stale)} changed chunks, {len(saved)} saved "
+            f"vs {len(chunks)} now). Rebuild it: uv run python src/retrieval.py"
+        )
+    return [(c, saved[c.id]["vector"]) for c in chunks]
 
 
 def similarity(a: list[float], b: list[float]) -> float:

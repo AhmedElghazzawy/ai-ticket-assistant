@@ -140,17 +140,28 @@ Dev skoru yaklaşık 10 puan iyimserdi. Kaçırılan escalation testte de 0: kur
 
 ## Kurulum ve çalıştırma
 
-Gereken: Python 3.12, [uv](https://docs.astral.sh/uv/) ve bir Gemini API anahtarı ([Google AI Studio](https://aistudio.google.com/apikey)).
+Gereken: Python 3.12, [uv](https://docs.astral.sh/uv/), Node.js 24 LTS ve bir Gemini API anahtarı ([Google AI Studio](https://aistudio.google.com/apikey)).
 
 ```sh
 uv sync                       # .venv'i oluşturur ve uv.lock'taki tam sürümleri kurar
 cp .env.example .env          # sonra .env içine kendi API anahtarınızı yazın
+cd frontend && npm ci && cd .. # web arayüzünün kütüphaneleri (package-lock.json'daki tam sürümler)
 ```
+
+Geliştirme (iki terminal; sayfa her kayıtta kendini yeniler):
+
+```sh
+uv run uvicorn api:app --app-dir src --reload   # API: http://127.0.0.1:8000
+cd frontend && npm run dev                      # web arayüzü: http://localhost:5173 (öğrenci) ve /staff (personel)
+```
+
+Tek sunucu (üretim gibi): `cd frontend && npm run build`, sonra `uv run uvicorn api:app --app-dir src` ve http://127.0.0.1:8000 açılır.
+
+> **Güvenlik notu:** Personel sayfaları öğrenci mesajlarını gösterir. Personel girişi (Phase 12) eklenene kadar `/api/staff` yalnızca bu bilgisayardan gelen isteklere cevap verir (diğerlerine 403). Bu yüzden sistem henüz internete açılmamalıdır.
 
 ```sh
 uv run python src/tickets.py            # veri setini kontrol et ve özetini göster
-uv run uvicorn api:app --app-dir src    # öğrenci sayfası: http://127.0.0.1:8000
-uv run streamlit run src/app.py         # personel paneli: inceleme kuyruğu, genel bakış, veri seti, değerlendirme
+uv run streamlit run src/app.py         # eski panel: genel bakış, veri seti, değerlendirme (Insights sayfası gelince kaldırılacak)
 uv run python src/evaluate.py high      # sınıflandırma değerlendirmesi (yaklaşık 20 dakika)
 uv run python src/evaluate_retrieval.py # belge arama değerlendirmesi
 uv run python src/evaluate_pipeline.py  # tüm sistem: hatalı otomatik gönderim sayısı
@@ -163,7 +174,10 @@ uv run pytest                 # otomatik testler
 uv run ruff check             # linter: hata kalıpları, import sırası, modern Python
 uv run ruff format --check    # kod biçimi
 uv run mypy                   # tip kontrolü (strict mod)
+cd frontend && npx biome ci . && npm run typecheck && npm run build   # web arayüzü: lint, tipler, derleme
 ```
+
+API değiştiğinde: `uv run python tools/export_openapi.py` ve `cd frontend && npm run generate`. Web arayüzünün TypeScript tipleri API şemasından üretilir; CI ikisinin güncel olduğunu kontrol eder.
 
 Proje ayarları tek bir dosyadadır: `pyproject.toml` (kütüphaneler, pytest, ruff, mypy). Tam sürümler `uv.lock` içinde kilitlidir; böylece kurulum her bilgisayarda aynıdır.
 
@@ -183,11 +197,14 @@ src/answer.py           Kaynaklı cevap (önce alıntı, sonra cevap)
 src/decision.py         Otomatik gönder / yönlendir kararı ve birimler
 src/pipeline.py         Bir ticket için tüm adımlar
 src/evaluate_pipeline.py   Tüm sistemin değerlendirmesi
-src/api.py              FastAPI: öğrenci sayfası ve POST /api/tickets
+src/api.py              FastAPI: POST /api/tickets, personel API'si (/api/staff, yalnızca yerel), web arayüzünü sunar
+src/config.py           Ayarlar (pydantic-settings): .env'den okunur, başlangıçta kontrol edilir
 src/store.py            Talepleri SQLite veritabanına kaydeder (data/helpdesk.db, kişisel veri: GitHub'a yüklenmez)
-src/app.py              Streamlit personel paneli (Türkçe / İngilizce)
-web/                    Öğrenci sohbet sayfası (HTML, CSS, JavaScript; BŞEÜ stili, karanlık mod)
-tests/                  pytest testleri (karar kuralları ve API)
+src/app.py              Eski Streamlit paneli: genel bakış, veri seti, değerlendirme
+frontend/               Web arayüzü: React 19 + TypeScript + Vite, Tailwind CSS + shadcn/ui, TanStack Router + Query
+frontend/src/client/    API şemasından ÜRETİLEN tipler ve fonksiyonlar (elle değiştirilmez)
+tools/export_openapi.py API şemasını frontend/openapi.json dosyasına yazar
+tests/                  pytest testleri (karar kuralları, ayarlar, depo, arama dizini, API)
 data/knowledge_base/    22 resmî kaynaklı belge (TR + EN)
 src/try_one_ticket.py   İlk API çağrısı testi (Step 1)
 data/tickets/           Etiketli ticket'lar

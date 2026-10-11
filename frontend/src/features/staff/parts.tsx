@@ -1,9 +1,8 @@
 import { CircleAlert, ShieldAlert } from "lucide-react";
 import { usePreferences } from "@/app/preferences";
 import type { Texts } from "@/lib/i18n";
-import type { Language, Priority } from "@/lib/types";
+import type { Language, Priority, Reason } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import type { Reason } from "./types";
 
 const PRIORITY_STYLE: Record<Priority, string> = {
   urgent: "bg-destructive text-white",
