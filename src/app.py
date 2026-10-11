@@ -7,8 +7,8 @@ from typing import Any
 
 import streamlit as st
 
+from config import get_settings
 from decision import UNITS
-from llm import MODEL
 from pipeline import process_ticket
 from retrieval import Index, load_index
 from store import connect, list_tickets, mark_handled
@@ -388,7 +388,7 @@ with st.sidebar:
         for number, step in enumerate(t["steps"]):
             st.markdown(("✅ " if number < DONE_STEPS else "⏳ ") + step)
         st.caption(t["demo_note"])
-        st.caption(f"{t['model']}: `{MODEL}`")
+        st.caption(f"{t['model']}: `{get_settings().gemini_model}`")
 
 if view == "student":
     if "messages" not in st.session_state:

@@ -1019,3 +1019,32 @@ First run: 125 findings in 12 files. Now: no issues in 20 files.
 ## Known issue for the next pieces
 Importing `llm` needs GEMINI_API_KEY and GEMINI_MODEL at import time, so tests that import the pipeline need a .env. CI has no .env -> fixed by the typed config piece (pydantic-settings) before the CI piece.
 - Bundle: tools/make_context.py now lists uv.lock as "summary only" (147k characters of machine-written versions, nothing to learn from); the bundle went 960k -> 814k characters.
+- Commit and push: `b6384ac` Phase 7.1: pyproject.toml + uv.lock, ruff and mypy strict (125 -> 0), 3 real bugs fixed, 24 tests.
+
+# Phase 7 Foundation, piece 2: typed config with pydantic-settings (2026-10-11)
+
+## Why
+llm.py read the API key and created the Gemini client at import time, so every test that imported the pipeline needed a real .env. GitHub CI has no .env, so CI would fail before running a test. Settings were also untyped and scattered.
+
+## Libraries
+- Added pydantic-settings 2.15.0 (2026-08-07; checked on PyPI). Removed python-dotenv from our direct dependencies: our code no longer imports it; pydantic-settings uses it internally, so it stays installed. `uv lock --check`: lockfile matches pyproject.toml. Fixed an orphan comment `uv remove` left in pyproject.toml.
+- mypy: enabled the pydantic plugin (`plugins = ["pydantic.mypy"]`) instead of a `# type: ignore` on `Settings()`; it also checks every pydantic model more precisely. Still no issues.
+
+## src/config.py (new)
+- `Settings`: gemini_api_key (SecretStr, prints as ********), gemini_model (required), gemini_timeout_seconds (default 60, must be > 0), gemini_retry_attempts (default 5, at least 1). Environment variables win over .env.
+- `get_settings()` with `@lru_cache`: read and checked on first use, then reused (FastAPI's documented pattern).
+- Decision: only settings that differ between environments go here. Rules that change results (MIN_SCORE, vector size, prompts) stay in code, so changing them is a reviewed commit plus a new evaluation. The database path stays in code until the Docker piece (api.py reads it at import).
+
+## Code
+- llm.py: `get_client()` (cached) builds the client on first use from the settings; `ask()` now uses `response_text()` too.
+- classifier.py, answer.py, retrieval.py, app.py, evaluate.py, try_one_ticket.py: `get_settings().gemini_model` and `get_client()` instead of the old MODEL and client constants.
+- .env.example: optional GEMINI_TIMEOUT_SECONDS and GEMINI_RETRY_ATTEMPTS as commented placeholders.
+
+## Tests
+- tests/test_config.py (4): values and defaults; missing key -> clear error naming gemini_api_key; negative timeout rejected; the key never appears in str() or repr(). Uses `_env_file=None` and removes Gemini variables, so the real .env is never read.
+- Full suite: 28 passed. ruff and mypy clean (22 files).
+- CI proof: copied only the files git would publish (no .env) to a temporary folder, `uv sync --locked`, ran pytest with GEMINI_API_KEY and GEMINI_MODEL unset: 28 passed. Temporary folder deleted.
+- Real path: `uv run python src/try_one_ticket.py` (1 request) -> model gemini-3.5-flash-lite answered. Note: the toy Step 1 prompt claimed "I've escalated your ticket", a made-up action; the real pipeline is grounded and never says this.
+
+## My feedback on the UI (during this piece)
+The plain HTML/CSS/JS student page and the Streamlit staff panel look too basic for an elite CV project. Agreed: a modern frontend stack will be proposed right after this piece.

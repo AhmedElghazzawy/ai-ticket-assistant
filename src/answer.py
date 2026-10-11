@@ -3,8 +3,9 @@
 from google.genai import types
 from pydantic import BaseModel, ConfigDict, Field
 
+from config import get_settings
 from knowledge_base import Chunk
-from llm import MODEL, client, response_text
+from llm import get_client, response_text
 
 
 class Answer(BaseModel):
@@ -59,5 +60,7 @@ def draft_answer(ticket: str, chunks: list[Chunk], language: str) -> Answer:
         f"Reply language: {LANGUAGE_NAMES[language]}\n\nTICKET:\n{ticket}\n\n"
         f"OFFICIAL RULES:\n{format_rules(chunks)}"
     )
-    response = client.models.generate_content(model=MODEL, contents=contents, config=CONFIG)
+    response = get_client().models.generate_content(
+        model=get_settings().gemini_model, contents=contents, config=CONFIG
+    )
     return Answer.model_validate_json(response_text(response))

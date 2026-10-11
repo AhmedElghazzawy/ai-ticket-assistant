@@ -5,12 +5,12 @@ description = "Bilingual (TR/EN) university helpdesk assistant: classify, retrie
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
 dependencies = [
-    "google-genai>=2.28.0",   # talk to Gemini models
-    "python-dotenv>=1.2.4",   # load the API key and model name from .env
-    "pydantic>=2.13.5",       # check that every ticket has valid fields and labels
-    "streamlit>=1.65.0",      # the staff panel
-    "fastapi>=0.143.0",       # the web API behind the student chat page
-    "uvicorn>=0.54.0",        # the server that runs the FastAPI app
+    "google-genai>=2.28.0",       # talk to Gemini models
+    "pydantic>=2.13.5",           # check that every ticket has valid fields and labels
+    "pydantic-settings>=2.15.0",  # typed settings from environment variables and .env
+    "streamlit>=1.65.0",          # the staff panel
+    "fastapi>=0.143.0",           # the web API behind the student chat page
+    "uvicorn>=0.54.0",            # the server that runs the FastAPI app
 ]
 
 [dependency-groups]
@@ -50,3 +50,4 @@ python_version = "3.12"
 mypy_path = "src"   # our modules live in src/, like pytest's pythonpath
 files = ["src", "tests", "tools"]
 strict = true       # every function typed, no silent "Any"
+plugins = ["pydantic.mypy"]  # lets mypy understand pydantic models and settings

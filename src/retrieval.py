@@ -10,7 +10,7 @@ from pathlib import Path
 from google.genai import types
 
 from knowledge_base import Chunk, load_chunks
-from llm import client
+from llm import get_client
 
 EMBED_MODEL = "gemini-embedding-2"  # Google's recommended embedding model; multilingual (TR and EN)
 DIMENSIONS = 768  # one of Google's recommended sizes; smaller than the 3072 default, still precise
@@ -41,7 +41,9 @@ def embed(texts: list[str]) -> list[list[float]]:
             types.Content(parts=[types.Part.from_text(text=t)])
             for t in texts[start : start + BATCH_SIZE]
         ]
-        result = client.models.embed_content(model=EMBED_MODEL, contents=contents, config=config)
+        result = get_client().models.embed_content(
+            model=EMBED_MODEL, contents=contents, config=config
+        )
         embeddings = result.embeddings or []
         if len(embeddings) != len(contents):
             raise RuntimeError(

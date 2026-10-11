@@ -1,37 +1,32 @@
-"""Shared Gemini setup: settings from .env, one client, and ask() with retries."""
+"""Shared Gemini setup: one client, created on first use, with timeout and retries."""
 
-import os
+from functools import lru_cache
 
-from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 
-load_dotenv()  # read .env and turn each line into an environment variable
+from config import get_settings
 
 
-def get_setting(name: str) -> str:
-    """Return a setting from .env, or stop with a clear message if it is missing."""
-    value = os.getenv(name)
-    if not value:
-        raise RuntimeError(f"{name} is missing. Add it to .env (see .env.example).")
-    return value
-
-
-MODEL = get_setting("GEMINI_MODEL")
-
-# If Google answers "too busy" (429) or has a server error (500, 503),
-# wait and try again: 2s, then 4s, 8s, 16s (each wait doubles).
-RETRY = types.HttpRetryOptions(
-    attempts=5,  # 5 tries in total, counting the first one
-    initial_delay=2.0,
-    http_status_codes=[429, 500, 503],
-)
-
-client = genai.Client(
-    api_key=get_setting("GEMINI_API_KEY"),
-    # timeout: give up on a request after 60 s (one once hung for 30+ minutes); the retry logic then tries again.
-    http_options=types.HttpOptions(timeout=60_000, retry_options=RETRY),
-)
+@lru_cache
+def get_client() -> genai.Client:
+    """The Gemini client, created on first use (so importing this file needs no API key)."""
+    settings = get_settings()
+    # If Google answers "too busy" (429) or has a server error (500, 503),
+    # wait and try again: 2s, then 4s, 8s, 16s (each wait doubles).
+    retry = types.HttpRetryOptions(
+        attempts=settings.gemini_retry_attempts,
+        initial_delay=2.0,
+        http_status_codes=[429, 500, 503],
+    )
+    return genai.Client(
+        api_key=settings.gemini_api_key.get_secret_value(),
+        # give up on a request after the timeout; the retry logic then tries again
+        http_options=types.HttpOptions(
+            timeout=int(settings.gemini_timeout_seconds * 1000),  # Google wants milliseconds
+            retry_options=retry,
+        ),
+    )
 
 
 # We never let the model call Python functions, so switch that feature off.
@@ -50,5 +45,7 @@ def response_text(response: types.GenerateContentResponse) -> str:
 
 def ask(prompt: str) -> str:
     """Send one prompt to Gemini and return its text reply."""
-    response = client.models.generate_content(model=MODEL, contents=prompt, config=NO_AFC)
-    return response.text or ""
+    response = get_client().models.generate_content(
+        model=get_settings().gemini_model, contents=prompt, config=NO_AFC
+    )
+    return response_text(response)

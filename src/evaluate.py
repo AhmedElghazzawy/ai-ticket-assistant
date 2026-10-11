@@ -14,7 +14,7 @@ from typing import Any
 from google.genai import errors, types
 
 from classifier import THINKING_LEVEL, classify
-from llm import MODEL
+from config import get_settings
 from tickets import TEST_PATH, TICKETS_PATH, Ticket, load_tickets
 
 RUNS = 2  # each ticket is classified twice, to measure consistency
@@ -142,7 +142,7 @@ def main() -> None:
     by_language = {lang: [t for t in tickets if t.language == lang] for lang in ("tr", "en")}
     results = {
         "date": datetime.now().isoformat(timespec="seconds"),
-        "model": MODEL,
+        "model": get_settings().gemini_model,
         "thinking_level": level.value,
         "dataset": "test" if on_test else "dev",
         "runs": len(runs),
