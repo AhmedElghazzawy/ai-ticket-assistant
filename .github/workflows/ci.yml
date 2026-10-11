@@ -1,0 +1,47 @@
+# Runs on every push to main and every pull request: a fresh machine installs the
+# project from the lockfile and runs every check. No API key: tests never call Gemini.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Least privilege: CI only needs to read the code.
+permissions:
+  contents: read
+
+# A newer push to the same branch cancels the older, now pointless run.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python:
+    name: Python (lint, types, tests)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # Actions are pinned to a commit SHA (a tag can be moved by an attacker; a SHA cannot).
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          version: "0.12.23" # same uv as on my laptop
+          python-version: "3.12"
+          enable-cache: true
+
+      - name: Install exactly what uv.lock says
+        run: uv sync --locked
+
+      - name: Lint (ruff)
+        run: uv run ruff check --output-format=github
+
+      - name: Format check (ruff)
+        run: uv run ruff format --check
+
+      - name: Type check (mypy strict)
+        run: uv run mypy
+
+      - name: Tests (pytest)
+        run: uv run pytest

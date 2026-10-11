@@ -1,5 +1,7 @@
 # Üniversite Yardım Masası Ticket Asistanı
 
+[![CI](https://github.com/AhmedElghazzawy/ai-ticket-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/AhmedElghazzawy/ai-ticket-assistant/actions/workflows/ci.yml)
+
 **Çalışma Tasarımı I** · Bilecik Şeyh Edebali Üniversitesi (BŞEÜ), Bilgisayar Mühendisliği
 
 Öğrencilerin yardım masasına yazdığı ticket'ları okuyan bir AI asistanı. Sistem ticket'ı etiketler (kategori, öncelik, escalation), üniversitenin resmî belgelerinde cevabı arar (RAG), kaynağını gösteren bir cevap yazar ve karar verir: cevabı otomatik göndermek mi, yoksa doğru birime (bir insana) yönlendirmek mi.

@@ -1048,3 +1048,14 @@ llm.py read the API key and created the Gemini client at import time, so every t
 
 ## My feedback on the UI (during this piece)
 The plain HTML/CSS/JS student page and the Streamlit staff panel look too basic for an elite CV project. Agreed: a modern frontend stack will be proposed right after this piece.
+- Commit and push: `14296f5` Phase 7.2: typed config with pydantic-settings, lazy Gemini client; tests run without .env (28 tests).
+
+# Stack decision and LLM question (2026-10-11)
+- Full stack agreed. Backend: Python 3.12, uv, ruff, mypy, FastAPI (+ streaming replies via SSE), Gemini, pydantic-settings, later Postgres + pgvector, argon2 + HTTP-only cookie sessions, structlog. Frontend (replacing web/ and Streamlit): React 19 + TypeScript, Vite 8, Tailwind CSS 4 + shadcn/ui, TanStack Query + Router, typed API client generated from FastAPI's OpenAPI schema (@hey-api/openapi-ts), Recharts, Biome, Vitest, later Playwright. Infra: GitHub Actions, Docker Compose, a host chosen in Phase 13. Versions checked on npm; Node 24.21 LTS, npm and Docker already installed. TypeScript 7.0 is brand new: if tools do not support it yet, use the latest 6.x. npm kept (no pnpm: one tool less).
+- Order agreed: CI -> design the screens in Figma first -> build the frontend -> Docker.
+- My question: is Gemini the best LLM? Answer: a sensible choice now (free tier, good Turkish, structured output, embeddings from the same provider), but not proven best: Flash-Lite is the smallest tier and the free tier is tight. Decision: keep Gemini; in Phase 9 run the same locked evaluation on 3-4 models (bigger Gemini, Claude, GPT, an open-weight model that could run on-premise for KVKK) and choose by accuracy, missed escalations, cost per 1,000 tickets and latency. Added to the Phase 9 roadmap line in CLAUDE.md and AGENTS.md. (Claude disclosed it is made by Anthropic, so the data should decide.)
+
+# Phase 7 Foundation, piece 3: CI with GitHub Actions (2026-10-11)
+- .github/workflows/ci.yml (new): on every push to main and every pull request, a fresh Ubuntu machine runs `uv sync --locked`, ruff check (findings shown on the changed lines), ruff format --check, mypy, pytest. No API key needed.
+- Security: actions pinned to commit SHAs, not tags (tags can be moved; the 2025 tj-actions/changed-files attack did this): actions/checkout v7.0.1 (2026-07-20), astral-sh/setup-uv v10.3.0 (2026-10-09). Versions and input names checked on GitHub, not guessed. `permissions: contents: read` (least privilege), `timeout-minutes: 10`, concurrency cancels outdated runs. uv pinned to 0.12.23, the same as on my laptop.
+- README: CI badge at the top.

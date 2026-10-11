@@ -107,7 +107,7 @@ Phase 1 is done when:
 Phases 1-6 are done. Professor deliverables continue weekly alongside this.
 7.  Foundation: ruff + mypy, pydantic-settings config, structured logging, GitHub Actions CI, Docker (docker compose).
 8.  Data: richer and more realistic tickets (multi-issue, typos, mixed TR/EN), a second person labels a sample (agreement score, Cohen's kappa), real tickets from classmates as a new unseen test set.
-9.  Evaluation: confidence intervals, LLM-as-judge for reply quality checked against my own ratings, one command that runs every eval and saves a versioned report.
+9.  Evaluation: confidence intervals, LLM-as-judge for reply quality checked against my own ratings, one command that runs every eval and saves a versioned report; model comparison: the same locked evaluation on 3-4 LLMs (bigger Gemini, Claude, GPT, an open-weight model for KVKK / on-premise), choosing by accuracy, missed escalations, cost per 1,000 tickets and latency.
 10. Retrieval: Postgres + pgvector, hybrid search (keyword + embedding), reranking; measure each against the current hit@3.
 11. Security and stress tests: prompt injection, empty or huge input, two problems in one ticket, PII handling, rate limiting; ONE final run on the locked test set.
 12. Staff product: a real staff dashboard (login, queue, edit and send), the reply actually reaches the student, ticket status the student can see.
