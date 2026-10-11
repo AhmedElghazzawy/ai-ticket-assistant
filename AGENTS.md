@@ -21,7 +21,7 @@ It is also my FIRST AI engineering project. The goal is for me to learn and trul
   6. Ask me 2-3 short questions to check I understood, and wait for my answers. If I'm wrong, correct me kindly and re-explain.
   7. Suggest a commit message. Only commit when I say so. Every approved commit is pushed to GitHub right away, so GitHub is always up to date.
 - After EVERY change (new file, code change, decision, problem found, command run and its result), add it to docs/changelog.md with the reason, then run `.venv/bin/python tools/make_context.py` so claude_context.md is up to date. claude_context.md is the full project in one file, which I paste into a chat to be taught.
-- Do not add libraries, files or features I did not ask for. Add a library only when the current step needs it, and tell me why. Simple but impressive, no over-engineering.
+- You may add the libraries, tools and setup the project really needs to reach production level. Before adding one, say what it is, why we need it, and what the simpler alternative would be. Every tool must earn its place: complexity that adds nothing is a weakness, not a strength.
 - Keep code short and readable: small functions, type hints, short English comments, snake_case names.
 - Tell me honestly when something is weak or may be misleading (for example an inflated score), even if I did not ask.
 - If I say "I don't understand", explain it another way (analogy, tiny example) before moving on.
@@ -33,6 +33,19 @@ It is also my FIRST AI engineering project. The goal is for me to learn and trul
 - The free tier has request limits per minute. Add short waits between calls and automatic retries, and never loop over many tickets without that.
 - Never commit without asking me first. When I approve a commit, push it to GitHub too (git push origin main).
 - This file (AGENTS.md) is a copy of CLAUDE.md for Codex. Whenever one of them changes, update the other the same way.
+
+## Production standard (decided 2026-10-11)
+This is a CV project and must look like work from a strong industry team, not a course demo. Judge every step by: "would a senior engineer approve this in code review?"
+- Code: typed (mypy passes), linted and formatted (ruff), small modules with one job each, no dead code.
+- Tests: every rule and every bug fix gets a test. AI calls are faked in unit tests; real AI calls only in evals.
+- CI: GitHub Actions runs lint, type checks and tests on every push. main must always be green.
+- Config: settings typed and validated at startup (pydantic-settings); no magic strings scattered in code.
+- Observability: structured logs; for every ticket record latency, tokens, cost and the decision with its reasons.
+- Evaluation: every metric reports its sample size and confidence interval; evals can run on demand and their results are versioned; the locked test set stays locked.
+- Security: prompt-injection defence, no personal data in logs, staff pages behind a login, rate limiting on public endpoints, secrets only in .env.
+- Packaging: Docker, so anyone can run the full system with one command.
+- Docs: README with an architecture diagram, real metrics and a demo link; short decision records (docs/decisions/) for every major choice.
+- Honesty: say when something is demo-grade, and what would make it production-grade.
 
 ## What my professor asked for (his feedback on my idea)
 He said the idea is feasible but too general. Before building, I must define clearly:
@@ -61,7 +74,7 @@ Auto-send only if ALL pass: category is not "other"; the model did not ask to es
 - Phase 1 has about 80 tickets (40 Turkish + 40 English) and no more. Phase 2 adds about 40 more (20 + 20), and those 40 are a LOCKED TEST SET: never used to adjust the prompt, only for the final score. Never tune the prompt on the test set.
 
 ## Tech stack (introduced one at a time, when needed)
-Python 3.12 with a virtual environment in .venv (use uv if it is installed, otherwise ask me). In use: google-genai (gemini-3.5-flash-lite + gemini-embedding-2), python-dotenv, pydantic, FastAPI + uvicorn + plain HTML/CSS/JS (student page, web/), Streamlit (staff panel), SQLite (built into Python, ticket store), pytest + httpx2 (tests). Possible later: pgvector (Postgres), LangGraph.
+Python 3.12 with a virtual environment in .venv (use uv if it is installed, otherwise ask me). In use: google-genai (gemini-3.5-flash-lite + gemini-embedding-2), python-dotenv, pydantic, FastAPI + uvicorn + plain HTML/CSS/JS (student page, web/), Streamlit (staff panel), SQLite (built into Python, ticket store), pytest + httpx2 (tests). Planned (roadmap): ruff, mypy, pydantic-settings, Docker, GitHub Actions, Postgres + pgvector. Possible: LangGraph.
 
 ## Repo layout (target)
 data/tickets/, data/knowledge_base/, src/, web/ (student chat page), tests/ (pytest), eval/, docs/, README.md, CLAUDE.md, requirements.txt, pytest.ini, .env.example, .gitignore
@@ -89,8 +102,17 @@ Phase 1 is done when:
 4. Week 6: grounded draft replies that cite their source, the decision function, routing to units. Rate 15 drafts; count tickets auto-sent that should not have been.
 5. Week 7: FastAPI endpoint POST /tickets, saved results, pytest tests for the decision rules.
 6. Week 8: rebuild as a LangGraph graph, add a human review queue tab in Streamlit.
-7. Week 9: stress tests (ambiguous tickets, two problems in one ticket, empty text, prompt injection), then ONE final evaluation on the locked test set.
-8. Week 10: README, architecture diagram, Turkish project report, 5-minute demo script, v1.0 tag.
+
+## Roadmap to production (from 2026-10-11)
+Phases 1-6 are done. Professor deliverables continue weekly alongside this.
+7.  Foundation: ruff + mypy, pydantic-settings config, structured logging, GitHub Actions CI, Docker (docker compose).
+8.  Data: richer and more realistic tickets (multi-issue, typos, mixed TR/EN), a second person labels a sample (agreement score, Cohen's kappa), real tickets from classmates as a new unseen test set.
+9.  Evaluation: confidence intervals, LLM-as-judge for reply quality checked against my own ratings, one command that runs every eval and saves a versioned report.
+10. Retrieval: Postgres + pgvector, hybrid search (keyword + embedding), reranking; measure each against the current hit@3.
+11. Security and stress tests: prompt injection, empty or huge input, two problems in one ticket, PII handling, rate limiting; ONE final run on the locked test set.
+12. Staff product: a real staff dashboard (login, queue, edit and send), the reply actually reaches the student, ticket status the student can see.
+13. Deployment: live demo URL, monitoring of cost and errors.
+14. Showcase: README with diagram and metrics, decision records, Turkish report for my professor, 5-minute demo, v1.0 tag.
 
 ## Lessons from my first attempt
 - The coding assistant ran in auto mode and wrote more than I understood. That is why we restarted.
@@ -98,4 +120,4 @@ Phase 1 is done when:
 - The secrets file was once named key.env by mistake, so git did not ignore it. The name must be exactly .env.
 
 ## Current status
-(2026-10-10) Phases 1-6 done: classifier (thinking high), 80 dev + 40 locked test tickets (test: 73.8% all three, 0 missed escalations), knowledge base of 11 topics TR+EN from official BŞEÜ sources (59/59 quotes verified), embedding search (hit@3 100% dev and test), cited answers + auto-send decision incl. 'urgent -> human' (dev: 0 unsafe auto-sends; locked test: 1 low-harm, the SOFRA gap, since closed with the IT accounts document), FastAPI student page in BŞEÜ style with dark mode, Streamlit staff panel with a human review queue (SQLite), 22 pytest tests. Next ideas: send staff replies to students, more content (academic calendar, fees), real tickets from classmates as a new test set, LangGraph, stress tests. Update this line at the end of each session, after asking me.
+(2026-10-10) Phases 1-6 done: classifier (thinking high), 80 dev + 40 locked test tickets (test: 73.8% all three, 0 missed escalations), knowledge base of 11 topics TR+EN from official BŞEÜ sources (59/59 quotes verified), embedding search (hit@3 100% dev and test), cited answers + auto-send decision incl. 'urgent -> human' (dev: 0 unsafe auto-sends; locked test: 1 low-harm, the SOFRA gap, since closed with the IT accounts document), FastAPI student page in BŞEÜ style with dark mode, Streamlit staff panel with a human review queue (SQLite), 22 pytest tests. (2026-10-11) Production standard adopted, roadmap phases 7-14 written; next: Phase 7 Foundation. Update this line at the end of each session, after asking me.

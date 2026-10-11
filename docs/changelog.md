@@ -958,3 +958,22 @@ Forwarded tickets told the student "a staff member will get back to you", but no
 - The VS Code update hid the chat list, but no history was lost: Claude Code keeps every chat in ~/.claude/projects/ (open with `/resume` or `claude --resume`).
 - Re-read the end of the last chat. Open next steps, none started yet: real tickets from classmates as a new test set, more content (academic calendar, fee amounts), stress tests (Phase 7), professor package (Phase 8), sending staff replies to students.
 - Decision: pause here; no code changed. Only this changelog was updated, committed and pushed.
+
+# Production standard adopted (2026-10-11)
+
+## Decision (mine)
+This project is a CV project and must be industry level, not a course demo: system design, data richness, how the parts work together and professional interfaces. No room for average work.
+
+## Session start
+- Caught up from git history and this changelog; local main was in sync with GitHub, nothing uncommitted.
+- I ran `/auto-mode-setup`, but CLAUDE.md says auto mode stays OFF, so teaching mode (explain, plan, wait for OK) continues.
+
+## Honest gap review (before the change)
+Strong already: locked test set, missed-escalation metric, 59/59 verified quotes, cited answers, honest reporting. Missing for industry level: data written and labeled by one person only, metrics without confidence intervals, in-memory retrieval only, no CI / Docker / typed config / structured logs, basic security, demo-style staff panel, no live demo.
+
+## CLAUDE.md and AGENTS.md (same edits in both)
+- Teaching mode: "do not add libraries... no over-engineering" replaced by: add what production level really needs, but always say what, why and the simpler alternative; every tool must earn its place.
+- New section "Production standard": typed + linted code (mypy, ruff), tests for every rule and bug fix, GitHub Actions CI, pydantic-settings config, structured logs with latency/tokens/cost per ticket, metrics with sample size and confidence intervals, security (prompt injection, no PII in logs, staff login, rate limiting), Docker, README with diagram/metrics/demo link, decision records in docs/decisions/.
+- Old phases 7-8 replaced by "Roadmap to production" phases 7-14: Foundation, Data, Evaluation, Retrieval, Security and stress tests, Staff product, Deployment, Showcase.
+- Tech stack: planned tools listed. Current status: production standard adopted; next is Phase 7 Foundation.
+- Check: AGENTS.md still differs from CLAUDE.md only in the 4 tool-name lines.
