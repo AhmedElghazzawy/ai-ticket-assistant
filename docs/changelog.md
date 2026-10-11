@@ -1169,3 +1169,38 @@ The plain HTML/CSS/JS student page and the Streamlit staff panel look too basic 
 - CI: Python job checks that frontend/openapi.json matches the API; frontend job checks that src/client matches openapi.json. First proved generation is deterministic (two runs, identical files).
 - README (Turkish): Node in requirements, `npm ci`, two-terminal development, one-server mode, security note (staff API local-only until login), the frontend checks, how to regenerate types, file list. CLAUDE.md and AGENTS.md: real tech stack and repo layout.
 - Bundle: generated client and openapi.json are summary-only. Note: the bundle is now 1.2 million characters (mostly the full git history of every changed line), possibly too big to paste into one chat; to discuss.
+- Commit and push: `4de5a79` Phase B1. CI: both jobs green, including the two new drift checks (API schema and generated client up to date).
+
+# The learning bundle: from 1.2M to about half (2026-10-11)
+- claude_context.md had grown to 1,225,973 characters (~300k tokens), too big to paste into one chat. Measured what filled it (my first measuring script split on the changelog's own headings and gave wrong numbers; fixed by splitting on "## File:"): the full line-by-line git history was the biggest part, and the newest commits added whole files that were already shown in full.
+- tools/make_context.py: all commit titles since the restart (the whole story, one line each); changed lines only for the last 3 commits (RECENT = 3) and only for files that were modified (`--diff-filter=M`: new files are in the file section anyway); AGENTS.md summary-only (a copy of CLAUDE.md). Fixed a duplicated comment my earlier edit had left in this file. The full history stays on GitHub.
+- Result below; what remains is real content: the project's files and the changelog.
+- Final size: 603,286 characters (~150k tokens), down from 1,225,973.
+
+# Phase 7 Foundation, piece 4: structured logging (2026-10-11)
+
+## Why
+No record existed of what happened, how long it took or what it cost. Production systems keep one structured line per event that tools can search and chart.
+
+## Decisions
+- structlog 26.1.0 (checked on PyPI): the standard for structured logs in Python; the simpler alternative (stdlib logging + a hand-written JSON formatter) would mean maintaining our own request-ID and console code.
+- Hard rule: the student's text is NEVER logged (personal data, KVKK), only its length. On a pipeline crash only the error TYPE is logged: an error message can contain model output that echoes the student (trade-off: slightly harder debugging).
+- Prices from Google's official page (checked 2026-10-11): gemini-3.5-flash-lite $0.30 input / $2.50 output incl. thinking per 1M tokens; gemini-embedding-2 $0.20 per 1M (free tier: free of charge). Stored in config.Settings with source and date; logs show "estimated cost at paid prices". Embedding calls return no token counts, so no cost for them (logged honestly as a gap).
+
+## Code
+- src/logs.py (new): configure() (LOG_FORMAT=json -> JSON lines, otherwise readable coloured lines; read directly from the environment so logging works without the API key), get_logger().
+- llm.py: one `generate(stage, contents, config)` that times every Gemini call and logs stage, model, ms, input/output/thinking tokens and cost; classifier, answer and ask() all use it, so there is now exactly ONE direct Gemini call in the code. `estimated_cost()`.
+- retrieval.py: `embedding_call` (texts, ms).
+- api.py: middleware: request ID (an incoming X-Request-ID is only accepted if it matches [A-Za-z0-9-]{1,64}, else our own: nobody can forge log content), one `request` line (method, path only (query strings can hold search text), status, ms), X-Request-ID response header. Events `ticket_created` (decision, reason codes, office, score, text length), `pipeline_failed` (error type), `staff_reply` (reply length), `staff_reassign`.
+- .env.example: LOG_FORMAT. README: logging paragraph, src/logs.py.
+
+## Bugs found on the way
+- get_logger(logger=name): the key "logger" is reserved by structlog -> every test failed at import. Fixed.
+- Real run in JSON mode showed only the API's events: llm.py and retrieval.py create their loggers while being imported, BEFORE api.py calls configure(); `.bind()` had locked them to structlog's default plain-text format. Fix: keep loggers lazy (`structlog.get_logger(module=name)`). Regression test runs a fresh Python process with a logger made before configure() and checks it writes JSON.
+- My own weak test: the "unsafe request ID" test compared against a string the request never sent, so it always passed. Rewritten to send exactly the unsafe value. Moved shared fake results to tests/fakes.py (tests were importing from another test file).
+- Mutation checks: with the request-ID check broken on purpose, and with the old .bind() put back, the tests FAIL; restored, they pass. So these tests really protect something.
+
+## Tests and real run
+- tests/test_logs.py (6): ticket_created fields without the student's name or ID number in ANY log entry; every request has an ID; safe ID kept, unsafe replaced; a crash logs only the error type; cost formula ($0.00155 for 1000 in / 200 out / 300 thinking); loggers made before configure() write JSON. 52 tests pass; ruff, mypy clean.
+- Real ticket, LOG_FORMAT=json: 5 JSON lines with one request_id: classify (3.6 s, 2633 in, 72 out, 856 thinking tokens, $0.0031), embedding (0.4 s), answer (4.2 s, 950 in, 90 out, 1493 thinking, $0.0042), ticket_created, request (8.3 s). Student text in logs: 0. Non-JSON lines: 0.
+- What the numbers say: about $0.0074 per ticket (~$7.40 per 1,000 at paid prices); thinking tokens are most of the cost (the thinking level is the main cost lever: measure it in the Phase 9 model comparison). Classification and search+answer are independent: running them in parallel could cut the wait from 8.3 s to about 4.6 s (later).

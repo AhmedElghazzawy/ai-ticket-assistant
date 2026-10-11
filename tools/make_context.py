@@ -7,8 +7,8 @@ ROOT = Path(__file__).resolve().parent.parent
 OUTPUT = ROOT / "claude_context.md"
 FIRST = ["CLAUDE.md", "docs/changelog.md"]  # shown before all other files
 RESTART = "facb85a"  # the "Start over from scratch" commit; history starts after it
-# Big generated data files: listed with a note instead of their content (their numbers are in the changelog).
-# generated or machine-written: listed with a note instead of their content
+RECENT = 3  # line-by-line changes only for the last commits; older ones as one-line titles (all on GitHub)
+# Generated or machine-written files: listed with a note instead of their content.
 SUMMARY_ONLY = (
     "eval/*.json",
     "data/kb_index.json",
@@ -17,6 +17,7 @@ SUMMARY_ONLY = (
     "frontend/openapi.json",
     "frontend/src/client/*",
     "frontend/src/client/*/*",
+    "AGENTS.md",  # a copy of CLAUDE.md for Codex
 )
 # Git pathspecs left out of the history diffs: raw results (too big), and files already shown in full above.
 NOT_IN_HISTORY = [
@@ -30,7 +31,8 @@ INTRO = """# AI Ticket Assistant: full project context
 I am a computer engineering student and a complete beginner in AI engineering.
 Below is my whole project: the instructions (CLAUDE.md), the changelog (the story
 of every change, every command and its result, and why), the full content of every
-file, and at the end the git history with every changed line since the restart.
+file, and at the end the git history: every commit title since the restart, and
+every changed line of the most recent commits.
 Please teach me: explain what each part does and why, in simple English,
 with small examples. Ask me questions to check that I understood.
 """
@@ -52,21 +54,26 @@ def project_files() -> list[Path]:
 
 
 def history_section() -> str:
-    """Every commit since the restart with its changed lines, plus uncommitted changes."""
+    """All commit titles since the restart, the changed lines of the last RECENT commits,
+    and uncommitted changes. (The full line-by-line history made the bundle too big to paste.)"""
+    titles = git("log", "--reverse", "--format=- %h %ad %s", "--date=short", f"{RESTART}..HEAD")
     log = git(
         "log",
         "--reverse",
         "-p",
+        f"-{RECENT}",
+        "--diff-filter=M",  # changed files only: new files are shown in full above
         "--format=%n### Commit %h: %s (%ad)",
         "--date=short",
-        f"{RESTART}..HEAD",
         "--",
         ".",
         *NOT_IN_HISTORY,
     )
     pending = git("diff", "HEAD", "--", ".", *NOT_IN_HISTORY)
     return (
-        "\n---\n\n# History: every change, line by line\n\n"
+        "\n---\n\n# History\n\n"
+        f"## Every commit since the restart\n\n{titles.strip()}\n\n"
+        f"## The last {RECENT} commits: changed lines of existing files\n\n"
         "Lines starting with + were added, lines starting with - were removed.\n\n"
         f"````diff\n{log.strip()}\n````\n\n"
         "## Changes not committed yet\n\n"

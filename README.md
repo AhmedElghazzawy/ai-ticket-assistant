@@ -157,6 +157,8 @@ cd frontend && npm run dev                      # web arayüzü: http://localhos
 
 Tek sunucu (üretim gibi): `cd frontend && npm run build`, sonra `uv run uvicorn api:app --app-dir src` ve http://127.0.0.1:8000 açılır.
 
+**Loglar:** her istek ve her ticket için yapılandırılmış log (structured logging): aşama süreleri, token sayıları, tahmini maliyet (ücretli fiyatlarla), karar ve nedenleri, hepsi aynı `request_id` ile. `LOG_FORMAT=json` ile her satır bir JSON nesnesidir. Öğrencinin yazdığı metin **asla** loglanmaz (kişisel veri, KVKK), yalnızca uzunluğu; bunu bir test garanti eder.
+
 > **Güvenlik notu:** Personel sayfaları öğrenci mesajlarını gösterir. Personel girişi (Phase 12) eklenene kadar `/api/staff` yalnızca bu bilgisayardan gelen isteklere cevap verir (diğerlerine 403). Bu yüzden sistem henüz internete açılmamalıdır.
 
 ```sh
@@ -199,6 +201,7 @@ src/pipeline.py         Bir ticket için tüm adımlar
 src/evaluate_pipeline.py   Tüm sistemin değerlendirmesi
 src/api.py              FastAPI: POST /api/tickets, personel API'si (/api/staff, yalnızca yerel), web arayüzünü sunar
 src/config.py           Ayarlar (pydantic-settings): .env'den okunur, başlangıçta kontrol edilir
+src/logs.py             Yapılandırılmış loglar (structlog): JSON satırları, request_id, kişisel veri yok
 src/store.py            Talepleri SQLite veritabanına kaydeder (data/helpdesk.db, kişisel veri: GitHub'a yüklenmez)
 src/app.py              Eski Streamlit paneli: genel bakış, veri seti, değerlendirme
 frontend/               Web arayüzü: React 19 + TypeScript + Vite, Tailwind CSS + shadcn/ui, TanStack Router + Query

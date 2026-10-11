@@ -3,18 +3,22 @@
 Run: uv run uvicorn api:app --app-dir src     then open http://127.0.0.1:8000
 """
 
-import logging
-from collections.abc import Iterator
+import re
+import time
+import uuid
+from collections.abc import Awaitable, Callable, Iterator
 from contextlib import closing, contextmanager
 from pathlib import Path
 from sqlite3 import Connection
 from typing import Literal
 
+import structlog
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel, Field
 
 from decision import OfficeId
+from logs import configure, get_logger
 from pipeline import process_ticket
 from retrieval import load_index
 from store import (
@@ -31,7 +35,8 @@ from store import (
 )
 from tickets import Category, Priority
 
-logger = logging.getLogger(__name__)  # log lines say they come from this file
+configure()
+logger = get_logger(__name__)
 # The built React app (cd frontend && npm run build). FastAPI serves it, so one server runs everything.
 DIST_DIR = Path(__file__).resolve().parent.parent / "frontend" / "dist"
 INDEX = load_index()  # the knowledge-base vectors, loaded once when the server starts
@@ -44,6 +49,32 @@ app = FastAPI(
     # frontend functions get clean names (FastAPI's advice for client generation).
     generate_unique_id_function=lambda route: route.name,
 )
+
+
+SAFE_REQUEST_ID = re.compile(r"[A-Za-z0-9-]{1,64}")
+
+
+@app.middleware("http")
+async def log_requests(
+    request: Request, call_next: Callable[[Request], Awaitable[Response]]
+) -> Response:
+    """One log line per request, and a request ID that ties together every log line it causes.
+    A caller may send its own X-Request-ID; it is only accepted if it looks harmless."""
+    given = request.headers.get("x-request-id", "")
+    request_id = given if SAFE_REQUEST_ID.fullmatch(given) else uuid.uuid4().hex[:12]
+    structlog.contextvars.clear_contextvars()
+    structlog.contextvars.bind_contextvars(request_id=request_id)
+    started = time.perf_counter()
+    response = await call_next(request)
+    logger.info(
+        "request",
+        method=request.method,
+        path=request.url.path,  # the path only: query strings can hold search text
+        status=response.status_code,
+        ms=round((time.perf_counter() - started) * 1000),
+    )
+    response.headers["X-Request-ID"] = request_id
+    return response
 
 
 @contextmanager
@@ -78,8 +109,10 @@ def create_ticket(ticket: TicketIn) -> TicketOut:
     """Run the whole pipeline for one student message."""
     try:
         r = process_ticket(ticket.text, ticket.language, INDEX)
-    except Exception as error:  # log the details for us, show students a short message only
-        logger.exception("process_ticket failed")
+    except Exception as error:  # show students a short message only
+        # Only the error TYPE: an error message can contain the model's output, which may echo
+        # the student's words (personal data never goes into logs).
+        logger.error("pipeline_failed", error_type=type(error).__name__)
         raise HTTPException(
             status_code=503, detail="The assistant is not available right now."
         ) from error
@@ -87,6 +120,19 @@ def create_ticket(ticket: TicketIn) -> TicketOut:
         saved = get_ticket(db, save_ticket(db, ticket.text, ticket.language, r))
     if saved is None:  # cannot happen right after saving; checked so the type is exact
         raise HTTPException(status_code=500, detail="The ticket could not be saved.")
+    logger.info(
+        "ticket_created",
+        ticket_id=saved.id,
+        language=saved.language,
+        text_length=len(saved.text),  # the length, never the text
+        category=saved.category,
+        priority=saved.priority,
+        escalate=saved.escalate,
+        office=saved.office,
+        auto_send=saved.auto_send,
+        reasons=[reason.code for reason in saved.reasons],
+        top_score=round(saved.top_score, 4),
+    )
     # The response is built from the SAVED ticket, so students and staff always see the same data.
     return TicketOut(
         ticket_id=saved.id,
@@ -151,6 +197,7 @@ def staff_reply(ticket_id: int, body: ReplyIn) -> StoredTicket:
         if found(get_ticket(db, ticket_id)).status != "open":
             raise HTTPException(status_code=409, detail="This ticket is already handled.")
         mark_handled(db, ticket_id, body.reply.strip())
+        logger.info("staff_reply", ticket_id=ticket_id, reply_length=len(body.reply.strip()))
         return found(get_ticket(db, ticket_id))
 
 
@@ -159,6 +206,7 @@ def staff_reassign(ticket_id: int, body: OfficeIn) -> StoredTicket:
     with database() as db:
         found(get_ticket(db, ticket_id))
         reassign(db, ticket_id, body.office)
+        logger.info("staff_reassign", ticket_id=ticket_id, office=body.office)
         return found(get_ticket(db, ticket_id))
 
 

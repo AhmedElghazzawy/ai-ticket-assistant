@@ -5,15 +5,10 @@ from typing import NoReturn
 
 import httpx2
 import pytest
+from fakes import CHUNK, fake_result
 from fastapi.testclient import TestClient
 
 import api
-from answer import Answer
-from classifier import Classification
-from decision import Decision, SimpleReason
-from knowledge_base import Chunk
-from pipeline import TicketResult
-from tickets import Priority
 
 client = TestClient(api.app)
 
@@ -22,35 +17,6 @@ client = TestClient(api.app)
 def temporary_database(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Every API test writes to its own temporary database, never to the real one."""
     monkeypatch.setattr(api, "DB_FILE", tmp_path / "test.db")
-
-
-CHUNK = Chunk(
-    id="harc_ucretler.tr#5",
-    doc="harc_ucretler",
-    language="tr",
-    title="Katkı Payı ve İadeler",
-    source="Öğrenci İşleri SSS",
-    url="https://bilecik.edu.tr/ogrenciisleri/Icerik/HARc_isLEMLERi",
-    text="Kayıt sildirince iade\nGeri ödenmez.",
-)
-
-
-def fake_result(
-    auto_send: bool, escalate: bool = False, priority: Priority = "low"
-) -> TicketResult:
-    """A hand-made pipeline result."""
-    return TicketResult(
-        classification=Classification(
-            reason="test", category="billing", priority=priority, escalate=escalate
-        ),
-        hits=[(0.8, CHUNK)],
-        answer=Answer(
-            evidence="Geri ödenmez.", covered=True, reply="SECRET DRAFT", sources=[CHUNK.id]
-        ),
-        decision=Decision(
-            auto_send=auto_send, reasons=[] if auto_send else [SimpleReason(code="escalation")]
-        ),
-    )
 
 
 def ask(text: str = "Harç iade edilir mi?", language: str = "tr") -> httpx2.Response:

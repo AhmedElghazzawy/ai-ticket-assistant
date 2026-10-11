@@ -5,8 +5,7 @@ from pathlib import Path
 from google.genai import types
 from pydantic import BaseModel, ConfigDict, Field
 
-from config import get_settings
-from llm import get_client, response_text
+from llm import generate, response_text
 from tickets import Category, Priority
 
 LABELS_PATH = Path(__file__).resolve().parent.parent / "docs" / "labels.md"
@@ -57,7 +56,6 @@ def classify(
 ) -> Classification:
     """Send one ticket to Gemini and return its validated labels."""
     config = make_config(thinking_level)
-    response = get_client().models.generate_content(
-        model=get_settings().gemini_model, contents=ticket_text, config=config
+    return Classification.model_validate_json(
+        response_text(generate("classify", ticket_text, config))
     )
-    return Classification.model_validate_json(response_text(response))

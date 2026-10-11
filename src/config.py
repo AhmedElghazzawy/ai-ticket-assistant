@@ -22,6 +22,12 @@ class Settings(BaseSettings):
     gemini_model: str
     gemini_timeout_seconds: float = Field(default=60, gt=0)  # one request once hung for 30+ min
     gemini_retry_attempts: int = Field(default=5, ge=1)  # tries in total, counting the first
+    # Paid-tier prices in USD per 1M tokens, for the cost estimate in the logs (the free tier costs
+    # nothing). Source: ai.google.dev/gemini-api/docs/pricing, checked 2026-10-11, gemini-3.5-flash-lite.
+    price_input_per_million: float = Field(default=0.30, ge=0)
+    price_output_per_million: float = Field(
+        default=2.50, ge=0
+    )  # thinking tokens are billed as output
 
 
 @lru_cache
