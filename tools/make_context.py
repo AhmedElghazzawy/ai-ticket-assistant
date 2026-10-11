@@ -8,7 +8,7 @@ OUTPUT = ROOT / "claude_context.md"
 FIRST = ["CLAUDE.md", "docs/changelog.md"]  # shown before all other files
 RESTART = "facb85a"  # the "Start over from scratch" commit; history starts after it
 # Big generated data files: listed with a note instead of their content (their numbers are in the changelog).
-SUMMARY_ONLY = ("eval/*.json", "data/kb_index.json", "uv.lock")
+SUMMARY_ONLY = ("eval/*.json", "data/kb_index.json", "uv.lock", "frontend/package-lock.json")
 # Git pathspecs left out of the history diffs: raw results (too big), and files already shown in full above.
 NOT_IN_HISTORY = [
     *(f":(exclude){p}" for p in SUMMARY_ONLY),

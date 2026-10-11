@@ -1059,3 +1059,43 @@ The plain HTML/CSS/JS student page and the Streamlit staff panel look too basic 
 - .github/workflows/ci.yml (new): on every push to main and every pull request, a fresh Ubuntu machine runs `uv sync --locked`, ruff check (findings shown on the changed lines), ruff format --check, mypy, pytest. No API key needed.
 - Security: actions pinned to commit SHAs, not tags (tags can be moved; the 2025 tj-actions/changed-files attack did this): actions/checkout v7.0.1 (2026-07-20), astral-sh/setup-uv v10.3.0 (2026-10-09). Versions and input names checked on GitHub, not guessed. `permissions: contents: read` (least privilege), `timeout-minutes: 10`, concurrency cancels outdated runs. uv pinned to 0.12.23, the same as on my laptop.
 - README: CI badge at the top.
+- Commit and push: `66ad202` Phase 7.3: GitHub Actions CI with SHA-pinned actions; CI badge; model comparison in roadmap.
+- First real CI run (38156447135): success in 39 seconds, on a machine with no .env: lockfile OK, ruff clean, format OK, mypy no issues in 22 files, pytest 28 passed. The README badge is green.
+
+# Design approach: Figma limit found -> prototypes in code first (2026-10-11)
+- Figma account connected (Starter plan, View seat). Figma's official rate-limit page: View/Collab seats get "up to 20/month" MCP tool calls on every plan. Too few to design and review 7+ screens.
+- Decision (mine: "do what you see best"): build the screens now as clickable prototypes in the real stack (the approved prototypes become the real frontend); I apply for Figma for Education (free for verified students) in parallel; once approved, the final screens are recreated in Figma as a portfolio piece.
+
+# Phase F1: frontend foundation and the student chat prototype (2026-10-11)
+
+## Scaffold and tools (versions checked on npm, not guessed)
+- `create-vite@9.2.1 frontend --template react-compiler-ts`: React 19 + TypeScript + Vite 8 + the React Compiler (automatic re-render optimisation, the React team's recommendation for new apps). The template pins TypeScript ~6.0, not 7.0: the ecosystem has not fully moved to 7, so we follow the template.
+- Removed the template's Oxlint and demo files; added Biome 2.5.15 (lint + format, 2 spaces, line width 100, Tailwind CSS parsing on). Scripts: dev, build, typecheck, lint, lint:fix, preview.
+- npm 11 blocks install scripts by default (supply-chain protection). Only fsevents asked (optional macOS file watcher, ships prebuilt): denied explicitly, recorded in package.json `allowScripts`.
+- TypeScript: `strict: true` written explicitly (TS 6 default, but explicit is clearer) plus `noUncheckedIndexedAccess` (list[5] may be missing: the TS version of the None bugs mypy found). `@/` import alias without `baseUrl` (deprecated in TS 6; the shadcn guide still uses it). Vite config uses `import.meta.dirname` instead of the old `__dirname`.
+- Tailwind CSS 4.3.3 + shadcn/ui 4.21.4 (`init -t vite -b base -p nova`): Base UI as the headless library (shadcn's default; accessible keyboard/focus/screen-reader behaviour), lucide icons. Components: button, textarea, badge, card, separator, tooltip, dropdown-menu, skeleton. Base UI uses a `render` prop instead of `asChild` (checked in the generated code).
+- Supply-chain check: shadcn installed a package named `cn`. Short names can be typosquats, so I checked: maintained by shadcn, repo shadcn-ui/cn, his replacement for clsx + tailwind-merge. Safe.
+
+## Design system (src/index.css)
+- BŞEÜ brand from the current page (bilecik.edu.tr stylesheet): navy #002F4B (primary), teal #066365 (accent, "answered"), red #BB4030 (destructive, urgent), amber for "forwarded"; dark mode with the same values as the old page (#0b1520 background, light teal #2fb5a8 as primary because navy is too dark on a dark page).
+- Hex -> OKLCH computed exactly with Björn Ottosson's formulas (a small script), not by eye. Contrast: muted text ~5:1, teal ~7:1, red ~5:1 on white (WCAG AA needs 4.5:1).
+- New semantic tokens: success / warning (+ foregrounds), chart colours in brand order. Fonts: Montserrat (BŞEÜ's font) for headings, Geist for text.
+
+## Student chat prototype (src/)
+- lib/types.ts: mirrors the API's TicketOut exactly (temporary, to be replaced by types generated from FastAPI's OpenAPI schema). Planned: Source gets `url` (the official link each knowledge-base document already has), so students can open the regulation.
+- lib/i18n.ts: every text in TR and EN; `satisfies Record<Category, string>` makes the build fail if a category or priority name is missing.
+- mocks/ask.ts: fake POST /api/tickets, 2.4 s delay. Only REAL pipeline replies (tr-023 fee refund, en-020 missed final) and real office names from decision.py. First version could show a Turkish answer in English mode -> fixed: answered example per language, everything else forwarded.
+- app/preferences.tsx: language + light/dark/system theme in a React context, saved in localStorage (wrapped in try/catch: storage can be blocked); sets <html lang> for screen readers; follows the OS when it switches to dark.
+- components/app-header.tsx: BŞEÜ mark, title, new request, TR/EN switch (aria-pressed), theme menu.
+- features/chat/: answer-card (answered: badge, reply, source cards with official link, ticket no, category, helpful buttons; forwarded: office, next step, ticket no; emergency: 112 call link), thinking (the pipeline's 3 stages; timed until streaming), composer (Enter sends, Shift+Enter new line, no send while an input method is composing, 2000-character limit like the API), empty-state (4 example questions), chat-page.
+- React escapes all text, so a reply containing <script> is shown as text (same XSS protection the old page did by hand with textContent).
+- main.tsx: real check instead of a `!` non-null assertion. index.html: Turkish title and description, lang="tr", a tiny script that applies dark mode before the first paint (no white flash), BŞEÜ favicon (navy tile, teal check) instead of Vite's logo.
+
+## Checks
+- Biome clean, TypeScript strict 0 errors, production build 0.8 s (JS 139 kB gzipped; code splitting planned when the staff console arrives).
+- Playwright 1.64.0 + Chromium installed (also for later end-to-end tests). Screenshots: light desktop (empty, thinking, answered + forwarded), dark desktop (English, two sources), mobile. No console or page errors.
+- My visual review found 5 flaws, all fixed: "BŞEÜ" overflowed its tile; ticket number in a typewriter font; the source card overflowed the answer card on mobile (grid items need min-w-0); no "new request" on mobile; the composer seemed to cover the last card (it was a full-page-screenshot artifact; confirmed with real scrolled screenshots). Measured horizontal overflow: 0 px on desktop and mobile.
+
+## CI and bundle
+- New CI job "Frontend (lint, types, build)": actions/setup-node v7.1.0 pinned by SHA, Node 24.21.0 (same as my laptop), `npm ci` (exact lockfile), `biome ci`, typecheck, build. Ran the same commands locally: all pass; backend checks still pass (ruff, mypy 22 files, 28 tests).
+- tools/make_context.py: frontend/package-lock.json is summary-only (203 kB of machine-written versions).
