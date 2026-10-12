@@ -164,11 +164,19 @@ docker compose up --build     # sonra http://127.0.0.1:8000 açılır
 docker compose down           # durdurur (talepler bir Docker volume'da kalır)
 ```
 
-İmaj iki aşamada oluşturulur: Node yalnızca web arayüzünü derler; son imajda sadece Python ve çalışma zamanı kütüphaneleri vardır (geliştirme araçları, Streamlit ve Node yok). Uygulama root olmayan bir kullanıcıyla çalışır, API anahtarı imajın içinde değildir (container başlarken `.env`'den okunur), port yalnızca bu bilgisayara açıktır. Docker içinde personel sayfaları 403 verir: istekler Docker'ın iç ağından gelir ve personel girişi (Phase 12) gelene kadar yalnızca yerel istekler kabul edilir.
+İmaj iki aşamada oluşturulur: Node yalnızca web arayüzünü derler; son imajda sadece Python ve çalışma zamanı kütüphaneleri vardır (geliştirme araçları, Streamlit ve Node yok). Uygulama root olmayan bir kullanıcıyla çalışır, API anahtarı imajın içinde değildir (container başlarken `.env`'den okunur), port yalnızca bu bilgisayara açıktır. Veritabanı şeması sürümlüdür: eski bir veritabanı, verileri korunarak adım adım otomatik güncellenir (migration).
 
 **Loglar:** her istek ve her ticket için yapılandırılmış log (structured logging): aşama süreleri, token sayıları, tahmini maliyet (ücretli fiyatlarla), karar ve nedenleri, hepsi aynı `request_id` ile. `LOG_FORMAT=json` ile her satır bir JSON nesnesidir. Öğrencinin yazdığı metin **asla** loglanmaz (kişisel veri, KVKK), yalnızca uzunluğu; bunu bir test garanti eder.
 
-> **Güvenlik notu:** Personel sayfaları öğrenci mesajlarını gösterir. Personel girişi (Phase 12) eklenene kadar `/api/staff` yalnızca bu bilgisayardan gelen isteklere cevap verir (diğerlerine 403). Bu yüzden sistem henüz internete açılmamalıdır.
+**Personel hesapları** (herkese açık kayıt yoktur; şifre gizli yazılır):
+
+```sh
+uv run python tools/add_staff.py ayse@bilecik.edu.tr "Ayşe Yılmaz" --office it    # birimler: it, student_affairs, fees, sks, duty
+uv run python tools/add_staff.py yonetici@bilecik.edu.tr "Yönetici" --admin        # tüm birimleri görür
+docker compose exec app python tools/add_staff.py ...                               # Docker içinde
+```
+
+> **Güvenlik:** Personel sayfaları öğrenci mesajlarını gösterir, bu yüzden giriş gerektirir. Şifreler Argon2id ile saklanır; oturum, JavaScript'in okuyamadığı (HttpOnly, Secure, SameSite) bir çerezdedir ve veritabanında yalnızca özeti (SHA-256) tutulur; 8 saat sonra biter, çıkışta hemen biter. Personel yalnızca kendi biriminin taleplerini görür (yönetici hepsini). Çok sayıda hatalı giriş 15 dakika engellenir; başka sitelerden gelen değişiklik istekleri reddedilir (CSRF). `Secure` çerez yalnızca https veya localhost üzerinde gönderilir; yerel geliştirmede Safari kullanılıyorsa `COOKIE_SECURE=false`.
 
 ```sh
 uv run python src/tickets.py            # veri setini kontrol et ve özetini göster
@@ -208,7 +216,8 @@ src/answer.py           Kaynaklı cevap (önce alıntı, sonra cevap)
 src/decision.py         Otomatik gönder / yönlendir kararı ve birimler
 src/pipeline.py         Bir ticket için tüm adımlar
 src/evaluate_pipeline.py   Tüm sistemin değerlendirmesi
-src/api.py              FastAPI: POST /api/tickets, personel API'si (/api/staff, yalnızca yerel), web arayüzünü sunar
+src/api.py              FastAPI: POST /api/tickets, giriş (/api/auth), personel API'si (/api/staff, giriş gerekir), web arayüzünü sunar
+src/auth.py             Personel hesapları, şifreler (Argon2id), oturumlar, giriş sınırı
 src/config.py           Ayarlar (pydantic-settings): .env'den okunur, başlangıçta kontrol edilir
 src/logs.py             Yapılandırılmış loglar (structlog): JSON satırları, request_id, kişisel veri yok
 Dockerfile, compose.yaml   Tek komutla çalıştırma (çok aşamalı imaj, root olmayan kullanıcı, veri volume'u)
@@ -217,6 +226,7 @@ src/app.py              Eski Streamlit paneli: genel bakış, veri seti, değerl
 frontend/               Web arayüzü: React 19 + TypeScript + Vite, Tailwind CSS + shadcn/ui, TanStack Router + Query
 frontend/src/client/    API şemasından ÜRETİLEN tipler ve fonksiyonlar (elle değiştirilmez)
 tools/export_openapi.py API şemasını frontend/openapi.json dosyasına yazar
+tools/add_staff.py      Personel hesabı oluşturur (gizli şifre girişi)
 tests/                  pytest testleri (karar kuralları, ayarlar, depo, arama dizini, API)
 data/knowledge_base/    22 resmî kaynaklı belge (TR + EN)
 src/try_one_ticket.py   İlk API çağrısı testi (Step 1)

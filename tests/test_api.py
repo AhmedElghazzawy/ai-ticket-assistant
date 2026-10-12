@@ -1,5 +1,6 @@
 """Tests for the web API. The real pipeline is replaced by a fake one, so no Gemini calls are made."""
 
+from contextlib import closing
 from pathlib import Path
 from typing import NoReturn
 
@@ -9,6 +10,10 @@ from fakes import CHUNK, fake_result
 from fastapi.testclient import TestClient
 
 import api
+import auth
+from auth import Role
+from decision import OfficeId
+from store import connect
 
 client = TestClient(api.app)
 
@@ -111,61 +116,137 @@ def test_every_ticket_gets_a_number(monkeypatch: pytest.MonkeyPatch) -> None:
 
 # ---------------------------------------------------------------- staff console
 
+PASSWORD = "correct horse battery"
+
+
+def staff_client(role: Role = "admin", office: OfficeId | None = None) -> TestClient:
+    """A browser logged in as a new staff member (https, so the Secure cookie is sent back)."""
+    email = f"{role}-{office}@bilecik.edu.tr"
+    with closing(connect(api.DB_FILE)) as db:
+        auth.create_staff(db, email, "Test", role, office, PASSWORD)
+    browser = TestClient(api.app, base_url="https://testserver")
+    assert browser.post("/api/auth/login", json={"email": email, "password": PASSWORD}).is_success
+    return browser
+
 
 def forwarded_ticket(monkeypatch: pytest.MonkeyPatch) -> int:
-    """A student sends a ticket that is forwarded; returns its number."""
+    """A student sends a ticket that is forwarded (a billing ticket: office "fees")."""
     monkeypatch.setattr(api, "process_ticket", lambda *args: fake_result(auto_send=False))
     return int(ask().json()["ticket_id"])
 
 
+def test_staff_pages_need_a_login(monkeypatch: pytest.MonkeyPatch) -> None:
+    number = forwarded_ticket(monkeypatch)
+    for response in (
+        client.get("/api/staff/tickets"),
+        client.get(f"/api/staff/tickets/{number}"),
+        client.post(f"/api/staff/tickets/{number}/reply", json={"reply": "x"}),
+        client.get("/api/auth/me"),
+    ):
+        assert response.status_code == 401
+        assert "Harç" not in response.text  # no student data without a login
+
+
+def test_login_sets_a_safe_cookie_and_me_returns_the_staff_member() -> None:
+    browser = staff_client("staff", "fees")
+    response = browser.post(
+        "/api/auth/login", json={"email": "staff-fees@bilecik.edu.tr", "password": PASSWORD}
+    )
+    cookie = response.headers["set-cookie"]  # exactly what the browser receives
+    for flag in ("HttpOnly", "Secure", "SameSite=lax", "Path=/api"):
+        assert flag in cookie
+    assert browser.get("/api/auth/me").json()["office"] == "fees"
+
+
+def test_wrong_password_and_unknown_email_get_the_same_answer() -> None:
+    staff_client("staff", "fees")
+    wrong = client.post(
+        "/api/auth/login", json={"email": "staff-fees@bilecik.edu.tr", "password": "nope"}
+    )
+    unknown = client.post(
+        "/api/auth/login", json={"email": "no@bilecik.edu.tr", "password": "nope"}
+    )
+    assert wrong.status_code == unknown.status_code == 401
+    assert wrong.json() == unknown.json()  # nobody learns which emails exist
+
+
+def test_too_many_wrong_passwords_are_slowed_down() -> None:
+    staff_client("staff", "fees")
+    body = {"email": "staff-fees@bilecik.edu.tr", "password": "wrong guess"}
+    codes = [client.post("/api/auth/login", json=body).status_code for _ in range(6)]
+    assert codes == [401] * 5 + [429]
+
+
+def test_logout_ends_the_session() -> None:
+    browser = staff_client()
+    assert browser.post("/api/auth/logout").is_success
+    assert browser.get("/api/auth/me").status_code == 401
+
+
+def test_staff_see_only_their_office_and_admins_see_all(monkeypatch: pytest.MonkeyPatch) -> None:
+    number = forwarded_ticket(monkeypatch)  # office "fees"
+    fees, it, admin = staff_client("staff", "fees"), staff_client("staff", "it"), staff_client()
+    assert [t["id"] for t in fees.get("/api/staff/tickets").json()] == [number]
+    assert it.get("/api/staff/tickets").json() == []
+    assert it.get(f"/api/staff/tickets/{number}").status_code == 404  # hidden, not "forbidden"
+    assert it.post(f"/api/staff/tickets/{number}/reply", json={"reply": "x"}).status_code == 404
+    assert [t["id"] for t in admin.get("/api/staff/tickets").json()] == [number]
+
+
+def test_changes_from_another_website_are_refused(monkeypatch: pytest.MonkeyPatch) -> None:
+    number = forwarded_ticket(monkeypatch)
+    browser = staff_client()
+    evil = browser.post(
+        f"/api/staff/tickets/{number}/reply",
+        json={"reply": "x"},
+        headers={"Origin": "https://evil.example"},
+    )
+    assert evil.status_code == 403  # CSRF: the staff member's cookie must not work for them
+    same = browser.post(
+        f"/api/staff/tickets/{number}/reply",
+        json={"reply": "ok"},
+        headers={"Origin": "https://testserver"},
+    )
+    assert same.is_success
+
+
 def test_staff_queue_lists_open_tickets_with_the_draft(monkeypatch: pytest.MonkeyPatch) -> None:
     number = forwarded_ticket(monkeypatch)
-    [ticket] = client.get("/api/staff/tickets").json()
+    [ticket] = staff_client().get("/api/staff/tickets").json()
     assert ticket["id"] == number and ticket["status"] == "open"
     assert ticket["draft"] == "SECRET DRAFT"  # staff DO see the draft (students never do)
     assert ticket["reasons"] == [{"code": "escalation"}]
 
 
-def test_staff_can_open_one_ticket_and_unknown_numbers_give_404(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    number = forwarded_ticket(monkeypatch)
-    assert client.get(f"/api/staff/tickets/{number}").json()["office"] == "fees"
-    assert client.get("/api/staff/tickets/999").status_code == 404
+def test_unknown_ticket_numbers_give_404(monkeypatch: pytest.MonkeyPatch) -> None:
+    assert staff_client().get("/api/staff/tickets/999").status_code == 404
 
 
 def test_reply_closes_the_ticket_and_a_second_reply_is_refused(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     number = forwarded_ticket(monkeypatch)
-    sent = client.post(f"/api/staff/tickets/{number}/reply", json={"reply": "  Merhaba.  "})
+    browser = staff_client()
+    sent = browser.post(f"/api/staff/tickets/{number}/reply", json={"reply": "  Merhaba.  "})
     assert sent.json()["status"] == "handled" and sent.json()["final_reply"] == "Merhaba."
-    assert client.get("/api/staff/tickets").json() == []  # out of the queue
-    again = client.post(f"/api/staff/tickets/{number}/reply", json={"reply": "Again"})
+    assert browser.get("/api/staff/tickets").json() == []  # out of the queue
+    again = browser.post(f"/api/staff/tickets/{number}/reply", json={"reply": "Again"})
     assert again.status_code == 409  # two staff members cannot both answer one ticket
 
 
 def test_empty_reply_is_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
     number = forwarded_ticket(monkeypatch)
-    assert client.post(f"/api/staff/tickets/{number}/reply", json={"reply": ""}).status_code == 422
+    response = staff_client().post(f"/api/staff/tickets/{number}/reply", json={"reply": ""})
+    assert response.status_code == 422
 
 
 def test_reassign_accepts_only_real_offices(monkeypatch: pytest.MonkeyPatch) -> None:
     number = forwarded_ticket(monkeypatch)
-    moved = client.patch(f"/api/staff/tickets/{number}", json={"office": "student_affairs"})
+    browser = staff_client()
+    moved = browser.patch(f"/api/staff/tickets/{number}", json={"office": "student_affairs"})
     assert moved.json()["office"] == "student_affairs"
-    wrong = client.patch(f"/api/staff/tickets/{number}", json={"office": "rectorate"})
+    wrong = browser.patch(f"/api/staff/tickets/{number}", json={"office": "rectorate"})
     assert wrong.status_code == 422
-
-
-def test_staff_pages_refuse_requests_from_other_computers(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    forwarded_ticket(monkeypatch)
-    outsider = TestClient(api.app, client=("203.0.113.7", 50000))  # a documentation-only address
-    assert outsider.get("/api/staff/tickets").status_code == 403
-    assert outsider.post("/api/staff/tickets/1/reply", json={"reply": "x"}).status_code == 403
-    assert "Harç" not in outsider.get("/api/staff/tickets").text  # no student data leaks
 
 
 def test_health_check_answers_ok() -> None:

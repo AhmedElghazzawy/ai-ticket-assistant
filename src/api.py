@@ -3,6 +3,7 @@
 Run: uv run uvicorn api:app --app-dir src     then open http://127.0.0.1:8000
 """
 
+import os
 import re
 import time
 import uuid
@@ -10,13 +11,16 @@ from collections.abc import Awaitable, Callable, Iterator
 from contextlib import closing, contextmanager
 from pathlib import Path
 from sqlite3 import Connection
-from typing import Literal
+from typing import Annotated, Literal
+from urllib.parse import urlparse
 
 import structlog
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel, Field
 
+import auth
+from auth import Staff
 from decision import OfficeId
 from logs import configure, get_logger
 from pipeline import process_ticket
@@ -41,7 +45,6 @@ logger = get_logger(__name__)
 DIST_DIR = Path(__file__).resolve().parent.parent / "frontend" / "dist"
 INDEX = load_index()  # the knowledge-base vectors, loaded once when the server starts
 DB_FILE = DB_PATH  # the ticket database (tests point this to a temporary file)
-LOCAL_HOSTS = {"127.0.0.1", "::1", "localhost", "testclient"}  # testclient: pytest's fake client
 
 app = FastAPI(
     title="BŞEÜ Helpdesk Assistant",
@@ -152,20 +155,97 @@ def create_ticket(ticket: TicketIn) -> TicketOut:
     )
 
 
+# ---------------------------------------------------------------- staff login
+
+# Secure cookies are only sent over https. COOKIE_SECURE=false is for plain-http local development
+# (read directly, like LOG_FORMAT); production keeps the default.
+COOKIE_SECURE = os.getenv("COOKIE_SECURE", "true").lower() != "false"
+COOKIE_NAME = "helpdesk_session"
+
+
+def same_origin(request: Request) -> None:
+    """CSRF guard: a change (POST, PATCH, ...) coming from another website is refused. Browsers
+    send an Origin header with such requests; tools like curl send none and are not affected."""
+    origin = request.headers.get("origin")
+    unsafe = request.method not in ("GET", "HEAD")
+    if unsafe and origin and urlparse(origin).netloc != request.headers.get("host"):
+        raise HTTPException(status_code=403, detail="Request from another website refused.")
+
+
+def current_staff(request: Request) -> Staff:
+    """The logged-in staff member, or 401. Every staff endpoint depends on this."""
+    token = request.cookies.get(COOKIE_NAME)
+    with database() as db:
+        staff_member = auth.staff_for_session(db, token) if token else None
+    if staff_member is None:
+        raise HTTPException(status_code=401, detail="Please log in.")
+    return staff_member
+
+
+# FastAPI's recommended form: endpoints just declare `staff_member: CurrentStaff`.
+CurrentStaff = Annotated[Staff, Depends(current_staff)]
+
+login = APIRouter(prefix="/api/auth", tags=["auth"], dependencies=[Depends(same_origin)])
+
+
+class LoginIn(BaseModel):
+    email: str = Field(min_length=3, max_length=200)
+    password: str = Field(min_length=1, max_length=200)
+
+
+@login.post("/login")
+def log_in(body: LoginIn, request: Request, response: Response) -> Staff:
+    """Check email and password, start a session, set the cookie. One message for every failure,
+    so nobody learns whether an email exists."""
+    ip = request.client.host if request.client else "unknown"
+    with database() as db:
+        try:
+            staff_member = auth.authenticate(db, body.email, body.password, ip)
+        except auth.TooManyAttempts:
+            logger.warning("login_blocked")  # no email in logs: it is personal data
+            raise HTTPException(
+                status_code=429, detail="Too many attempts. Try again later."
+            ) from None
+        if staff_member is None:
+            logger.info("login_failed")
+            raise HTTPException(status_code=401, detail="Wrong email or password.")
+        token = auth.create_session(db, staff_member.id)
+    response.set_cookie(
+        COOKIE_NAME,
+        token,
+        max_age=auth.SESSION_HOURS * 3600,
+        httponly=True,  # page scripts cannot read it, so an XSS bug cannot steal the session
+        secure=COOKIE_SECURE,
+        samesite="lax",  # not sent with requests that other websites start
+        path="/api",  # only the API needs it
+    )
+    logger.info("login", staff_id=staff_member.id)
+    return staff_member
+
+
+@login.post("/logout")
+def log_out(request: Request, response: Response) -> dict[str, str]:
+    token = request.cookies.get(COOKIE_NAME)
+    if token:
+        with database() as db:
+            auth.end_session(db, token)
+    response.delete_cookie(COOKIE_NAME, path="/api")
+    return {"status": "logged out"}
+
+
+@login.get("/me")
+def me(staff_member: CurrentStaff) -> Staff:
+    return staff_member
+
+
+app.include_router(login)
+
+
 # ---------------------------------------------------------------- staff console
 
-
-def local_only(request: Request) -> None:
-    """Staff pages show student messages. Until staff login exists (roadmap Phase 12), they only
-    answer requests from this computer, so the server can never expose them by accident."""
-    host = request.client.host if request.client else ""
-    if host not in LOCAL_HOSTS:
-        raise HTTPException(status_code=403, detail="Staff pages are only available locally.")
-
-
-# Every staff endpoint runs local_only first. A router (not a separate app) keeps the staff
-# endpoints in the same OpenAPI schema, which the frontend's types are generated from.
-staff = APIRouter(prefix="/api/staff", tags=["staff"], dependencies=[Depends(local_only)])
+# Every staff endpoint needs a logged-in staff member and refuses other websites. A router (not a
+# separate app) keeps these endpoints in the same OpenAPI schema the frontend types come from.
+staff = APIRouter(prefix="/api/staff", tags=["staff"], dependencies=[Depends(same_origin)])
 
 
 class ReplyIn(BaseModel):
@@ -176,44 +256,63 @@ class OfficeIn(BaseModel):
     office: OfficeId
 
 
-def found(ticket: StoredTicket | None) -> StoredTicket:
-    """The ticket, or a 404 answer if the number does not exist."""
+def visible(ticket: StoredTicket | None, staff_member: Staff) -> StoredTicket:
+    """The ticket if this staff member may see it, else 404. Staff see their own office's tickets,
+    admins every office. 404 (not 403) also hides that another office's ticket exists."""
+    if ticket is None or (staff_member.role != "admin" and ticket.office != staff_member.office):
+        raise HTTPException(status_code=404, detail="No ticket with this number.")
+    return ticket
+
+
+def reread(db: Connection, ticket_id: int) -> StoredTicket:
+    """The ticket again after a change (it existed a moment ago; checked so the type is exact)."""
+    ticket = get_ticket(db, ticket_id)
     if ticket is None:
         raise HTTPException(status_code=404, detail="No ticket with this number.")
     return ticket
 
 
 @staff.get("/tickets")
-def staff_list(status: Status = "open") -> list[StoredTicket]:
-    """The review queue: urgent first, then oldest first."""
+def staff_list(staff_member: CurrentStaff, status: Status = "open") -> list[StoredTicket]:
+    """The review queue: urgent first, then oldest first; staff see only their office."""
     with database() as db:
-        return list_tickets(db, status)
+        return list_tickets(
+            db, status, None if staff_member.role == "admin" else staff_member.office
+        )
 
 
 @staff.get("/tickets/{ticket_id}")
-def staff_get(ticket_id: int) -> StoredTicket:
+def staff_get(ticket_id: int, staff_member: CurrentStaff) -> StoredTicket:
     with database() as db:
-        return found(get_ticket(db, ticket_id))
+        return visible(get_ticket(db, ticket_id), staff_member)
 
 
 @staff.post("/tickets/{ticket_id}/reply")
-def staff_reply(ticket_id: int, body: ReplyIn) -> StoredTicket:
+def staff_reply(ticket_id: int, body: ReplyIn, staff_member: CurrentStaff) -> StoredTicket:
     """Send the staff reply and close the ticket. 409 if someone already handled it."""
     with database() as db:
-        if found(get_ticket(db, ticket_id)).status != "open":
+        if visible(get_ticket(db, ticket_id), staff_member).status != "open":
             raise HTTPException(status_code=409, detail="This ticket is already handled.")
         mark_handled(db, ticket_id, body.reply.strip())
-        logger.info("staff_reply", ticket_id=ticket_id, reply_length=len(body.reply.strip()))
-        return found(get_ticket(db, ticket_id))
+        logger.info(
+            "staff_reply",
+            ticket_id=ticket_id,
+            staff_id=staff_member.id,
+            reply_length=len(body.reply.strip()),
+        )
+        return reread(db, ticket_id)
 
 
 @staff.patch("/tickets/{ticket_id}")
-def staff_reassign(ticket_id: int, body: OfficeIn) -> StoredTicket:
+def staff_reassign(ticket_id: int, body: OfficeIn, staff_member: CurrentStaff) -> StoredTicket:
+    """Move the ticket to another office (it then leaves this staff member's queue)."""
     with database() as db:
-        found(get_ticket(db, ticket_id))
+        visible(get_ticket(db, ticket_id), staff_member)
         reassign(db, ticket_id, body.office)
-        logger.info("staff_reassign", ticket_id=ticket_id, office=body.office)
-        return found(get_ticket(db, ticket_id))
+        logger.info(
+            "staff_reassign", ticket_id=ticket_id, staff_id=staff_member.id, office=body.office
+        )
+        return reread(db, ticket_id)
 
 
 app.include_router(staff)  # after the staff endpoints above are defined

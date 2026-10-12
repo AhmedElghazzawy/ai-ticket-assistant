@@ -1,10 +1,54 @@
-import { useQuery } from "@tanstack/react-query";
-import { Link, Outlet } from "@tanstack/react-router";
-import { ChartColumn, Inbox, MessageSquare } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link, Outlet, useNavigate } from "@tanstack/react-router";
+import { ChartColumn, Inbox, LogOut, MessageSquare } from "lucide-react";
 import { usePreferences } from "@/app/preferences";
-import { staffListOptions } from "@/client/@tanstack/react-query.gen";
+import { logOut } from "@/client";
+import { meOptions, staffListOptions } from "@/client/@tanstack/react-query.gen";
 import { BrandMark, LanguageSwitch, ThemeMenu } from "@/components/app-header";
+import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
+
+/** Ends the session and empties the cache, so the next person at this computer sees nothing. */
+function useLogout(): () => Promise<void> {
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  return async () => {
+    await logOut();
+    queryClient.clear();
+    await navigate({ to: "/staff/login" });
+  };
+}
+
+/** Who is logged in, and the logout button. */
+function StaffCard() {
+  const { t } = usePreferences();
+  const { data: me } = useQuery(meOptions());
+  const leave = useLogout();
+  if (!me) return null;
+  const initials = me.name
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  return (
+    <div className="flex items-center gap-2.5 px-1">
+      <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-semibold text-accent-foreground">
+        {initials}
+      </span>
+      <div className="min-w-0 flex-1 leading-tight">
+        <p className="truncate text-sm font-medium">{me.name}</p>
+        <p className="truncate text-xs text-muted-foreground">
+          {me.office ? t.offices[me.office] : t.staff.allOfficesAdmin}
+        </p>
+      </div>
+      <Button variant="ghost" size="icon-sm" onClick={leave} aria-label={t.staff.logOut}>
+        <LogOut />
+      </Button>
+    </div>
+  );
+}
 
 function OpenCount() {
   const { data } = useQuery(staffListOptions({ query: { status: "open" } }));
@@ -50,18 +94,23 @@ function Sidebar() {
         >
           <MessageSquare className="size-4" /> {t.staff.studentView}
         </Link>
-        <div className="flex items-center gap-2.5 px-1">
-          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-semibold text-accent-foreground">
-            DP
-          </span>
-          <p className="min-w-0 flex-1 truncate text-sm font-medium">{t.staff.signedInAs}</p>
-        </div>
+        <StaffCard />
         <div className="flex items-center justify-between px-1">
           <LanguageSwitch />
           <ThemeMenu />
         </div>
       </div>
     </aside>
+  );
+}
+
+function MobileLogout() {
+  const { t } = usePreferences();
+  const leave = useLogout();
+  return (
+    <Button variant="ghost" size="icon" aria-label={t.staff.logOut} onClick={leave}>
+      <LogOut />
+    </Button>
   );
 }
 
@@ -76,6 +125,7 @@ function MobileBar() {
       <div className="ml-auto flex items-center gap-1.5">
         <LanguageSwitch />
         <ThemeMenu />
+        <MobileLogout />
       </div>
     </header>
   );

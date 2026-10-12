@@ -15,6 +15,20 @@ export type HttpValidationError = {
 };
 
 /**
+ * LoginIn
+ */
+export type LoginIn = {
+    /**
+     * Email
+     */
+    email: string;
+    /**
+     * Password
+     */
+    password: string;
+};
+
+/**
  * OfficeIn
  */
 export type OfficeIn = {
@@ -44,6 +58,32 @@ export type SimpleReason = {
      * Code
      */
     code: 'category_other' | 'escalation' | 'urgent' | 'not_covered' | 'no_citation';
+};
+
+/**
+ * Staff
+ */
+export type Staff = {
+    /**
+     * Email
+     */
+    email: string;
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Office
+     */
+    office: 'it' | 'student_affairs' | 'fees' | 'sks' | 'duty' | null;
+    /**
+     * Role
+     */
+    role: 'staff' | 'admin';
 };
 
 /**
@@ -251,6 +291,67 @@ export type WeakMatch = {
      */
     score: number;
 };
+
+export type LogInData = {
+    body: LoginIn;
+    path?: never;
+    query?: never;
+    url: '/api/auth/login';
+};
+
+export type LogInErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type LogInError = LogInErrors[keyof LogInErrors];
+
+export type LogInResponses = {
+    /**
+     * Successful Response
+     */
+    200: Staff;
+};
+
+export type LogInResponse = LogInResponses[keyof LogInResponses];
+
+export type LogOutData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/auth/logout';
+};
+
+export type LogOutResponses = {
+    /**
+     * Response Log Out
+     *
+     * Successful Response
+     */
+    200: {
+        [key: string]: string;
+    };
+};
+
+export type LogOutResponse = LogOutResponses[keyof LogOutResponses];
+
+export type MeData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/auth/me';
+};
+
+export type MeResponses = {
+    /**
+     * Successful Response
+     */
+    200: Staff;
+};
+
+export type MeResponse = MeResponses[keyof MeResponses];
 
 export type HealthData = {
     body?: never;

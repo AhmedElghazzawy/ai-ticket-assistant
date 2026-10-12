@@ -34,6 +34,7 @@ COPY docs/labels.md docs/labels.md
 COPY data/knowledge_base/ data/knowledge_base/
 COPY data/kb_index.json data/kb_index.json
 COPY --from=web /web/dist frontend/dist
+COPY tools/add_staff.py tools/add_staff.py
 
 # Run as a normal user, not root: if the app were ever broken into, the attacker gets little.
 RUN useradd --system --uid 10001 --no-create-home app && mkdir -p /app/var && chown app /app/var

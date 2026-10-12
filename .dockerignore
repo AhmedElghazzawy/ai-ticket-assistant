@@ -24,6 +24,7 @@ claude_context.md
 eval
 tests
 tools
+!tools/add_staff.py
 docs/changelog.md
 docs/problem_catalog.md
 AGENTS.md

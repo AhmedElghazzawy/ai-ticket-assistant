@@ -3,8 +3,45 @@
 import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { createTicket, health, type Options, staffGet, staffList, staffReassign, staffReply } from '../sdk.gen';
-import type { CreateTicketData, CreateTicketError, CreateTicketResponse, HealthData, HealthResponse, StaffGetData, StaffGetError, StaffGetResponse, StaffListData, StaffListError, StaffListResponse, StaffReassignData, StaffReassignError, StaffReassignResponse, StaffReplyData, StaffReplyError, StaffReplyResponse } from '../types.gen';
+import { createTicket, health, logIn, logOut, me, type Options, staffGet, staffList, staffReassign, staffReply } from '../sdk.gen';
+import type { CreateTicketData, CreateTicketError, CreateTicketResponse, HealthData, HealthResponse, LogInData, LogInError, LogInResponse, LogOutData, LogOutResponse, MeData, MeResponse, StaffGetData, StaffGetError, StaffGetResponse, StaffListData, StaffListError, StaffListResponse, StaffReassignData, StaffReassignError, StaffReassignResponse, StaffReplyData, StaffReplyError, StaffReplyResponse } from '../types.gen';
+
+/**
+ * Log In
+ *
+ * Check email and password, start a session, set the cookie. One message for every failure,
+ * so nobody learns whether an email exists.
+ */
+export const logInMutation = (options?: Partial<Options<LogInData>>): UseMutationOptions<LogInResponse, LogInError, Options<LogInData>> => {
+    const mutationOptions: UseMutationOptions<LogInResponse, LogInError, Options<LogInData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await logIn({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Log Out
+ */
+export const logOutMutation = (options?: Partial<Options<LogOutData>>): UseMutationOptions<LogOutResponse, DefaultError, Options<LogOutData>> => {
+    const mutationOptions: UseMutationOptions<LogOutResponse, DefaultError, Options<LogOutData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await logOut({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -39,6 +76,24 @@ const createQueryKey = <TOptions extends Options>(id: string, options?: TOptions
     return [params];
 };
 
+export const meQueryKey = (options?: Options<MeData>) => createQueryKey('me', options);
+
+/**
+ * Me
+ */
+export const meOptions = (options?: Options<MeData>) => queryOptions<MeResponse, DefaultError, MeResponse, ReturnType<typeof meQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await me({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: meQueryKey(options)
+});
+
 export const healthQueryKey = (options?: Options<HealthData>) => createQueryKey('health', options);
 
 /**
@@ -64,7 +119,7 @@ export const staffListQueryKey = (options?: Options<StaffListData>) => createQue
 /**
  * Staff List
  *
- * The review queue: urgent first, then oldest first.
+ * The review queue: urgent first, then oldest first; staff see only their office.
  */
 export const staffListOptions = (options?: Options<StaffListData>) => queryOptions<StaffListResponse, StaffListError, StaffListResponse, ReturnType<typeof staffListQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {
@@ -99,6 +154,8 @@ export const staffGetOptions = (options: Options<StaffGetData>) => queryOptions<
 
 /**
  * Staff Reassign
+ *
+ * Move the ticket to another office (it then leaves this staff member's queue).
  */
 export const staffReassignMutation = (options?: Partial<Options<StaffReassignData>>): UseMutationOptions<StaffReassignResponse, StaffReassignError, Options<StaffReassignData>> => {
     const mutationOptions: UseMutationOptions<StaffReassignResponse, StaffReassignError, Options<StaffReassignData>> = {

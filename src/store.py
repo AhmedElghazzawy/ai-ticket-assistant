@@ -24,9 +24,11 @@ DB_PATH = Path(
     os.getenv("HELPDESK_DB") or Path(__file__).resolve().parent.parent / "data" / "helpdesk.db"
 )
 
-SCHEMA_VERSION = 2  # raise it whenever the table changes (2: office IDs, reason codes, sources)
-SCHEMA = """
-CREATE TABLE IF NOT EXISTS tickets (
+# Each step upgrades the database by one version, in order; a database at version N runs the
+# steps after N, each in one transaction. Existing data is kept. Never edit a released step:
+# add a new one. (Version 1 had no version number and only held test data: it is refused.)
+MIGRATIONS: dict[int, str] = {
+    2: """CREATE TABLE tickets (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,  -- the ticket number shown to the student
     created_at  TEXT NOT NULL,
     language    TEXT NOT NULL,
@@ -45,7 +47,31 @@ CREATE TABLE IF NOT EXISTS tickets (
     status      TEXT NOT NULL,                      -- 'auto_sent', 'open' or 'handled'
     final_reply TEXT,                               -- what staff decided to answer
     handled_at  TEXT
-)"""
+);
+""",
+    3: """
+CREATE TABLE staff (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    email         TEXT NOT NULL UNIQUE COLLATE NOCASE,  -- NOCASE: Ayse@ and ayse@ are the same person
+    name          TEXT NOT NULL,
+    role          TEXT NOT NULL CHECK (role IN ('staff', 'admin')),
+    office        TEXT,                                 -- office ID for staff; NULL for admins
+    password_hash TEXT NOT NULL,                        -- Argon2id, never the password itself
+    created_at    TEXT NOT NULL
+);
+CREATE TABLE sessions (
+    token_hash TEXT PRIMARY KEY,                        -- SHA-256 of the cookie value, never the value
+    staff_id   INTEGER NOT NULL REFERENCES staff(id) ON DELETE CASCADE,
+    expires_at TEXT NOT NULL
+);
+CREATE TABLE failed_logins (                          -- for the login rate limit
+    key TEXT NOT NULL,                                  -- "email:..." or "ip:..."
+    at  TEXT NOT NULL
+);
+CREATE INDEX failed_logins_by_key ON failed_logins (key, at);
+""",
+}
+SCHEMA_VERSION = max(MIGRATIONS)
 
 Status = Literal["auto_sent", "open", "handled"]
 
@@ -81,21 +107,24 @@ class StoredTicket(BaseModel):
 
 
 def connect(db_path: Path = DB_PATH) -> sqlite3.Connection:
-    """Open the database, creating it if needed. An older database file is refused with a clear message."""
+    """Open the database: create it, or upgrade an older one step by step (keeping its data)."""
     connection = sqlite3.connect(db_path)
     connection.row_factory = sqlite3.Row
-    exists = connection.execute("SELECT 1 FROM sqlite_master WHERE name = 'tickets'").fetchone()
+    connection.execute("PRAGMA foreign_keys = ON")  # SQLite needs this for ON DELETE CASCADE
     version = connection.execute("PRAGMA user_version").fetchone()[0]
-    if exists and version != SCHEMA_VERSION:
+    has_tickets = connection.execute(
+        "SELECT 1 FROM sqlite_master WHERE name = 'tickets'"
+    ).fetchone()
+    if version == 0 and has_tickets:
         connection.close()
         raise RuntimeError(
-            f"{db_path.name} has schema version {version}, this code needs {SCHEMA_VERSION}. "
+            f"{db_path.name} is from before schema versions and cannot be upgraded. "
             "It only holds local test tickets: delete the file and it is created again."
         )
-    connection.execute(SCHEMA)
-    connection.execute(
-        f"PRAGMA user_version = {SCHEMA_VERSION}"
-    )  # our own constant, not user input
+    for step in sorted(n for n in MIGRATIONS if n > version):
+        # BEGIN ... COMMIT: a step that fails halfway changes nothing. The version number is
+        # our own constant, not user input.
+        connection.executescript(f"BEGIN; {MIGRATIONS[step]} PRAGMA user_version = {step}; COMMIT;")
     return connection
 
 
@@ -151,10 +180,14 @@ PRIORITY_ORDER = (
 )
 
 
-def list_tickets(connection: sqlite3.Connection, status: Status) -> list[StoredTicket]:
-    """Tickets with this status, most urgent first, then oldest first."""
+def list_tickets(
+    connection: sqlite3.Connection, status: Status, office: OfficeId | None = None
+) -> list[StoredTicket]:
+    """Tickets with this status (only this office's, if given), most urgent first, then oldest."""
     rows = connection.execute(
-        f"SELECT * FROM tickets WHERE status = ? ORDER BY {PRIORITY_ORDER}, id", (status,)
+        f"SELECT * FROM tickets WHERE status = ? AND (? IS NULL OR office = ?)"
+        f" ORDER BY {PRIORITY_ORDER}, id",
+        (status, office, office),
     ).fetchall()
     return [to_ticket(row) for row in rows]
 

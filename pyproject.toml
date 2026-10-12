@@ -5,6 +5,7 @@ description = "Bilingual (TR/EN) university helpdesk assistant: classify, retrie
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
 dependencies = [
+    "argon2-cffi>=25.1.0",        # staff passwords hashed with Argon2id (OWASP recommendation)
     "google-genai>=2.28.0",       # talk to Gemini models
     "pydantic>=2.13.5",           # check that every ticket has valid fields and labels
     "pydantic-settings>=2.15.0",  # typed settings from environment variables and .env

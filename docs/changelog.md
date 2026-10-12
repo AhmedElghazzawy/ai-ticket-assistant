@@ -1228,3 +1228,42 @@ Anyone (my professor, a recruiter, a server) should run the whole system with on
 - CI: new job "Docker image builds" (docker build, not pushed anywhere).
 - README (Turkish): Docker section and file list. 54 tests pass; ruff, mypy clean.
 - CLAUDE.md and AGENTS.md "Current status" updated (my OK): Phase 7 done, new web app, 54 tests, next: staff login, then deployment.
+- Commit and push: `bc82029` Phase 7.5 Docker. CI: all three jobs green (Python, Frontend, Docker image builds).
+
+# Staff login (Phase 12 brought forward) (2026-10-12)
+
+## Why
+Staff pages show student messages. Until now they only answered requests from this computer, so the system could not go online. Login is the gate to a live demo.
+
+## Decisions (my OK: "do what you see best")
+- Office-scoped access: staff see only their office's tickets, admins every office (how real helpdesks work; KVKK: people see only what they need). Another office's ticket answers 404, not 403, so its existence stays hidden.
+- Passwords: Argon2id (argon2-cffi 25.1.0, checked on PyPI; its default type is Argon2id), at least 12 characters. Sessions: server-side, a 256-bit random token in an HttpOnly + Secure + SameSite=Lax cookie with Path=/api; only its SHA-256 is stored; 8 hours; ended at once by logout (JWT cannot be revoked like this). No public sign-up: tools/add_staff.py (hidden password input with getpass).
+- Brute force: 5 failed logins per email and 20 per address within 15 minutes -> 429 (even the right password waits). Timing: an unknown email is checked against a dummy Argon2 hash, so it takes as long as a wrong password. Same 401 message for both.
+- CSRF: every change (POST, PATCH) whose Origin header is another site gets 403.
+- Open redirect: the login page's "go back to" address is only accepted if it starts with /staff.
+
+## Database migrations (instead of deleting the database again)
+- store.MIGRATIONS: numbered steps (2: tickets, 3: staff, sessions, failed_logins); a database at version N runs every later step in order, each inside BEGIN ... COMMIT; existing data is kept. PRAGMA foreign_keys = ON (needed for ON DELETE CASCADE). A database from before version numbers is still refused.
+- Test first: an exact version-2 database with one ticket is upgraded to version 3 and keeps the ticket. (My first draft of this test was confusing; rewritten before implementing.)
+- Real proof: the Docker volume's database (version 2, 1 ticket) was upgraded to version 3 automatically, ticket kept.
+
+## Backend
+- src/auth.py (new): create_staff (rules: staff need an office, admins none; length; duplicate email case-insensitive), authenticate (rate limit, dummy hash), create_session, staff_for_session (expiry), end_session.
+- api.py: the localhost-only guard is gone. /api/auth/login (sets the cookie), /logout, /me. `CurrentStaff = Annotated[Staff, Depends(current_staff)]` (FastAPI's recommended form; ruff's B008 flagged the old default-argument form). `same_origin` (CSRF) on the auth and staff routers. `visible()` enforces office scoping; list_tickets() takes an optional office filter. COOKIE_SECURE (default true; false only for plain-http development in Safari). Log events login, login_failed, login_blocked (never the email), staff_id on staff actions.
+- One messy line I wrote (a convoluted return expression in staff_reply) replaced by a small `reread()` helper before any review.
+- tools/add_staff.py (new); included in the Docker image (.dockerignore exception) so `docker compose exec app python tools/add_staff.py ...` works.
+
+## Tests (70 pass)
+- tests/test_auth.py (9): Argon2id hash stored, email case, wrong password and unknown email both fail, rate limit blocks even the right password, office/admin rules, short password and duplicate email refused, session token stored only as a hash, expired and ended sessions refused, the add_staff tool creates a working account.
+- tests/test_api.py: staff tests now log in first (a `staff_client()` helper; https base URL so the Secure cookie is sent back); new: everything needs a login (401, no student data), the Set-Cookie header has HttpOnly, Secure, SameSite=lax, Path=/api (first version read a private attribute of the HTTP library with a type: ignore; replaced by checking the header the browser receives), wrong password and unknown email get identical answers, 6th try -> 429, logout ends the session, office scoping (fees staff see the ticket, IT staff see nothing and get 404, admin sees it), CSRF (evil Origin 403, own Origin OK).
+- Mutation checks: removing the office check or the CSRF check makes tests fail; restored, all pass.
+- tests/test_store.py: the migration test.
+
+## Frontend
+- /staff/login page (labels connected to inputs with useId: Biome's accessibility rule flagged labels wrapping a custom component); router `beforeLoad` on /staff checks the session (me) and redirects to login with the address to come back to; an interceptor sends staff to login when a staff call answers 401 (session expired) and clears the cache; sidebar shows the real name, office (or "Admin · all offices") and a logout button (desktop and mobile; logout logic in one `useLogout()` hook after I first duplicated it); logout clears the query cache; the office filter only shows for admins. Shared query cache moved to app/query-client.ts.
+
+## Real-browser test (throwaway database via HELPDESK_DB, 2 real tickets: IT and fees)
+- First run found a real bug: my CSRF check refused the login (403). Vite's short proxy form rewrites the Host header (changeOrigin), so Origin (localhost:5173) and Host (127.0.0.1:8000) differed. Production has no proxy (FastAPI serves page and API), so it would have worked there; fixed the dev proxy with changeOrigin: false so development behaves like production.
+- Second run: logged-out /staff/tickets/1 -> login with redirect, wrong password -> "E-posta veya şifre hatalı.", login -> back to /staff/tickets/1; IT staff queue shows only #1, no office filter; #2 (fees) -> "not found"; expired session (set in the database) -> login; admin sees 2 tickets and the office filter; logout -> /staff goes to login; redirect=https://evil.example -> stays on our /staff (checked precisely after a first, ambiguous check). No page errors.
+- Docker: rebuilt; healthy; database migrated (v2 -> v3, ticket kept); an admin created inside the container; staff API 401 without login, 200 with the session cookie. Deleted that test admin afterwards (its password is in this conversation); its session was deleted with it (ON DELETE CASCADE works).
+- README (Turkish): staff accounts, the security paragraph (replaces the "local only" note), migrations, file list. .env.example: COOKIE_SECURE.

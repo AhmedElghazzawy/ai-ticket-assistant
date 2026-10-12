@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreateTicketData, CreateTicketErrors, CreateTicketResponses, HealthData, HealthResponses, StaffGetData, StaffGetErrors, StaffGetResponses, StaffListData, StaffListErrors, StaffListResponses, StaffReassignData, StaffReassignErrors, StaffReassignResponses, StaffReplyData, StaffReplyErrors, StaffReplyResponses } from './types.gen';
+import type { CreateTicketData, CreateTicketErrors, CreateTicketResponses, HealthData, HealthResponses, LogInData, LogInErrors, LogInResponses, LogOutData, LogOutResponses, MeData, MeResponses, StaffGetData, StaffGetErrors, StaffGetResponses, StaffListData, StaffListErrors, StaffListResponses, StaffReassignData, StaffReassignErrors, StaffReassignResponses, StaffReplyData, StaffReplyErrors, StaffReplyResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -19,6 +19,31 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
 };
 
 /**
+ * Log In
+ *
+ * Check email and password, start a session, set the cookie. One message for every failure,
+ * so nobody learns whether an email exists.
+ */
+export const logIn = <ThrowOnError extends boolean = false>(options: Options<LogInData, ThrowOnError>): RequestResult<LogInResponses, LogInErrors, ThrowOnError> => (options.client ?? client).post<LogInResponses, LogInErrors, ThrowOnError>({
+    url: '/api/auth/login',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Log Out
+ */
+export const logOut = <ThrowOnError extends boolean = false>(options?: Options<LogOutData, ThrowOnError>): RequestResult<LogOutResponses, unknown, ThrowOnError> => (options?.client ?? client).post<LogOutResponses, unknown, ThrowOnError>({ url: '/api/auth/logout', ...options });
+
+/**
+ * Me
+ */
+export const me = <ThrowOnError extends boolean = false>(options?: Options<MeData, ThrowOnError>): RequestResult<MeResponses, unknown, ThrowOnError> => (options?.client ?? client).get<MeResponses, unknown, ThrowOnError>({ url: '/api/auth/me', ...options });
+
+/**
  * Health
  *
  * For Docker and hosting services: the app is up and answering.
@@ -28,7 +53,7 @@ export const health = <ThrowOnError extends boolean = false>(options?: Options<H
 /**
  * Staff List
  *
- * The review queue: urgent first, then oldest first.
+ * The review queue: urgent first, then oldest first; staff see only their office.
  */
 export const staffList = <ThrowOnError extends boolean = false>(options?: Options<StaffListData, ThrowOnError>): RequestResult<StaffListResponses, StaffListErrors, ThrowOnError> => (options?.client ?? client).get<StaffListResponses, StaffListErrors, ThrowOnError>({ url: '/api/staff/tickets', ...options });
 
@@ -39,6 +64,8 @@ export const staffGet = <ThrowOnError extends boolean = false>(options: Options<
 
 /**
  * Staff Reassign
+ *
+ * Move the ticket to another office (it then leaves this staff member's queue).
  */
 export const staffReassign = <ThrowOnError extends boolean = false>(options: Options<StaffReassignData, ThrowOnError>): RequestResult<StaffReassignResponses, StaffReassignErrors, ThrowOnError> => (options.client ?? client).patch<StaffReassignResponses, StaffReassignErrors, ThrowOnError>({
     url: '/api/staff/tickets/{ticket_id}',

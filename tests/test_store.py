@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pytest
 
+import store
 from answer import Answer
 from classifier import Classification
 from decision import Decision, SimpleReason, WeakMatch
@@ -121,3 +122,19 @@ def test_database_path_can_be_set_by_environment(tmp_path: Path) -> None:
     code = "import store; print(store.DB_PATH)"
     result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, env=env)
     assert result.stdout.strip() == str(tmp_path / "volume.db")
+
+
+def test_a_version_2_database_is_upgraded_and_keeps_its_tickets(tmp_path: Path) -> None:
+    path = tmp_path / "v2.db"
+    with sqlite3.connect(path) as old:  # exactly what version 2 created, with one ticket in it
+        old.executescript(store.MIGRATIONS[2] + "PRAGMA user_version = 2;")
+        old.execute(
+            "INSERT INTO tickets (created_at, language, text, category, priority, escalate,"
+            " ai_reason, office, auto_send, reasons, top_score, draft, covered, sources, status)"
+            " VALUES ('2026-10-11T10:00:00+00:00', 'tr', 'an old ticket', 'billing', 'low', 0,"
+            " 'r', 'fees', 0, '[]', 0.7, 'd', 1, '[]', 'open')"
+        )
+    upgraded = connect(path)
+    assert upgraded.execute("PRAGMA user_version").fetchone()[0] == store.SCHEMA_VERSION
+    assert [t.text for t in list_tickets(upgraded, "open")] == ["an old ticket"]  # data kept
+    assert upgraded.execute("SELECT count(*) FROM staff").fetchone()[0] == 0  # new table exists

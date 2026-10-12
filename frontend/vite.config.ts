@@ -9,7 +9,9 @@ export default defineConfig({
   plugins: [react(), babel({ presets: [reactCompilerPreset()] }), tailwindcss()],
   server: {
     // During development the browser talks to Vite only; /api requests go on to FastAPI.
-    proxy: { "/api": "http://127.0.0.1:8000" },
+    // changeOrigin false keeps the browser's Host header, so the API's CSRF check (Origin must
+    // match Host) sees one site, exactly like production, where FastAPI serves page and API.
+    proxy: { "/api": { target: "http://127.0.0.1:8000", changeOrigin: false } },
   },
   resolve: {
     // "@/components/ui/button" instead of "../../components/ui/button"

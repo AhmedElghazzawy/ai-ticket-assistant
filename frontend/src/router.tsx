@@ -7,7 +7,10 @@ import {
   createRouter,
   lazyRouteComponent,
   Outlet,
+  redirect,
 } from "@tanstack/react-router";
+import { queryClient } from "@/app/query-client";
+import { meOptions } from "@/client/@tanstack/react-query.gen";
 import { ChatPage } from "@/features/chat/chat-page";
 import type { OfficeId, Priority } from "@/lib/types";
 
@@ -42,9 +45,31 @@ const rootRoute = createRootRoute({ component: Outlet });
 
 const chatRoute = createRoute({ getParentRoute: () => rootRoute, path: "/", component: ChatPage });
 
+const loginRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/staff/login",
+  validateSearch: (search: Record<string, unknown>): { redirect?: string } => ({
+    // only a path inside this app, never another website (an "open redirect" would help phishing)
+    redirect:
+      typeof search.redirect === "string" && search.redirect.startsWith("/staff")
+        ? search.redirect
+        : undefined,
+  }),
+  component: lazyRouteComponent(() => import("@/features/staff/login-page"), "LoginPage"),
+});
+
 const staffRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/staff",
+  // Before any staff page loads: is someone logged in? If not, go to the login page and come
+  // back here afterwards. (The server checks every request too; this only spares a broken page.)
+  beforeLoad: async ({ location }) => {
+    try {
+      await queryClient.ensureQueryData(meOptions());
+    } catch {
+      throw redirect({ to: "/staff/login", search: { redirect: location.href } });
+    }
+  },
   component: lazyRouteComponent(() => import("@/features/staff/staff-layout"), "StaffLayout"),
 });
 
@@ -63,6 +88,7 @@ const ticketRoute = createRoute({
 
 const routeTree = rootRoute.addChildren([
   chatRoute,
+  loginRoute,
   staffRoute.addChildren([queueRoute, ticketRoute]),
 ]);
 

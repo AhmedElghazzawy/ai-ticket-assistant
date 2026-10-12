@@ -14,6 +14,28 @@
         "title": "HTTPValidationError",
         "type": "object"
       },
+      "LoginIn": {
+        "properties": {
+          "email": {
+            "maxLength": 200,
+            "minLength": 3,
+            "title": "Email",
+            "type": "string"
+          },
+          "password": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Password",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "LoginIn",
+        "type": "object"
+      },
       "OfficeIn": {
         "properties": {
           "office": {
@@ -68,6 +90,57 @@
           "code"
         ],
         "title": "SimpleReason",
+        "type": "object"
+      },
+      "Staff": {
+        "properties": {
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "office": {
+            "anyOf": [
+              {
+                "enum": [
+                  "it",
+                  "student_affairs",
+                  "fees",
+                  "sks",
+                  "duty"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Office"
+          },
+          "role": {
+            "enum": [
+              "staff",
+              "admin"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "name",
+          "role",
+          "office"
+        ],
+        "title": "Staff",
         "type": "object"
       },
       "StoredSource": {
@@ -446,6 +519,94 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/auth/login": {
+      "post": {
+        "description": "Check email and password, start a session, set the cookie. One message for every failure,\nso nobody learns whether an email exists.",
+        "operationId": "log_in",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Staff"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Log In",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "operationId": "log_out",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Log Out",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Log Out",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "operationId": "me",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Staff"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Me",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/api/health": {
       "get": {
         "description": "For Docker and hosting services: the app is up and answering.",
@@ -471,7 +632,7 @@
     },
     "/api/staff/tickets": {
       "get": {
-        "description": "The review queue: urgent first, then oldest first.",
+        "description": "The review queue: urgent first, then oldest first; staff see only their office.",
         "operationId": "staff_list",
         "parameters": [
           {
@@ -564,6 +725,7 @@
         ]
       },
       "patch": {
+        "description": "Move the ticket to another office (it then leaves this staff member's queue).",
         "operationId": "staff_reassign",
         "parameters": [
           {

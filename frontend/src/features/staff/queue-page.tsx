@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { ChevronRight, Inbox, Search, ShieldAlert } from "lucide-react";
 import { usePreferences } from "@/app/preferences";
-import { staffListOptions } from "@/client/@tanstack/react-query.gen";
+import { meOptions, staffListOptions } from "@/client/@tanstack/react-query.gen";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -73,6 +73,7 @@ export function QueuePage() {
     refetchInterval: 15_000,
   });
   const handledQuery = useQuery(staffListOptions({ query: { status: "handled" } }));
+  const isAdmin = useQuery(meOptions()).data?.role === "admin"; // staff only see their office
   const { q = "", office = ALL, priority = ALL } = useSearch({ from: "/staff/" });
   const navigate = useNavigate({ from: "/staff/" });
   const setFilter = (change: QueueSearch) =>
@@ -113,23 +114,25 @@ export function QueuePage() {
             className="pl-9"
           />
         </div>
-        <Select
-          value={office}
-          onValueChange={(value) => setFilter({ office: offices.find((o) => o === value) })}
-          items={{ [ALL]: t.staff.allOffices, ...t.offices }}
-        >
-          <SelectTrigger className="w-full sm:w-64" aria-label={t.staff.allOffices}>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={ALL}>{t.staff.allOffices}</SelectItem>
-            {offices.map((name) => (
-              <SelectItem key={name} value={name}>
-                {t.offices[name]}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {isAdmin && (
+          <Select
+            value={office}
+            onValueChange={(value) => setFilter({ office: offices.find((o) => o === value) })}
+            items={{ [ALL]: t.staff.allOffices, ...t.offices }}
+          >
+            <SelectTrigger className="w-full sm:w-64" aria-label={t.staff.allOffices}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL}>{t.staff.allOffices}</SelectItem>
+              {offices.map((name) => (
+                <SelectItem key={name} value={name}>
+                  {t.offices[name]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
         <Select
           value={priority}
           onValueChange={(value) =>
