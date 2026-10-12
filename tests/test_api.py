@@ -166,3 +166,8 @@ def test_staff_pages_refuse_requests_from_other_computers(
     assert outsider.get("/api/staff/tickets").status_code == 403
     assert outsider.post("/api/staff/tickets/1/reply", json={"reply": "x"}).status_code == 403
     assert "Harç" not in outsider.get("/api/staff/tickets").text  # no student data leaks
+
+
+def test_health_check_answers_ok() -> None:
+    response = client.get("/api/health")
+    assert response.status_code == 200 and response.json() == {"status": "ok"}

@@ -11,12 +11,12 @@ resolution-markers = [
 name = "ai-ticket-assistant"
 version = "0.7.0"
 source = { virtual = "." }
+default-groups = ["dev", "panel"]
 dependencies = [
     { name = "fastapi" },
     { name = "google-genai" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
-    { name = "streamlit" },
     { name = "structlog" },
     { name = "uvicorn" },
 ]
@@ -28,6 +28,9 @@ dev = [
     { name = "pytest" },
     { name = "ruff" },
 ]
+panel = [
+    { name = "streamlit" },
+]
 
 [package.metadata]
 requires-dist = [
@@ -35,7 +38,6 @@ requires-dist = [
     { name = "google-genai", specifier = ">=2.28.0" },
     { name = "pydantic", specifier = ">=2.13.5" },
     { name = "pydantic-settings", specifier = ">=2.15.0" },
-    { name = "streamlit", specifier = ">=1.65.0" },
     { name = "structlog", specifier = ">=26.1.0" },
     { name = "uvicorn", specifier = ">=0.54.0" },
 ]
@@ -47,6 +49,7 @@ dev = [
     { name = "pytest", specifier = ">=9.1.1" },
     { name = "ruff", specifier = ">=0.17.0" },
 ]
+panel = [{ name = "streamlit", specifier = ">=1.65.0" }]
 
 [[package]]
 name = "altair"

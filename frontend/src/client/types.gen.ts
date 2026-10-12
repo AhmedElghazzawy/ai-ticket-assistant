@@ -252,6 +252,26 @@ export type WeakMatch = {
     score: number;
 };
 
+export type HealthData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/health';
+};
+
+export type HealthResponses = {
+    /**
+     * Response Health
+     *
+     * Successful Response
+     */
+    200: {
+        [key: string]: string;
+    };
+};
+
+export type HealthResponse = HealthResponses[keyof HealthResponses];
+
 export type StaffListData = {
     body?: never;
     path?: never;

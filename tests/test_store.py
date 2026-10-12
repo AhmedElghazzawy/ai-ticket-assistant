@@ -1,6 +1,9 @@
 """Tests for the ticket store. Each test uses its own temporary database (pytest's tmp_path)."""
 
+import os
 import sqlite3
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -110,3 +113,11 @@ def test_old_database_is_refused_with_a_clear_message(tmp_path: Path) -> None:
         old.execute("CREATE TABLE tickets (id INTEGER PRIMARY KEY, text TEXT)")
     with pytest.raises(RuntimeError, match="delete the file"):
         connect(path)
+
+
+def test_database_path_can_be_set_by_environment(tmp_path: Path) -> None:
+    # Docker keeps the database in a volume: HELPDESK_DB points there.
+    env = {**os.environ, "HELPDESK_DB": str(tmp_path / "volume.db"), "PYTHONPATH": "src"}
+    code = "import store; print(store.DB_PATH)"
+    result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, env=env)
+    assert result.stdout.strip() == str(tmp_path / "volume.db")

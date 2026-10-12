@@ -104,6 +104,12 @@ class TicketOut(BaseModel):
     emergency: bool  # show the 112 line (urgent and escalated)
 
 
+@app.get("/api/health")
+def health() -> dict[str, str]:
+    """For Docker and hosting services: the app is up and answering."""
+    return {"status": "ok"}
+
+
 @app.post("/api/tickets")
 def create_ticket(ticket: TicketIn) -> TicketOut:
     """Run the whole pipeline for one student message."""

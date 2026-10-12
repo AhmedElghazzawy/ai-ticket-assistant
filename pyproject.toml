@@ -8,13 +8,16 @@ dependencies = [
     "google-genai>=2.28.0",       # talk to Gemini models
     "pydantic>=2.13.5",           # check that every ticket has valid fields and labels
     "pydantic-settings>=2.15.0",  # typed settings from environment variables and .env
-    "streamlit>=1.65.0",          # the old panel (overview, dataset, evaluation)
     "structlog>=26.1.0",          # structured logs: one JSON line per event
     "fastapi>=0.143.0",           # the web API behind the student chat page
     "uvicorn>=0.54.0",            # the server that runs the FastAPI app
 ]
 
 [dependency-groups]
+# The old Streamlit panel (overview, dataset, evaluation): not in the production image.
+panel = [
+    "streamlit>=1.65.0",
+]
 # Tools for developers and CI only; not installed in the production image.
 dev = [
     "pytest>=9.1.1",    # automatic tests (tests/)
@@ -22,6 +25,9 @@ dev = [
     "ruff>=0.17.0",     # linter and formatter
     "mypy>=2.4.0",      # static type checker
 ]
+
+[tool.uv]
+default-groups = ["dev", "panel"]  # `uv sync` on a laptop or in CI installs both
 
 [tool.pytest.ini_options]
 # Our code lives in src/, so tests can write "from decision import decide".

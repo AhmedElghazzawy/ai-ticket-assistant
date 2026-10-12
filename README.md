@@ -157,6 +157,15 @@ cd frontend && npm run dev                      # web arayüzü: http://localhos
 
 Tek sunucu (üretim gibi): `cd frontend && npm run build`, sonra `uv run uvicorn api:app --app-dir src` ve http://127.0.0.1:8000 açılır.
 
+**Docker ile tek komut** (Python, Node veya uv kurmadan; yalnızca Docker ve `.env` gerekir):
+
+```sh
+docker compose up --build     # sonra http://127.0.0.1:8000 açılır
+docker compose down           # durdurur (talepler bir Docker volume'da kalır)
+```
+
+İmaj iki aşamada oluşturulur: Node yalnızca web arayüzünü derler; son imajda sadece Python ve çalışma zamanı kütüphaneleri vardır (geliştirme araçları, Streamlit ve Node yok). Uygulama root olmayan bir kullanıcıyla çalışır, API anahtarı imajın içinde değildir (container başlarken `.env`'den okunur), port yalnızca bu bilgisayara açıktır. Docker içinde personel sayfaları 403 verir: istekler Docker'ın iç ağından gelir ve personel girişi (Phase 12) gelene kadar yalnızca yerel istekler kabul edilir.
+
 **Loglar:** her istek ve her ticket için yapılandırılmış log (structured logging): aşama süreleri, token sayıları, tahmini maliyet (ücretli fiyatlarla), karar ve nedenleri, hepsi aynı `request_id` ile. `LOG_FORMAT=json` ile her satır bir JSON nesnesidir. Öğrencinin yazdığı metin **asla** loglanmaz (kişisel veri, KVKK), yalnızca uzunluğu; bunu bir test garanti eder.
 
 > **Güvenlik notu:** Personel sayfaları öğrenci mesajlarını gösterir. Personel girişi (Phase 12) eklenene kadar `/api/staff` yalnızca bu bilgisayardan gelen isteklere cevap verir (diğerlerine 403). Bu yüzden sistem henüz internete açılmamalıdır.
@@ -202,6 +211,7 @@ src/evaluate_pipeline.py   Tüm sistemin değerlendirmesi
 src/api.py              FastAPI: POST /api/tickets, personel API'si (/api/staff, yalnızca yerel), web arayüzünü sunar
 src/config.py           Ayarlar (pydantic-settings): .env'den okunur, başlangıçta kontrol edilir
 src/logs.py             Yapılandırılmış loglar (structlog): JSON satırları, request_id, kişisel veri yok
+Dockerfile, compose.yaml   Tek komutla çalıştırma (çok aşamalı imaj, root olmayan kullanıcı, veri volume'u)
 src/store.py            Talepleri SQLite veritabanına kaydeder (data/helpdesk.db, kişisel veri: GitHub'a yüklenmez)
 src/app.py              Eski Streamlit paneli: genel bakış, veri seti, değerlendirme
 frontend/               Web arayüzü: React 19 + TypeScript + Vite, Tailwind CSS + shadcn/ui, TanStack Router + Query

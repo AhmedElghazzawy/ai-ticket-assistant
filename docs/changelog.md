@@ -1204,3 +1204,27 @@ No record existed of what happened, how long it took or what it cost. Production
 - tests/test_logs.py (6): ticket_created fields without the student's name or ID number in ANY log entry; every request has an ID; safe ID kept, unsafe replaced; a crash logs only the error type; cost formula ($0.00155 for 1000 in / 200 out / 300 thinking); loggers made before configure() write JSON. 52 tests pass; ruff, mypy clean.
 - Real ticket, LOG_FORMAT=json: 5 JSON lines with one request_id: classify (3.6 s, 2633 in, 72 out, 856 thinking tokens, $0.0031), embedding (0.4 s), answer (4.2 s, 950 in, 90 out, 1493 thinking, $0.0042), ticket_created, request (8.3 s). Student text in logs: 0. Non-JSON lines: 0.
 - What the numbers say: about $0.0074 per ticket (~$7.40 per 1,000 at paid prices); thinking tokens are most of the cost (the thinking level is the main cost lever: measure it in the Phase 9 model comparison). Classification and search+answer are independent: running them in parallel could cut the wait from 8.3 s to about 4.6 s (later).
+- Commit and push: `146b210` Phase 7.4. CI: both jobs green.
+
+# Phase 7 Foundation, piece 5: Docker (2026-10-11)
+
+## Why
+Anyone (my professor, a recruiter, a server) should run the whole system with one command, without installing Python, Node or uv.
+
+## Code (test-first)
+- Tests first, seen failing: GET /api/health -> {"status": "ok"} (it was a 404 from the web-app fallback, correctly); HELPDESK_DB moves the database (checked in a fresh Python process).
+- api.py: /api/health (for Docker and hosting health checks). store.py: DB_PATH from HELPDESK_DB, else data/helpdesk.db (read directly from the environment, like LOG_FORMAT, so the store works without the API key). Regenerated openapi.json and the frontend client (the schema changed).
+- pyproject.toml: Streamlit moved to its own dependency group `panel` (only the old panel uses it); `[tool.uv] default-groups = ["dev", "panel"]`, so `uv sync` on a laptop and in CI is unchanged. Lockfile: no version changes.
+
+## Docker files
+- Versions checked, not guessed: Docker 29.5, Compose 5.6; images python:3.12.15-slim, node:24.21.0-slim, ghcr.io/astral-sh/uv:0.12.23 (the same versions as on my laptop), each pinned to its digest (a tag can be republished, a digest cannot change).
+- Dockerfile, two stages: (1) Node builds the React app (npm ci, build); (2) slim Python: `uv sync --locked --no-default-groups` (runtime libraries only, exactly uv.lock), then src/, docs/labels.md, the knowledge base and its index, and the built app. LOG_FORMAT=json, HELPDESK_DB=/app/var/helpdesk.db. Runs as a non-root user (uid 10001). HEALTHCHECK on /api/health.
+- .dockerignore: .env first, the database, .venv, node_modules, dist, .git and everything not needed at runtime.
+- compose.yaml: env_file .env (the key arrives when the container starts, never inside the image), port bound to 127.0.0.1 only (not reachable from the same Wi-Fi), volume helpdesk-data for tickets, restart unless-stopped.
+
+## Checked
+- Inside the image: user app (uid 10001); 0 .env files; 0 databases; fastapi and structlog present; Streamlit, pytest, mypy, ruff and Node absent; built app present. Size 408 MB.
+- docker compose up: health "healthy"; /, /staff, /api/health 200; staff API 403 from the host, as designed: requests come from Docker's internal network and the staff API is local-only until staff login (Phase 12). A real English ticket (missed final, sick) auto-sent citing Article 21; JSON logs with cost (about $0.011, a longer English ticket). After docker compose down + up: the ticket is still there (volume).
+- CI: new job "Docker image builds" (docker build, not pushed anywhere).
+- README (Turkish): Docker section and file list. 54 tests pass; ruff, mypy clean.
+- CLAUDE.md and AGENTS.md "Current status" updated (my OK): Phase 7 done, new web app, 54 tests, next: staff login, then deployment.

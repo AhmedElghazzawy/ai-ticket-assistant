@@ -1,0 +1,30 @@
+# Never copied into the image. Secrets FIRST: the key is passed in when the container starts.
+.env
+**/.env
+
+# Personal data: student messages
+data/helpdesk.db
+
+# Built or installed again inside the image
+.venv
+frontend/node_modules
+frontend/dist
+
+# Not needed to run the app
+.git
+.github
+.claude
+.streamlit
+.pytest_cache
+.ruff_cache
+.mypy_cache
+**/__pycache__
+.DS_Store
+claude_context.md
+eval
+tests
+tools
+docs/changelog.md
+docs/problem_catalog.md
+AGENTS.md
+CLAUDE.md

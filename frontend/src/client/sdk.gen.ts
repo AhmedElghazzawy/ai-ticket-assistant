@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreateTicketData, CreateTicketErrors, CreateTicketResponses, StaffGetData, StaffGetErrors, StaffGetResponses, StaffListData, StaffListErrors, StaffListResponses, StaffReassignData, StaffReassignErrors, StaffReassignResponses, StaffReplyData, StaffReplyErrors, StaffReplyResponses } from './types.gen';
+import type { CreateTicketData, CreateTicketErrors, CreateTicketResponses, HealthData, HealthResponses, StaffGetData, StaffGetErrors, StaffGetResponses, StaffListData, StaffListErrors, StaffListResponses, StaffReassignData, StaffReassignErrors, StaffReassignResponses, StaffReplyData, StaffReplyErrors, StaffReplyResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -17,6 +17,13 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
      */
     meta?: keyof ClientMeta extends never ? Record<string, unknown> : ClientMeta;
 };
+
+/**
+ * Health
+ *
+ * For Docker and hosting services: the app is up and answering.
+ */
+export const health = <ThrowOnError extends boolean = false>(options?: Options<HealthData, ThrowOnError>): RequestResult<HealthResponses, unknown, ThrowOnError> => (options?.client ?? client).get<HealthResponses, unknown, ThrowOnError>({ url: '/api/health', ...options });
 
 /**
  * Staff List

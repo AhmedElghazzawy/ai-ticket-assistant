@@ -4,6 +4,7 @@ The database file holds student messages (personal data): it is in .gitignore an
 """
 
 import json
+import os
 import sqlite3
 from datetime import UTC, datetime
 from pathlib import Path
@@ -17,7 +18,11 @@ from tickets import Category, Language, Priority
 if TYPE_CHECKING:  # only for the type hint, so store.py does not load the AI pipeline
     from pipeline import TicketResult
 
-DB_PATH = Path(__file__).resolve().parent.parent / "data" / "helpdesk.db"
+# HELPDESK_DB moves the database (Docker keeps it in a volume); read directly, like LOG_FORMAT,
+# so the store works without the API key.
+DB_PATH = Path(
+    os.getenv("HELPDESK_DB") or Path(__file__).resolve().parent.parent / "data" / "helpdesk.db"
+)
 
 SCHEMA_VERSION = 2  # raise it whenever the table changes (2: office IDs, reason codes, sources)
 SCHEMA = """
