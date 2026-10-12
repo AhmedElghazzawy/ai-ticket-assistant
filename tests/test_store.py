@@ -138,3 +138,21 @@ def test_a_version_2_database_is_upgraded_and_keeps_its_tickets(tmp_path: Path) 
     assert upgraded.execute("PRAGMA user_version").fetchone()[0] == store.SCHEMA_VERSION
     assert [t.text for t in list_tickets(upgraded, "open")] == ["an old ticket"]  # data kept
     assert upgraded.execute("SELECT count(*) FROM staff").fetchone()[0] == 0  # new table exists
+
+
+def test_version_4_separates_demo_tickets_and_demo_staff(tmp_path: Path) -> None:
+    db = connect(tmp_path / "test.db")
+    assert db.execute("PRAGMA user_version").fetchone()[0] == 4
+    ticket = get_ticket(db, save_ticket(db, "a real visitor", "tr", result(False)))
+    assert ticket is not None and ticket.demo is False  # real tickets are never demo tickets
+    columns = {row[1] for row in db.execute("PRAGMA table_info(staff)")}
+    assert "demo" in columns
+
+
+def test_inside_a_priority_the_ticket_that_waited_longest_comes_first(tmp_path: Path) -> None:
+    db = connect(tmp_path / "test.db")
+    store.reset_demo_tickets(db)  # demo tickets have back-dated arrival times
+    queue = list_tickets(db, "open", demo=True)
+    for priority in ("urgent", "high", "medium", "low"):
+        times = [t.created_at for t in queue if t.priority == priority]
+        assert times == sorted(times), priority  # oldest first, by real arrival time

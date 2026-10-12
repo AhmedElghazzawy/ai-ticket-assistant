@@ -39,6 +39,7 @@ from store import (
     list_tickets,
     mark_handled,
     reassign,
+    reset_demo_tickets,
     save_ticket,
 )
 from tickets import Category, Priority
@@ -134,6 +135,20 @@ class RateLimiter:
             return True
 
 
+# Behind a hosting proxy every request seems to come from the proxy. CLIENT_IP_HEADER names the
+# header in which the proxy puts the real visitor (Render: "CF-Connecting-IP"). Empty (default): the
+# header is ignored, because a visitor could fake it. NOT X-Forwarded-For with "trust all": its
+# left-most address is written by the visitor, so a bot could invent a new address every time.
+CLIENT_IP_HEADER = os.getenv("CLIENT_IP_HEADER", "").lower()
+
+
+def client_ip(request: Request) -> str:
+    """The visitor's address, for rate limits only (never stored or logged)."""
+    if CLIENT_IP_HEADER and (forwarded := request.headers.get(CLIENT_IP_HEADER)):
+        return forwarded.strip()
+    return request.client.host if request.client else "unknown"
+
+
 ticket_limiter = RateLimiter()
 # The whole system's ceiling per day (UTC): at ~$0.0074 per ticket, 300 tickets cost at most
 # ~$2.20 a day at paid prices, whatever bots do.
@@ -149,8 +164,7 @@ def check_ticket_limits(request: Request) -> None:
             raise HTTPException(
                 status_code=429, detail="The assistant is busy today. Try tomorrow."
             )
-    visitor = request.client.host if request.client else "unknown"
-    if not ticket_limiter.allow(visitor):
+    if not ticket_limiter.allow(client_ip(request)):
         logger.info("visitor_rate_limited")  # never the address itself
         raise HTTPException(status_code=429, detail="Too many questions. Please wait a minute.")
 
@@ -209,6 +223,8 @@ def create_ticket(ticket: TicketIn) -> TicketOut:
 # (read directly, like LOG_FORMAT); production keeps the default.
 COOKIE_SECURE = os.getenv("COOKIE_SECURE", "true").lower() != "false"
 COOKIE_NAME = "helpdesk_session"
+# DEMO_MODE=true (the public demo site): a one-click demo login with sample tickets only.
+DEMO_MODE = os.getenv("DEMO_MODE", "false").lower() == "true"
 
 
 def same_origin(request: Request) -> None:
@@ -241,14 +257,49 @@ class LoginIn(BaseModel):
     password: str = Field(min_length=1, max_length=200)
 
 
+def start_session(response: Response, staff_member: Staff, db: Connection) -> None:
+    """Create a session and put it in the cookie (used by the normal and the demo login)."""
+    response.set_cookie(
+        COOKIE_NAME,
+        auth.create_session(db, staff_member.id),
+        max_age=auth.SESSION_HOURS * 3600,
+        httponly=True,  # page scripts cannot read it, so an XSS bug cannot steal the session
+        secure=COOKIE_SECURE,
+        samesite="lax",  # not sent with requests that other websites start
+        path="/api",  # only the API needs it
+    )
+
+
+class LoginOptions(BaseModel):
+    demo: bool
+
+
+@login.get("/options")
+def login_options() -> LoginOptions:
+    """What the login page can offer (the demo button only where DEMO_MODE is on)."""
+    return LoginOptions(demo=DEMO_MODE)
+
+
+@login.post("/demo")
+def demo_log_in(response: Response) -> Staff:
+    """One click: log in as the demo staff member with a fresh queue of sample tickets."""
+    if not DEMO_MODE:
+        raise HTTPException(status_code=404, detail="Not found.")
+    with database() as db:
+        staff_member = auth.demo_account(db)
+        reset_demo_tickets(db)
+        start_session(response, staff_member, db)
+    logger.info("demo_login")
+    return staff_member
+
+
 @login.post("/login")
 def log_in(body: LoginIn, request: Request, response: Response) -> Staff:
     """Check email and password, start a session, set the cookie. One message for every failure,
     so nobody learns whether an email exists."""
-    ip = request.client.host if request.client else "unknown"
     with database() as db:
         try:
-            staff_member = auth.authenticate(db, body.email, body.password, ip)
+            staff_member = auth.authenticate(db, body.email, body.password, client_ip(request))
         except auth.TooManyAttempts:
             logger.warning("login_blocked")  # no email in logs: it is personal data
             raise HTTPException(
@@ -257,16 +308,7 @@ def log_in(body: LoginIn, request: Request, response: Response) -> Staff:
         if staff_member is None:
             logger.info("login_failed")
             raise HTTPException(status_code=401, detail="Wrong email or password.")
-        token = auth.create_session(db, staff_member.id)
-    response.set_cookie(
-        COOKIE_NAME,
-        token,
-        max_age=auth.SESSION_HOURS * 3600,
-        httponly=True,  # page scripts cannot read it, so an XSS bug cannot steal the session
-        secure=COOKIE_SECURE,
-        samesite="lax",  # not sent with requests that other websites start
-        path="/api",  # only the API needs it
-    )
+        start_session(response, staff_member, db)
     logger.info("login", staff_id=staff_member.id)
     return staff_member
 
@@ -307,7 +349,11 @@ class OfficeIn(BaseModel):
 def visible(ticket: StoredTicket | None, staff_member: Staff) -> StoredTicket:
     """The ticket if this staff member may see it, else 404. Staff see their own office's tickets,
     admins every office. 404 (not 403) also hides that another office's ticket exists."""
-    if ticket is None or (staff_member.role != "admin" and ticket.office != staff_member.office):
+    if (
+        ticket is None
+        or ticket.demo != staff_member.demo  # the demo and the real world never mix
+        or (staff_member.role != "admin" and ticket.office != staff_member.office)
+    ):
         raise HTTPException(status_code=404, detail="No ticket with this number.")
     return ticket
 
@@ -324,9 +370,8 @@ def reread(db: Connection, ticket_id: int) -> StoredTicket:
 def staff_list(staff_member: CurrentStaff, status: Status = "open") -> list[StoredTicket]:
     """The review queue: urgent first, then oldest first; staff see only their office."""
     with database() as db:
-        return list_tickets(
-            db, status, None if staff_member.role == "admin" else staff_member.office
-        )
+        office = None if staff_member.role == "admin" else staff_member.office
+        return list_tickets(db, status, office, demo=staff_member.demo)
 
 
 @staff.get("/tickets/{ticket_id}")

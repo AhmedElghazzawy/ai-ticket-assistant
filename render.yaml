@@ -1,0 +1,25 @@
+# Render Blueprint: the whole app, free plan, Frankfurt (EU, the closest region to Turkey).
+# Render builds the Dockerfile from this repository. The Gemini key is entered once in Render's
+# dashboard (sync: false), never written in this file.
+services:
+  - type: web
+    name: bseu-helpdesk
+    runtime: docker
+    plan: free # sleeps after ~15 min without visitors; the next visit wakes it (about a minute)
+    region: frankfurt
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    autoDeployTrigger: checksPass # deploy a new commit only after GitHub CI passed
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false # secret: typed into Render's dashboard
+      - key: GEMINI_MODEL
+        value: gemini-3.5-flash-lite
+      - key: PORT
+        value: "8000" # the port our container listens on
+      - key: DEMO_MODE
+        value: "true" # the "Try the demo" button: sample tickets only, never real ones
+      - key: CLIENT_IP_HEADER
+        value: CF-Connecting-IP # set by Cloudflare in front of Render; X-Forwarded-For can be faked
+      - key: DAILY_TICKET_CAP
+        value: "300"

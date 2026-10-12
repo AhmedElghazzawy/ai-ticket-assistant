@@ -41,6 +41,7 @@ class Staff(BaseModel):
     name: str
     role: Role
     office: OfficeId | None  # None for admins: they see every office
+    demo: bool = False  # the demo account sees only demo tickets
 
 
 def now() -> datetime:
@@ -139,3 +140,21 @@ def end_session(connection: sqlite3.Connection, token: str) -> None:
     """Logout: the token stops working at once."""
     connection.execute("DELETE FROM sessions WHERE token_hash = ?", (token_hash(token),))
     connection.commit()
+
+
+DEMO_EMAIL = "demo@demo.invalid"  # .invalid is reserved: it can never be a real address
+
+
+def demo_account(connection: sqlite3.Connection) -> Staff:
+    """The demo staff member (created on first use). Its password is random and thrown away,
+    so the account can only be entered through the demo button, never with a password."""
+    row = connection.execute("SELECT * FROM staff WHERE demo = 1").fetchone()
+    if row is None:
+        connection.execute(
+            "INSERT INTO staff (email, name, role, office, password_hash, created_at, demo)"
+            " VALUES (?, ?, 'admin', NULL, ?, ?, 1)",
+            (DEMO_EMAIL, "Demo", hasher.hash(secrets.token_urlsafe(32)), now().isoformat()),
+        )
+        connection.commit()
+        row = connection.execute("SELECT * FROM staff WHERE demo = 1").fetchone()
+    return Staff.model_validate(dict(row))

@@ -6,7 +6,7 @@ The database file holds student messages (personal data): it is in .gitignore an
 import json
 import os
 import sqlite3
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
@@ -20,6 +20,9 @@ if TYPE_CHECKING:  # only for the type hint, so store.py does not load the AI pi
 
 # HELPDESK_DB moves the database (Docker keeps it in a volume); read directly, like LOG_FORMAT,
 # so the store works without the API key.
+# The demo queue (tools/make_demo_tickets.py builds it from the dataset and its real results).
+DEMO_PATH = Path(__file__).resolve().parent.parent / "data" / "demo_tickets.json"
+
 DB_PATH = Path(
     os.getenv("HELPDESK_DB") or Path(__file__).resolve().parent.parent / "data" / "helpdesk.db"
 )
@@ -70,6 +73,10 @@ CREATE TABLE failed_logins (                          -- for the login rate limi
 );
 CREATE INDEX failed_logins_by_key ON failed_logins (key, at);
 """,
+    4: """
+ALTER TABLE tickets ADD COLUMN demo INTEGER NOT NULL DEFAULT 0;  -- 1: sample ticket for the demo
+ALTER TABLE staff ADD COLUMN demo INTEGER NOT NULL DEFAULT 0;    -- 1: the demo account
+""",
 }
 SCHEMA_VERSION = max(MIGRATIONS)
 
@@ -104,6 +111,7 @@ class StoredTicket(BaseModel):
     status: Status
     final_reply: str | None
     handled_at: str | None
+    demo: bool  # a sample ticket for the demo: never mixed with real visitors' tickets
 
 
 def connect(db_path: Path = DB_PATH) -> sqlite3.Connection:
@@ -181,21 +189,26 @@ PRIORITY_ORDER = (
 
 
 def count_tickets_since(connection: sqlite3.Connection, since: datetime) -> int:
-    """How many tickets arrived since this time (for the daily cap)."""
+    """How many real (not demo) tickets arrived since this time (for the daily cap)."""
     row = connection.execute(
-        "SELECT count(*) FROM tickets WHERE created_at >= ?", (since.isoformat(timespec="seconds"),)
+        "SELECT count(*) FROM tickets WHERE demo = 0 AND created_at >= ?",
+        (since.isoformat(timespec="seconds"),),
     ).fetchone()
     return int(row[0])
 
 
 def list_tickets(
-    connection: sqlite3.Connection, status: Status, office: OfficeId | None = None
+    connection: sqlite3.Connection,
+    status: Status,
+    office: OfficeId | None = None,
+    demo: bool = False,
 ) -> list[StoredTicket]:
-    """Tickets with this status (only this office's, if given), most urgent first, then oldest."""
+    """Tickets with this status (only this office's, if given; real or demo, never both),
+    most urgent first, then oldest."""
     rows = connection.execute(
-        f"SELECT * FROM tickets WHERE status = ? AND (? IS NULL OR office = ?)"
-        f" ORDER BY {PRIORITY_ORDER}, id",
-        (status, office, office),
+        f"SELECT * FROM tickets WHERE status = ? AND (? IS NULL OR office = ?) AND demo = ?"
+        f" ORDER BY {PRIORITY_ORDER}, created_at, id",  # the longest wait first
+        (status, office, office, int(demo)),
     ).fetchall()
     return [to_ticket(row) for row in rows]
 
@@ -219,3 +232,36 @@ def reassign(connection: sqlite3.Connection, ticket_id: int, office: OfficeId) -
     """Staff moved the ticket to another office."""
     connection.execute("UPDATE tickets SET office = ? WHERE id = ?", (office, ticket_id))
     connection.commit()
+
+
+def reset_demo_tickets(connection: sqlite3.Connection) -> int:
+    """Put the demo queue back to its starting state (every demo login gets a fresh queue).
+    Only rows with demo = 1 are touched: real tickets are never changed."""
+    samples = json.loads(DEMO_PATH.read_text(encoding="utf-8"))
+    now = datetime.now(UTC)
+    with connection:  # one transaction: the demo queue is never half-reset
+        connection.execute("DELETE FROM tickets WHERE demo = 1")
+        connection.executemany(
+            "INSERT INTO tickets (created_at, language, text, category, priority, escalate,"
+            " ai_reason, office, auto_send, reasons, top_score, draft, covered, sources, status, demo)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, 'open', 1)",
+            [
+                (
+                    (now - timedelta(minutes=t["age_minutes"])).isoformat(timespec="seconds"),
+                    t["language"],
+                    t["text"],
+                    t["category"],
+                    t["priority"],
+                    int(t["escalate"]),
+                    t["ai_reason"],
+                    t["office"],
+                    json.dumps(t["reasons"]),
+                    t["top_score"],
+                    t["draft"],
+                    int(t["covered"]),
+                    json.dumps(t["sources"], ensure_ascii=False),
+                )
+                for t in samples
+            ],
+        )
+    return len(samples)

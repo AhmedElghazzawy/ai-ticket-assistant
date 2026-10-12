@@ -3,8 +3,27 @@
 import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { createTicket, health, logIn, logOut, me, type Options, staffGet, staffList, staffReassign, staffReply } from '../sdk.gen';
-import type { CreateTicketData, CreateTicketError, CreateTicketResponse, HealthData, HealthResponse, LogInData, LogInError, LogInResponse, LogOutData, LogOutResponse, MeData, MeResponse, StaffGetData, StaffGetError, StaffGetResponse, StaffListData, StaffListError, StaffListResponse, StaffReassignData, StaffReassignError, StaffReassignResponse, StaffReplyData, StaffReplyError, StaffReplyResponse } from '../types.gen';
+import { createTicket, demoLogIn, health, logIn, loginOptions, logOut, me, type Options, staffGet, staffList, staffReassign, staffReply } from '../sdk.gen';
+import type { CreateTicketData, CreateTicketError, CreateTicketResponse, DemoLogInData, DemoLogInResponse, HealthData, HealthResponse, LogInData, LogInError, LoginOptionsData, LoginOptionsResponse, LogInResponse, LogOutData, LogOutResponse, MeData, MeResponse, StaffGetData, StaffGetError, StaffGetResponse, StaffListData, StaffListError, StaffListResponse, StaffReassignData, StaffReassignError, StaffReassignResponse, StaffReplyData, StaffReplyError, StaffReplyResponse } from '../types.gen';
+
+/**
+ * Demo Log In
+ *
+ * One click: log in as the demo staff member with a fresh queue of sample tickets.
+ */
+export const demoLogInMutation = (options?: Partial<Options<DemoLogInData>>): UseMutationOptions<DemoLogInResponse, DefaultError, Options<DemoLogInData>> => {
+    const mutationOptions: UseMutationOptions<DemoLogInResponse, DefaultError, Options<DemoLogInData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await demoLogIn({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
 
 /**
  * Log In
@@ -92,6 +111,26 @@ export const meOptions = (options?: Options<MeData>) => queryOptions<MeResponse,
         return data;
     },
     queryKey: meQueryKey(options)
+});
+
+export const loginOptionsQueryKey = (options?: Options<LoginOptionsData>) => createQueryKey('loginOptions', options);
+
+/**
+ * Login Options
+ *
+ * What the login page can offer (the demo button only where DEMO_MODE is on).
+ */
+export const loginOptionsOptions = (options?: Options<LoginOptionsData>) => queryOptions<LoginOptionsResponse, DefaultError, LoginOptionsResponse, ReturnType<typeof loginOptionsQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await loginOptions({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: loginOptionsQueryKey(options)
 });
 
 export const healthQueryKey = (options?: Options<HealthData>) => createQueryKey('health', options);

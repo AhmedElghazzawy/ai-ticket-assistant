@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreateTicketData, CreateTicketErrors, CreateTicketResponses, HealthData, HealthResponses, LogInData, LogInErrors, LogInResponses, LogOutData, LogOutResponses, MeData, MeResponses, StaffGetData, StaffGetErrors, StaffGetResponses, StaffListData, StaffListErrors, StaffListResponses, StaffReassignData, StaffReassignErrors, StaffReassignResponses, StaffReplyData, StaffReplyErrors, StaffReplyResponses } from './types.gen';
+import type { CreateTicketData, CreateTicketErrors, CreateTicketResponses, DemoLogInData, DemoLogInResponses, HealthData, HealthResponses, LogInData, LogInErrors, LoginOptionsData, LoginOptionsResponses, LogInResponses, LogOutData, LogOutResponses, MeData, MeResponses, StaffGetData, StaffGetErrors, StaffGetResponses, StaffListData, StaffListErrors, StaffListResponses, StaffReassignData, StaffReassignErrors, StaffReassignResponses, StaffReplyData, StaffReplyErrors, StaffReplyResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -17,6 +17,13 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
      */
     meta?: keyof ClientMeta extends never ? Record<string, unknown> : ClientMeta;
 };
+
+/**
+ * Demo Log In
+ *
+ * One click: log in as the demo staff member with a fresh queue of sample tickets.
+ */
+export const demoLogIn = <ThrowOnError extends boolean = false>(options?: Options<DemoLogInData, ThrowOnError>): RequestResult<DemoLogInResponses, unknown, ThrowOnError> => (options?.client ?? client).post<DemoLogInResponses, unknown, ThrowOnError>({ url: '/api/auth/demo', ...options });
 
 /**
  * Log In
@@ -42,6 +49,13 @@ export const logOut = <ThrowOnError extends boolean = false>(options?: Options<L
  * Me
  */
 export const me = <ThrowOnError extends boolean = false>(options?: Options<MeData, ThrowOnError>): RequestResult<MeResponses, unknown, ThrowOnError> => (options?.client ?? client).get<MeResponses, unknown, ThrowOnError>({ url: '/api/auth/me', ...options });
+
+/**
+ * Login Options
+ *
+ * What the login page can offer (the demo button only where DEMO_MODE is on).
+ */
+export const loginOptions = <ThrowOnError extends boolean = false>(options?: Options<LoginOptionsData, ThrowOnError>): RequestResult<LoginOptionsResponses, unknown, ThrowOnError> => (options?.client ?? client).get<LoginOptionsResponses, unknown, ThrowOnError>({ url: '/api/auth/options', ...options });
 
 /**
  * Health

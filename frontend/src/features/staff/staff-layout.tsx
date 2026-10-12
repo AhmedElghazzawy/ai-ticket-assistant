@@ -104,6 +104,18 @@ function Sidebar() {
   );
 }
 
+/** A clear note in demo mode, so nobody takes sample tickets for real student messages. */
+function DemoBanner() {
+  const { t } = usePreferences();
+  const { data: me } = useQuery(meOptions());
+  if (!me?.demo) return null;
+  return (
+    <p className="border-b border-warning/40 bg-warning/15 px-4 py-2 text-center text-xs font-medium lg:px-8">
+      {t.staff.demoBanner}
+    </p>
+  );
+}
+
 function MobileLogout() {
   const { t } = usePreferences();
   const leave = useLogout();
@@ -138,6 +150,7 @@ export function StaffLayout() {
         <Sidebar />
         <div className="min-w-0 flex-1">
           <MobileBar />
+          <DemoBanner />
           <Outlet />
         </div>
       </div>

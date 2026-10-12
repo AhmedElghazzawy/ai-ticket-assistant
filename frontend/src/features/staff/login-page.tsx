@@ -1,10 +1,10 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
-import { ArrowLeft, LockKeyhole } from "lucide-react";
+import { ArrowLeft, LockKeyhole, Sparkles } from "lucide-react";
 import { type FormEvent, useId, useState } from "react";
 import { usePreferences } from "@/app/preferences";
-import { logIn } from "@/client";
-import { meQueryKey } from "@/client/@tanstack/react-query.gen";
+import { demoLogIn, logIn, type Staff } from "@/client";
+import { loginOptionsOptions, meQueryKey } from "@/client/@tanstack/react-query.gen";
 import { BrandMark, LanguageSwitch, ThemeMenu } from "@/components/app-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,20 @@ export function LoginPage() {
   const emailId = useId(); // unique ids connect each label to its input (screen readers)
   const passwordId = useId();
 
+  const options = useQuery(loginOptionsOptions());
+  const enter = (staff: Staff) => {
+    queryClient.setQueryData(meQueryKey(), staff); // the staff pages know who is logged in
+    void navigate({ to: redirect ?? "/staff" });
+  };
+  const demo = useMutation({
+    mutationFn: async () => {
+      const { data } = await demoLogIn();
+      if (!data) throw new Error(t.staff.loginError);
+      return data;
+    },
+    onSuccess: enter,
+  });
+
   const login = useMutation({
     mutationFn: async () => {
       const { data, response } = await logIn({ body: { email, password } });
@@ -28,9 +42,8 @@ export function LoginPage() {
       return data;
     },
     onSuccess: (staff) => {
-      queryClient.setQueryData(meQueryKey(), staff); // the staff pages know who is logged in
       setPassword("");
-      void navigate({ to: redirect ?? "/staff" });
+      enter(staff);
     },
   });
 
@@ -93,14 +106,33 @@ export function LoginPage() {
               />
             </div>
           </div>
-          {login.isError && (
+          {(login.isError || demo.isError) && (
             <p role="alert" className="text-sm text-destructive">
-              {login.error.message}
+              {(login.error ?? demo.error)?.message}
             </p>
           )}
           <Button type="submit" className="w-full" size="lg" disabled={login.isPending}>
             {t.staff.logIn}
           </Button>
+          {options.data?.demo && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 text-xs text-muted-foreground uppercase">
+                <span className="h-px flex-1 bg-border" /> {t.staff.or}
+                <span className="h-px flex-1 bg-border" />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                className="w-full"
+                onClick={() => demo.mutate()}
+                disabled={demo.isPending}
+              >
+                <Sparkles /> {t.staff.tryDemo}
+              </Button>
+              <p className="text-center text-xs text-muted-foreground">{t.staff.demoHint}</p>
+            </div>
+          )}
         </form>
       </main>
     </div>

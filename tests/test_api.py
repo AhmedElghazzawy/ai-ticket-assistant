@@ -299,3 +299,30 @@ def test_a_blocked_request_costs_nothing(
     for _ in range(7):
         ask()
     assert len(calls) == 5  # the pipeline (Gemini) never ran for the refused requests
+
+
+def test_a_faked_ip_header_is_ignored_unless_a_proxy_is_configured(fresh_limits: None) -> None:
+    # Without CLIENT_IP_HEADER, a bot sending a new fake address each time must still be limited.
+    codes = [
+        client.post(
+            "/api/tickets",
+            json={"text": "Merhaba", "language": "tr"},
+            headers={"CF-Connecting-IP": f"198.51.100.{n}"},
+        ).status_code
+        for n in range(6)
+    ]
+    assert codes == [200] * 5 + [429]
+
+
+def test_behind_a_trusted_proxy_each_real_visitor_has_its_own_limit(
+    fresh_limits: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # On Render every request comes through Cloudflare; the real visitor is in CF-Connecting-IP.
+    monkeypatch.setattr(api, "CLIENT_IP_HEADER", "cf-connecting-ip")
+    body = {"text": "Merhaba", "language": "tr"}
+    for _ in range(5):
+        client.post("/api/tickets", json=body, headers={"CF-Connecting-IP": "198.51.100.1"})
+    other = client.post("/api/tickets", json=body, headers={"CF-Connecting-IP": "198.51.100.2"})
+    assert other.is_success  # same proxy address, different real visitor
+    same = client.post("/api/tickets", json=body, headers={"CF-Connecting-IP": "198.51.100.1"})
+    assert same.status_code == 429

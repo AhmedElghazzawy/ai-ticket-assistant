@@ -176,6 +176,8 @@ uv run python tools/add_staff.py yonetici@bilecik.edu.tr "Yönetici" --admin    
 docker compose exec app python tools/add_staff.py ...                               # Docker içinde
 ```
 
+**Demo modu** (`DEMO_MODE=true`, canlı sitede açık): giriş sayfasında "Demo olarak dene" düğmesi, hesap gerektirmeden personel panelini örnek taleplerle açar. Örnek talepler veri setinden ve gerçek sonuçlarından üretilir (`tools/make_demo_tickets.py` → `data/demo_tickets.json`); her demo girişinde sıfırlanır. Demo hesabı gerçek ziyaretçilerin taleplerini asla görmez, gerçek personel de demo taleplerini görmez.
+
 > **Güvenlik:** Personel sayfaları öğrenci mesajlarını gösterir, bu yüzden giriş gerektirir. Şifreler Argon2id ile saklanır; oturum, JavaScript'in okuyamadığı (HttpOnly, Secure, SameSite) bir çerezdedir ve veritabanında yalnızca özeti (SHA-256) tutulur; 8 saat sonra biter, çıkışta hemen biter. Personel yalnızca kendi biriminin taleplerini görür (yönetici hepsini). Çok sayıda hatalı giriş 15 dakika engellenir; başka sitelerden gelen değişiklik istekleri reddedilir (CSRF). `Secure` çerez yalnızca https veya localhost üzerinde gönderilir; yerel geliştirmede Safari kullanılıyorsa `COOKIE_SECURE=false`.
 
 ```sh
@@ -227,6 +229,9 @@ frontend/               Web arayüzü: React 19 + TypeScript + Vite, Tailwind CS
 frontend/src/client/    API şemasından ÜRETİLEN tipler ve fonksiyonlar (elle değiştirilmez)
 tools/export_openapi.py API şemasını frontend/openapi.json dosyasına yazar
 tools/add_staff.py      Personel hesabı oluşturur (gizli şifre girişi)
+tools/make_demo_tickets.py  Demo modunun örnek taleplerini veri setinden üretir
+render.yaml             Render dağıtımı (ücretsiz plan, Frankfurt)
+docker-entrypoint.sh    Hosting volume'larının sahipliğini düzeltir, uygulamayı root olmadan çalıştırır
 tests/                  pytest testleri (karar kuralları, ayarlar, depo, arama dizini, API)
 data/knowledge_base/    22 resmî kaynaklı belge (TR + EN)
 src/try_one_ticket.py   İlk API çağrısı testi (Step 1)

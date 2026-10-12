@@ -36,6 +36,19 @@
         "title": "LoginIn",
         "type": "object"
       },
+      "LoginOptions": {
+        "properties": {
+          "demo": {
+            "title": "Demo",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "demo"
+        ],
+        "title": "LoginOptions",
+        "type": "object"
+      },
       "OfficeIn": {
         "properties": {
           "office": {
@@ -94,6 +107,11 @@
       },
       "Staff": {
         "properties": {
+          "demo": {
+            "default": false,
+            "title": "Demo",
+            "type": "boolean"
+          },
           "email": {
             "title": "Email",
             "type": "string"
@@ -202,6 +220,10 @@
           "created_at": {
             "title": "Created At",
             "type": "string"
+          },
+          "demo": {
+            "title": "Demo",
+            "type": "boolean"
           },
           "draft": {
             "title": "Draft",
@@ -334,7 +356,8 @@
           "sources",
           "status",
           "final_reply",
-          "handled_at"
+          "handled_at",
+          "demo"
         ],
         "title": "StoredTicket",
         "type": "object"
@@ -519,6 +542,28 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/auth/demo": {
+      "post": {
+        "description": "One click: log in as the demo staff member with a fresh queue of sample tickets.",
+        "operationId": "demo_log_in",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Staff"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Demo Log In",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/api/auth/login": {
       "post": {
         "description": "Check email and password, start a session, set the cookie. One message for every failure,\nso nobody learns whether an email exists.",
@@ -602,6 +647,28 @@
           }
         },
         "summary": "Me",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/auth/options": {
+      "get": {
+        "description": "What the login page can offer (the demo button only where DEMO_MODE is on).",
+        "operationId": "login_options",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginOptions"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Login Options",
         "tags": [
           "auth"
         ]

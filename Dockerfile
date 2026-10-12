@@ -33,12 +33,15 @@ COPY src/ src/
 COPY docs/labels.md docs/labels.md
 COPY data/knowledge_base/ data/knowledge_base/
 COPY data/kb_index.json data/kb_index.json
+COPY data/demo_tickets.json data/demo_tickets.json
 COPY --from=web /web/dist frontend/dist
 COPY tools/add_staff.py tools/add_staff.py
 
-# Run as a normal user, not root: if the app were ever broken into, the attacker gets little.
+# The app runs as a normal user, not root: if it were ever broken into, the attacker gets little.
+# The entrypoint starts as root only to fix the volume's owner, then drops to "app" (setpriv).
 RUN useradd --system --uid 10001 --no-create-home app && mkdir -p /app/var && chown app /app/var
-USER app
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+ENTRYPOINT ["docker-entrypoint.sh"]
 
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=20s \

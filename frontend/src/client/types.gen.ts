@@ -29,6 +29,16 @@ export type LoginIn = {
 };
 
 /**
+ * LoginOptions
+ */
+export type LoginOptions = {
+    /**
+     * Demo
+     */
+    demo: boolean;
+};
+
+/**
  * OfficeIn
  */
 export type OfficeIn = {
@@ -64,6 +74,10 @@ export type SimpleReason = {
  * Staff
  */
 export type Staff = {
+    /**
+     * Demo
+     */
+    demo?: boolean;
     /**
      * Email
      */
@@ -134,6 +148,10 @@ export type StoredTicket = {
      * Created At
      */
     created_at: string;
+    /**
+     * Demo
+     */
+    demo: boolean;
     /**
      * Draft
      */
@@ -292,6 +310,22 @@ export type WeakMatch = {
     score: number;
 };
 
+export type DemoLogInData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/auth/demo';
+};
+
+export type DemoLogInResponses = {
+    /**
+     * Successful Response
+     */
+    200: Staff;
+};
+
+export type DemoLogInResponse = DemoLogInResponses[keyof DemoLogInResponses];
+
 export type LogInData = {
     body: LoginIn;
     path?: never;
@@ -352,6 +386,22 @@ export type MeResponses = {
 };
 
 export type MeResponse = MeResponses[keyof MeResponses];
+
+export type LoginOptionsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/auth/options';
+};
+
+export type LoginOptionsResponses = {
+    /**
+     * Successful Response
+     */
+    200: LoginOptions;
+};
+
+export type LoginOptionsResponse = LoginOptionsResponses[keyof LoginOptionsResponses];
 
 export type HealthData = {
     body?: never;
