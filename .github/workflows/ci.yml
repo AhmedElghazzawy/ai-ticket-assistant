@@ -21,6 +21,23 @@ jobs:
     name: Python (lint, types, tests)
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # Tests run against a real Postgres, the same image (pinned by digest) as compose.yaml.
+    services:
+      postgres:
+        image: pgvector/pgvector:0.8.7-pg18-trixie@sha256:9d9c930220cb9bf2f956d10a8f909cf9973d9672ca0278aef2c1e6facccad2e0
+        env:
+          POSTGRES_USER: helpdesk
+          POSTGRES_PASSWORD: ci-only # a throwaway database that only lives during this run
+          POSTGRES_DB: helpdesk
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U helpdesk"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgresql://helpdesk:ci-only@127.0.0.1:5433/helpdesk
     steps:
       # Actions are pinned to a commit SHA (a tag can be moved by an attacker; a SHA cannot).
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

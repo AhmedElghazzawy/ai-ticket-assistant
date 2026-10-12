@@ -19,7 +19,6 @@ ENV UV_COMPILE_BYTECODE=1 \
     UV_PYTHON_DOWNLOADS=never \
     PYTHONUNBUFFERED=1 \
     LOG_FORMAT=json \
-    HELPDESK_DB=/app/var/helpdesk.db \
     PATH="/app/.venv/bin:$PATH"
 WORKDIR /app
 
@@ -37,11 +36,10 @@ COPY data/demo_tickets.json data/demo_tickets.json
 COPY --from=web /web/dist frontend/dist
 COPY tools/add_staff.py tools/add_staff.py
 
-# The app runs as a normal user, not root: if it were ever broken into, the attacker gets little.
-# The entrypoint starts as root only to fix the volume's owner, then drops to "app" (setpriv).
-RUN useradd --system --uid 10001 --no-create-home app && mkdir -p /app/var && chown app /app/var
-COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-ENTRYPOINT ["docker-entrypoint.sh"]
+# Run as a normal user, not root: if the app were ever broken into, the attacker gets little.
+# (The data lives in Postgres, set by DATABASE_URL: nothing in this image needs writing.)
+RUN useradd --system --uid 10001 --no-create-home app
+USER app
 
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=20s \

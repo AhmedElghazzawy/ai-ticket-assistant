@@ -1,8 +1,6 @@
 """Demo mode: one click shows the staff console with sample tickets, never real visitors' data."""
 
 import json
-from contextlib import closing
-from pathlib import Path
 
 import pytest
 from fakes import fake_result
@@ -10,14 +8,9 @@ from fastapi.testclient import TestClient
 
 import api
 import auth
-from store import DEMO_PATH, connect
+from store import DEMO_PATH
 
 DEMO_COUNT = len(json.loads(DEMO_PATH.read_text(encoding="utf-8")))
-
-
-@pytest.fixture(autouse=True)
-def temporary_database(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(api, "DB_FILE", tmp_path / "test.db")
 
 
 @pytest.fixture
@@ -58,7 +51,7 @@ def test_demo_never_sees_real_tickets_and_staff_never_see_demo_tickets(
     assert number not in [t["id"] for t in demo.get("/api/staff/tickets").json()]
     assert demo.get(f"/api/staff/tickets/{number}").status_code == 404
 
-    with closing(connect(api.DB_FILE)) as db:
+    with api.database() as db:
         auth.create_staff(db, "admin@bilecik.edu.tr", "Admin", "admin", None, "a long password!")
     admin = browser()
     admin.post(
@@ -69,9 +62,10 @@ def test_demo_never_sees_real_tickets_and_staff_never_see_demo_tickets(
 
 def test_the_demo_account_cannot_be_used_with_a_password(demo_on: None) -> None:
     browser().post("/api/auth/demo")  # creates the demo account
-    with closing(connect(api.DB_FILE)) as db:
-        email = db.execute("SELECT email FROM staff WHERE demo = 1").fetchone()[0]
-        assert auth.authenticate(db, email, "", ip="1.2.3.4") is None
+    with api.database() as db:
+        row = db.execute("SELECT email FROM staff WHERE demo").fetchone()
+        assert row is not None
+        assert auth.authenticate(db, row["email"], "", ip="1.2.3.4") is None
 
 
 def test_each_demo_login_starts_fresh(demo_on: None) -> None:

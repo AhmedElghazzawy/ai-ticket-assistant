@@ -5,7 +5,6 @@ import os
 import subprocess
 import sys
 from collections.abc import MutableMapping
-from pathlib import Path
 from typing import Any, NoReturn
 
 import pytest
@@ -20,11 +19,6 @@ from llm import estimated_cost
 
 client = TestClient(api.app)
 SECRET = "Benim adım Ayşe Yılmaz, TC 12345678901, harç iade edilir mi?"  # personal data
-
-
-@pytest.fixture(autouse=True)
-def temporary_database(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(api, "DB_FILE", tmp_path / "test.db")
 
 
 def send(

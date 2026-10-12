@@ -124,10 +124,10 @@ Dev skoru yaklaşık 10 puan iyimserdi. Kaçırılan escalation testte de 0: kur
 
 ## İnsan inceleme kuyruğu (Phase 6)
 
-- Her talep `data/helpdesk.db` (SQLite) dosyasına kaydedilir; öğrenci bir talep numarası görür ("Talep no #12").
-- Personel panelindeki **İnceleme kuyruğu** sekmesi açık talepleri gösterir: önce acil olanlar, birime göre filtre, öğrencinin mesajı, neden otomatik gönderilmediği ve düzenlenebilir yapay zekâ taslağı; "İşlendi" düğmesi personelin son cevabını kaydeder.
-- Değerler SQL komutuna yapıştırılmaz, `?` yer tutucularıyla verilir (SQL injection'a karşı).
-- `data/helpdesk.db` öğrenci mesajları içerir (kişisel veri) ve `.gitignore` sayesinde GitHub'a yüklenmez.
+- Her talep Postgres veritabanına kaydedilir (yerelde Docker, üretimde Neon); öğrenci bir talep numarası görür ("Talep no #12").
+- Personel panelindeki **İnceleme kuyruğu** açık talepleri gösterir: önce acil olanlar, en uzun bekleyen önce; öğrencinin mesajı, neden otomatik gönderilmediği, yapay zekânın açıklaması ve düzenlenebilir, kaynaklı taslak. İki personel aynı anda cevap gönderirse yalnızca biri kaydedilir (tek bir atomik UPDATE).
+- Değerler SQL komutuna yapıştırılmaz, `%s` yer tutucularıyla ayrı gönderilir (SQL injection'a karşı).
+- Veritabanı öğrenci mesajları içerir (kişisel veri): adresi ve şifresi (`DATABASE_URL`) gizlidir, asla GitHub'a yüklenmez.
 
 ## Kapsam ve sınırlar (v1)
 
@@ -146,6 +146,7 @@ Gereken: Python 3.12, [uv](https://docs.astral.sh/uv/), Node.js 24 LTS ve bir Ge
 uv sync                       # .venv'i oluşturur ve uv.lock'taki tam sürümleri kurar
 cp .env.example .env          # sonra .env içine kendi API anahtarınızı yazın
 cd frontend && npm ci && cd .. # web arayüzünün kütüphaneleri (package-lock.json'daki tam sürümler)
+docker compose up -d db        # yerel Postgres 18 + pgvector (port 5433); testler ve uygulama bunu kullanır
 ```
 
 Geliştirme (iki terminal; sayfa her kayıtta kendini yeniler):
@@ -161,10 +162,10 @@ Tek sunucu (üretim gibi): `cd frontend && npm run build`, sonra `uv run uvicorn
 
 ```sh
 docker compose up --build     # sonra http://127.0.0.1:8000 açılır
-docker compose down           # durdurur (talepler bir Docker volume'da kalır)
+docker compose down           # durdurur (talepler Postgres'in Docker volume'unda kalır)
 ```
 
-İmaj iki aşamada oluşturulur: Node yalnızca web arayüzünü derler; son imajda sadece Python ve çalışma zamanı kütüphaneleri vardır (geliştirme araçları, Streamlit ve Node yok). Uygulama root olmayan bir kullanıcıyla çalışır, API anahtarı imajın içinde değildir (container başlarken `.env`'den okunur), port yalnızca bu bilgisayara açıktır. Veritabanı şeması sürümlüdür: eski bir veritabanı, verileri korunarak adım adım otomatik güncellenir (migration).
+İmaj iki aşamada oluşturulur: Node yalnızca web arayüzünü derler; son imajda sadece Python ve çalışma zamanı kütüphaneleri vardır (geliştirme araçları, Streamlit ve Node yok). Uygulama root olmayan bir kullanıcıyla çalışır, API anahtarı imajın içinde değildir (container başlarken `.env`'den okunur), port yalnızca bu bilgisayara açıktır. Veritabanı şeması sürümlüdür (`schema_migrations` tablosu): eski bir veritabanı, verileri korunarak adım adım otomatik güncellenir; aynı anda başlayan iki uygulama bir veritabanı kilidi sayesinde iki kez güncelleme yapmaz.
 
 **Loglar:** her istek ve her ticket için yapılandırılmış log (structured logging): aşama süreleri, token sayıları, tahmini maliyet (ücretli fiyatlarla), karar ve nedenleri, hepsi aynı `request_id` ile. `LOG_FORMAT=json` ile her satır bir JSON nesnesidir. Öğrencinin yazdığı metin **asla** loglanmaz (kişisel veri, KVKK), yalnızca uzunluğu; bunu bir test garanti eder.
 
@@ -191,7 +192,7 @@ uv run python src/evaluate_pipeline.py  # tüm sistem: hatalı otomatik gönderi
 Kod kalitesi kontrolleri (API çağrısı yok, birkaç saniye):
 
 ```sh
-uv run pytest                 # otomatik testler
+uv run pytest                 # otomatik testler (gerçek Postgres'te; her test kendi boş şemasında)
 uv run ruff check             # linter: hata kalıpları, import sırası, modern Python
 uv run ruff format --check    # kod biçimi
 uv run mypy                   # tip kontrolü (strict mod)
@@ -223,7 +224,7 @@ src/auth.py             Personel hesapları, şifreler (Argon2id), oturumlar, gi
 src/config.py           Ayarlar (pydantic-settings): .env'den okunur, başlangıçta kontrol edilir
 src/logs.py             Yapılandırılmış loglar (structlog): JSON satırları, request_id, kişisel veri yok
 Dockerfile, compose.yaml   Tek komutla çalıştırma (çok aşamalı imaj, root olmayan kullanıcı, veri volume'u)
-src/store.py            Talepleri SQLite veritabanına kaydeder (data/helpdesk.db, kişisel veri: GitHub'a yüklenmez)
+src/store.py            Talepleri Postgres'e kaydeder (psycopg, bağlantı havuzu, sürümlü şema/migration)
 src/app.py              Eski Streamlit paneli: genel bakış, veri seti, değerlendirme
 frontend/               Web arayüzü: React 19 + TypeScript + Vite, Tailwind CSS + shadcn/ui, TanStack Router + Query
 frontend/src/client/    API şemasından ÜRETİLEN tipler ve fonksiyonlar (elle değiştirilmez)
@@ -231,7 +232,6 @@ tools/export_openapi.py API şemasını frontend/openapi.json dosyasına yazar
 tools/add_staff.py      Personel hesabı oluşturur (gizli şifre girişi)
 tools/make_demo_tickets.py  Demo modunun örnek taleplerini veri setinden üretir
 render.yaml             Render dağıtımı (ücretsiz plan, Frankfurt)
-docker-entrypoint.sh    Hosting volume'larının sahipliğini düzeltir, uygulamayı root olmadan çalıştırır
 tests/                  pytest testleri (karar kuralları, ayarlar, depo, arama dizini, API)
 data/knowledge_base/    22 resmî kaynaklı belge (TR + EN)
 src/try_one_ticket.py   İlk API çağrısı testi (Step 1)

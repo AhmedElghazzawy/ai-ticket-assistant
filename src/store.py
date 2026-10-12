@@ -1,15 +1,20 @@
-"""Save every ticket in a small SQLite database, so forwarded tickets reach staff in the review queue.
+"""Save every ticket in Postgres, so forwarded tickets reach staff in the review queue.
 
-The database file holds student messages (personal data): it is in .gitignore and must never be committed.
+Postgres: locally in Docker (compose.yaml), in production Neon (free, EU). The database holds
+student messages (personal data): its address and password are secrets (DATABASE_URL), never in git.
 """
 
 import json
 import os
-import sqlite3
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
+import psycopg
+from psycopg.conninfo import make_conninfo
+from psycopg.rows import DictRow, dict_row
+from psycopg.types.json import Jsonb
+from psycopg_pool import ConnectionPool
 from pydantic import BaseModel
 
 from decision import OFFICE_OF, OfficeId, Reason
@@ -18,64 +23,68 @@ from tickets import Category, Language, Priority
 if TYPE_CHECKING:  # only for the type hint, so store.py does not load the AI pipeline
     from pipeline import TicketResult
 
-# HELPDESK_DB moves the database (Docker keeps it in a volume); read directly, like LOG_FORMAT,
-# so the store works without the API key.
+Connection = psycopg.Connection[DictRow]  # rows come back as dictionaries
+
+# Read directly, like LOG_FORMAT, so the store works without the API key. The default is the
+# local Docker database (compose.yaml); production sets DATABASE_URL to Neon's address.
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://helpdesk:local-only@127.0.0.1:5433/helpdesk")
+
 # The demo queue (tools/make_demo_tickets.py builds it from the dataset and its real results).
 DEMO_PATH = Path(__file__).resolve().parent.parent / "data" / "demo_tickets.json"
 
-DB_PATH = Path(
-    os.getenv("HELPDESK_DB") or Path(__file__).resolve().parent.parent / "data" / "helpdesk.db"
-)
-
-# Each step upgrades the database by one version, in order; a database at version N runs the
-# steps after N, each in one transaction. Existing data is kept. Never edit a released step:
-# add a new one. (Version 1 had no version number and only held test data: it is refused.)
+# Each step upgrades the database by one version, in order, each in one transaction. Existing data
+# is kept. Never edit a released step: add a new one. (The SQLite history ended at version 4;
+# Postgres is a new database, so its history starts again at 1.)
 MIGRATIONS: dict[int, str] = {
-    2: """CREATE TABLE tickets (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,  -- the ticket number shown to the student
-    created_at  TEXT NOT NULL,
+    1: """
+CREATE EXTENSION IF NOT EXISTS vector WITH SCHEMA public;  -- pgvector, for the knowledge-base search
+
+CREATE TABLE tickets (
+    id          BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,  -- the number shown to the student
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
     language    TEXT NOT NULL,
     text        TEXT NOT NULL,
     category    TEXT NOT NULL,
     priority    TEXT NOT NULL,
-    escalate    INTEGER NOT NULL,                   -- SQLite has no true/false: 1 or 0
+    escalate    BOOLEAN NOT NULL,
     ai_reason   TEXT NOT NULL,                      -- the model's own explanation of its labels
     office      TEXT NOT NULL,                      -- office ID: it, student_affairs, fees, sks, duty
-    auto_send   INTEGER NOT NULL,
-    reasons     TEXT NOT NULL,                      -- JSON list of reason codes: why it was not auto-sent
-    top_score   REAL NOT NULL,                      -- the best document match
+    auto_send   BOOLEAN NOT NULL,
+    reasons     JSONB NOT NULL,                     -- reason codes: why it was not auto-sent
+    top_score   DOUBLE PRECISION NOT NULL,          -- the best document match
     draft       TEXT NOT NULL,                      -- the AI's grounded draft (a starting point for staff)
-    covered     INTEGER NOT NULL,                   -- 1: the documents answer the ticket
-    sources     TEXT NOT NULL,                      -- JSON list of cited sources (id, title, section, url)
-    status      TEXT NOT NULL,                      -- 'auto_sent', 'open' or 'handled'
+    covered     BOOLEAN NOT NULL,                   -- the documents answer the ticket
+    sources     JSONB NOT NULL,                     -- cited sources (id, title, section, url)
+    status      TEXT NOT NULL CHECK (status IN ('auto_sent', 'open', 'handled')),
     final_reply TEXT,                               -- what staff decided to answer
-    handled_at  TEXT
+    handled_at  TIMESTAMPTZ,
+    demo        BOOLEAN NOT NULL DEFAULT false      -- a sample ticket for the demo
 );
-""",
-    3: """
+CREATE INDEX tickets_queue ON tickets (demo, status, office);
+
 CREATE TABLE staff (
-    id            INTEGER PRIMARY KEY AUTOINCREMENT,
-    email         TEXT NOT NULL UNIQUE COLLATE NOCASE,  -- NOCASE: Ayse@ and ayse@ are the same person
+    id            BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    email         TEXT NOT NULL,
     name          TEXT NOT NULL,
     role          TEXT NOT NULL CHECK (role IN ('staff', 'admin')),
-    office        TEXT,                                 -- office ID for staff; NULL for admins
-    password_hash TEXT NOT NULL,                        -- Argon2id, never the password itself
-    created_at    TEXT NOT NULL
+    office        TEXT,                             -- office ID for staff; NULL for admins
+    password_hash TEXT NOT NULL,                    -- Argon2id, never the password itself
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    demo          BOOLEAN NOT NULL DEFAULT false    -- the demo account
 );
+CREATE UNIQUE INDEX staff_email ON staff (lower(email));  -- Ayse@ and ayse@ are the same person
+
 CREATE TABLE sessions (
-    token_hash TEXT PRIMARY KEY,                        -- SHA-256 of the cookie value, never the value
-    staff_id   INTEGER NOT NULL REFERENCES staff(id) ON DELETE CASCADE,
-    expires_at TEXT NOT NULL
+    token_hash TEXT PRIMARY KEY,                    -- SHA-256 of the cookie value, never the value
+    staff_id   BIGINT NOT NULL REFERENCES staff (id) ON DELETE CASCADE,
+    expires_at TIMESTAMPTZ NOT NULL
 );
-CREATE TABLE failed_logins (                          -- for the login rate limit
-    key TEXT NOT NULL,                                  -- "email:..." or "ip:..."
-    at  TEXT NOT NULL
+
+CREATE TABLE failed_logins (                      -- for the login rate limit
+    key TEXT NOT NULL,                              -- "email:..." or "ip:..."
+    at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX failed_logins_by_key ON failed_logins (key, at);
-""",
-    4: """
-ALTER TABLE tickets ADD COLUMN demo INTEGER NOT NULL DEFAULT 0;  -- 1: sample ticket for the demo
-ALTER TABLE staff ADD COLUMN demo INTEGER NOT NULL DEFAULT 0;    -- 1: the demo account
 """,
 }
 SCHEMA_VERSION = max(MIGRATIONS)
@@ -94,7 +103,7 @@ class StoredTicket(BaseModel):
     """One row, checked by pydantic: a broken row fails here, not later on the page."""
 
     id: int
-    created_at: str
+    created_at: datetime
     language: Language
     text: str
     category: Category
@@ -110,34 +119,56 @@ class StoredTicket(BaseModel):
     sources: list[StoredSource]
     status: Status
     final_reply: str | None
-    handled_at: str | None
+    handled_at: datetime | None
     demo: bool  # a sample ticket for the demo: never mixed with real visitors' tickets
 
 
-def connect(db_path: Path = DB_PATH) -> sqlite3.Connection:
-    """Open the database: create it, or upgrade an older one step by step (keeping its data)."""
-    connection = sqlite3.connect(db_path)
-    connection.row_factory = sqlite3.Row
-    connection.execute("PRAGMA foreign_keys = ON")  # SQLite needs this for ON DELETE CASCADE
-    version = connection.execute("PRAGMA user_version").fetchone()[0]
-    has_tickets = connection.execute(
-        "SELECT 1 FROM sqlite_master WHERE name = 'tickets'"
-    ).fetchone()
-    if version == 0 and has_tickets:
-        connection.close()
-        raise RuntimeError(
-            f"{db_path.name} is from before schema versions and cannot be upgraded. "
-            "It only holds local test tickets: delete the file and it is created again."
+def migrate(connection: Connection) -> None:
+    """Bring the database up to SCHEMA_VERSION, keeping its data. Safe when several app
+    instances start at once: a database lock lets only one of them migrate."""
+    with connection.transaction():
+        connection.execute("SELECT pg_advisory_xact_lock(7316)")  # any fixed number: our lock
+        connection.execute(
+            "CREATE TABLE IF NOT EXISTS schema_migrations ("
+            " version INTEGER PRIMARY KEY, applied_at TIMESTAMPTZ NOT NULL DEFAULT now())"
         )
-    for step in sorted(n for n in MIGRATIONS if n > version):
-        # BEGIN ... COMMIT: a step that fails halfway changes nothing. The version number is
-        # our own constant, not user input.
-        connection.executescript(f"BEGIN; {MIGRATIONS[step]} PRAGMA user_version = {step}; COMMIT;")
+        row = connection.execute("SELECT max(version) AS version FROM schema_migrations").fetchone()
+        current = row["version"] if row and row["version"] is not None else 0
+        for step in sorted(n for n in MIGRATIONS if n > current):
+            connection.execute(MIGRATIONS[step])  # our own SQL, never user input
+            connection.execute("INSERT INTO schema_migrations (version) VALUES (%s)", (step,))
+
+
+def conninfo(url: str, schema: str | None) -> str:
+    """The connection string; with a schema, our tables live there (tests use a fresh one each)."""
+    return make_conninfo(url, options=f"-c search_path={schema},public") if schema else url
+
+
+def connect(url: str = DATABASE_URL, schema: str | None = None) -> Connection:
+    """One connection, upgraded to the current schema (for tools and tests; the API uses a pool)."""
+    connection = psycopg.connect(conninfo(url, schema), row_factory=dict_row, autocommit=True)
+    migrate(connection)
     return connection
 
 
+def open_pool(url: str = DATABASE_URL, schema: str | None = None) -> ConnectionPool[Connection]:
+    """A few connections kept open and reused: much faster than one new connection per request,
+    especially to a cloud database (a new encrypted connection takes a while)."""
+    pool: ConnectionPool[Connection] = ConnectionPool(
+        conninfo(url, schema),
+        connection_class=psycopg.Connection[DictRow],
+        kwargs={"row_factory": dict_row, "autocommit": True},
+        min_size=1,
+        max_size=5,
+        open=True,
+    )
+    with pool.connection() as connection:
+        migrate(connection)
+    return pool
+
+
 def save_ticket(
-    connection: sqlite3.Connection, text: str, language: Language, result: "TicketResult"
+    connection: Connection, text: str, language: Language, result: "TicketResult"
 ) -> int:
     """Store one processed ticket and return its number. Auto-sent tickets are stored too (for statistics)."""
     c, decision, answer = result.classification, result.decision, result.answer
@@ -147,40 +178,30 @@ def save_ticket(
         for i in answer.sources
         if i in cited  # a cited id that was never retrieved is not shown (the decision flags it)
     ]
-    cursor = connection.execute(
-        "INSERT INTO tickets (created_at, language, text, category, priority, escalate, ai_reason,"
-        " office, auto_send, reasons, top_score, draft, covered, sources, status)"
-        " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    row = connection.execute(
+        "INSERT INTO tickets (language, text, category, priority, escalate, ai_reason, office,"
+        " auto_send, reasons, top_score, draft, covered, sources, status)"
+        " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id",
         (
-            datetime.now(UTC).isoformat(timespec="seconds"),
             language,
             text,
             c.category,
             c.priority,
-            int(c.escalate),
+            c.escalate,
             c.reason,
             OFFICE_OF[c.category],
-            int(decision.auto_send),
-            json.dumps([reason.model_dump() for reason in decision.reasons]),
+            decision.auto_send,
+            Jsonb([reason.model_dump() for reason in decision.reasons]),
             result.hits[0][0] if result.hits else 0.0,
             answer.reply,
-            int(answer.covered),
-            json.dumps([source.model_dump() for source in sources], ensure_ascii=False),
+            answer.covered,
+            Jsonb([source.model_dump() for source in sources]),
             "auto_sent" if decision.auto_send else "open",
         ),
-    )  # the ? placeholders let SQLite insert the values safely (no SQL injection)
-    connection.commit()
-    if cursor.lastrowid is None:  # always set after an INSERT; checked so the type is a plain int
-        raise RuntimeError("SQLite did not return the new ticket number.")
-    return cursor.lastrowid
-
-
-def to_ticket(row: sqlite3.Row) -> StoredTicket:
-    """A database row as a checked StoredTicket (JSON columns parsed)."""
-    values = dict(row)
-    values["reasons"] = json.loads(values["reasons"])
-    values["sources"] = json.loads(values["sources"])
-    return StoredTicket.model_validate(values)
+    ).fetchone()  # %s placeholders: psycopg sends the values separately (no SQL injection)
+    if row is None:  # RETURNING always gives the new row; checked so the type is a plain int
+        raise RuntimeError("Postgres did not return the new ticket number.")
+    return int(row["id"])
 
 
 PRIORITY_ORDER = (
@@ -188,80 +209,80 @@ PRIORITY_ORDER = (
 )
 
 
-def count_tickets_since(connection: sqlite3.Connection, since: datetime) -> int:
+def count_tickets_since(connection: Connection, since: datetime) -> int:
     """How many real (not demo) tickets arrived since this time (for the daily cap)."""
     row = connection.execute(
-        "SELECT count(*) FROM tickets WHERE demo = 0 AND created_at >= ?",
-        (since.isoformat(timespec="seconds"),),
+        "SELECT count(*) AS n FROM tickets WHERE NOT demo AND created_at >= %s", (since,)
     ).fetchone()
-    return int(row[0])
+    return int(row["n"]) if row else 0
 
 
 def list_tickets(
-    connection: sqlite3.Connection,
-    status: Status,
-    office: OfficeId | None = None,
-    demo: bool = False,
+    connection: Connection, status: Status, office: OfficeId | None = None, demo: bool = False
 ) -> list[StoredTicket]:
     """Tickets with this status (only this office's, if given; real or demo, never both),
-    most urgent first, then oldest."""
+    most urgent first, then the longest wait first."""
     rows = connection.execute(
-        f"SELECT * FROM tickets WHERE status = ? AND (? IS NULL OR office = ?) AND demo = ?"
-        f" ORDER BY {PRIORITY_ORDER}, created_at, id",  # the longest wait first
-        (status, office, office, int(demo)),
+        "SELECT * FROM tickets"
+        " WHERE status = %s AND (%s::text IS NULL OR office = %s) AND demo = %s"
+        f" ORDER BY {PRIORITY_ORDER}, created_at, id",  # our own constant, not user input
+        (status, office, office, demo),
     ).fetchall()
-    return [to_ticket(row) for row in rows]
+    return [StoredTicket.model_validate(row) for row in rows]
 
 
-def get_ticket(connection: sqlite3.Connection, ticket_id: int) -> StoredTicket | None:
+def get_ticket(connection: Connection, ticket_id: int) -> StoredTicket | None:
     """One ticket, or None if the number does not exist."""
-    row = connection.execute("SELECT * FROM tickets WHERE id = ?", (ticket_id,)).fetchone()
-    return to_ticket(row) if row else None
+    row = connection.execute("SELECT * FROM tickets WHERE id = %s", (ticket_id,)).fetchone()
+    return StoredTicket.model_validate(row) if row else None
 
 
-def mark_handled(connection: sqlite3.Connection, ticket_id: int, final_reply: str) -> None:
-    """Staff finished this ticket: save their final reply and the time."""
-    connection.execute(
-        "UPDATE tickets SET status = 'handled', final_reply = ?, handled_at = ? WHERE id = ?",
-        (final_reply, datetime.now(UTC).isoformat(timespec="seconds"), ticket_id),
-    )
-    connection.commit()
+def mark_handled(connection: Connection, ticket_id: int, final_reply: str) -> bool:
+    """Staff finished this ticket. Returns False if it was not open any more. One atomic UPDATE:
+    if two staff members send at the same moment, exactly one of them wins."""
+    row = connection.execute(
+        "UPDATE tickets SET status = 'handled', final_reply = %s, handled_at = now()"
+        " WHERE id = %s AND status = 'open' RETURNING id",
+        (final_reply, ticket_id),
+    ).fetchone()
+    return row is not None
 
 
-def reassign(connection: sqlite3.Connection, ticket_id: int, office: OfficeId) -> None:
+def reassign(connection: Connection, ticket_id: int, office: OfficeId) -> None:
     """Staff moved the ticket to another office."""
-    connection.execute("UPDATE tickets SET office = ? WHERE id = ?", (office, ticket_id))
-    connection.commit()
+    connection.execute("UPDATE tickets SET office = %s WHERE id = %s", (office, ticket_id))
 
 
-def reset_demo_tickets(connection: sqlite3.Connection) -> int:
+def reset_demo_tickets(connection: Connection) -> int:
     """Put the demo queue back to its starting state (every demo login gets a fresh queue).
-    Only rows with demo = 1 are touched: real tickets are never changed."""
-    samples = json.loads(DEMO_PATH.read_text(encoding="utf-8"))
+    Only demo rows are touched: real tickets are never changed."""
+    samples: list[dict[str, Any]] = json.loads(DEMO_PATH.read_text(encoding="utf-8"))
     now = datetime.now(UTC)
-    with connection:  # one transaction: the demo queue is never half-reset
-        connection.execute("DELETE FROM tickets WHERE demo = 1")
-        connection.executemany(
-            "INSERT INTO tickets (created_at, language, text, category, priority, escalate,"
-            " ai_reason, office, auto_send, reasons, top_score, draft, covered, sources, status, demo)"
-            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, 'open', 1)",
-            [
-                (
-                    (now - timedelta(minutes=t["age_minutes"])).isoformat(timespec="seconds"),
-                    t["language"],
-                    t["text"],
-                    t["category"],
-                    t["priority"],
-                    int(t["escalate"]),
-                    t["ai_reason"],
-                    t["office"],
-                    json.dumps(t["reasons"]),
-                    t["top_score"],
-                    t["draft"],
-                    int(t["covered"]),
-                    json.dumps(t["sources"], ensure_ascii=False),
-                )
-                for t in samples
-            ],
-        )
+    with connection.transaction():  # one transaction: the demo queue is never half-reset
+        connection.execute("DELETE FROM tickets WHERE demo")
+        with connection.cursor() as cursor:
+            cursor.executemany(
+                "INSERT INTO tickets (created_at, language, text, category, priority, escalate,"
+                " ai_reason, office, auto_send, reasons, top_score, draft, covered, sources,"
+                " status, demo)"
+                " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, false, %s, %s, %s, %s, %s, 'open', true)",
+                [
+                    (
+                        now - timedelta(minutes=t["age_minutes"]),
+                        t["language"],
+                        t["text"],
+                        t["category"],
+                        t["priority"],
+                        t["escalate"],
+                        t["ai_reason"],
+                        t["office"],
+                        Jsonb(t["reasons"]),
+                        t["top_score"],
+                        t["draft"],
+                        t["covered"],
+                        Jsonb(t["sources"]),
+                    )
+                    for t in samples
+                ],
+            )
     return len(samples)

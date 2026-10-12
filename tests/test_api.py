@@ -1,6 +1,5 @@
 """Tests for the web API. The real pipeline is replaced by a fake one, so no Gemini calls are made."""
 
-from contextlib import closing
 from pathlib import Path
 from typing import NoReturn
 
@@ -14,15 +13,8 @@ import auth
 from auth import Role
 from decision import OfficeId
 from pipeline import TicketResult
-from store import connect
 
 client = TestClient(api.app)
-
-
-@pytest.fixture(autouse=True)
-def temporary_database(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """Every API test writes to its own temporary database, never to the real one."""
-    monkeypatch.setattr(api, "DB_FILE", tmp_path / "test.db")
 
 
 def ask(text: str = "Harç iade edilir mi?", language: str = "tr") -> httpx2.Response:
@@ -123,7 +115,7 @@ PASSWORD = "correct horse battery"
 def staff_client(role: Role = "admin", office: OfficeId | None = None) -> TestClient:
     """A browser logged in as a new staff member (https, so the Secure cookie is sent back)."""
     email = f"{role}-{office}@bilecik.edu.tr"
-    with closing(connect(api.DB_FILE)) as db:
+    with api.database() as db:
         auth.create_staff(db, email, "Test", role, office, PASSWORD)
     browser = TestClient(api.app, base_url="https://testserver")
     assert browser.post("/api/auth/login", json={"email": email, "password": PASSWORD}).is_success

@@ -10,16 +10,16 @@ import time
 import uuid
 from collections import defaultdict, deque
 from collections.abc import Awaitable, Callable, Iterator
-from contextlib import closing, contextmanager
+from contextlib import contextmanager
 from datetime import UTC, datetime
 from pathlib import Path
-from sqlite3 import Connection
 from typing import Annotated, Literal
 from urllib.parse import urlparse
 
 import structlog
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, Response
+from psycopg_pool import ConnectionPool
 from pydantic import BaseModel, Field
 
 import auth
@@ -29,15 +29,16 @@ from logs import configure, get_logger
 from pipeline import process_ticket
 from retrieval import load_index
 from store import (
-    DB_PATH,
+    DATABASE_URL,
+    Connection,
     Status,
     StoredSource,
     StoredTicket,
-    connect,
     count_tickets_since,
     get_ticket,
     list_tickets,
     mark_handled,
+    open_pool,
     reassign,
     reset_demo_tickets,
     save_ticket,
@@ -49,7 +50,8 @@ logger = get_logger(__name__)
 # The built React app (cd frontend && npm run build). FastAPI serves it, so one server runs everything.
 DIST_DIR = Path(__file__).resolve().parent.parent / "frontend" / "dist"
 INDEX = load_index()  # the knowledge-base vectors, loaded once when the server starts
-DB_FILE = DB_PATH  # the ticket database (tests point this to a temporary file)
+pool: ConnectionPool[Connection] | None = None  # opened on first use (tests replace it)
+pool_lock = threading.Lock()
 
 app = FastAPI(
     title="BŞEÜ Helpdesk Assistant",
@@ -87,8 +89,12 @@ async def log_requests(
 
 @contextmanager
 def database() -> Iterator[Connection]:
-    """One short connection per request (requests run on different threads)."""
-    with closing(connect(DB_FILE)) as connection:
+    """A connection from the pool for one request, given back afterwards."""
+    global pool
+    with pool_lock:  # two first requests at the same moment must not open two pools
+        if pool is None:  # first request: open the pool (and bring the schema up to date)
+            pool = open_pool(DATABASE_URL)
+    with pool.connection() as connection:
         yield connection
 
 
@@ -384,9 +390,9 @@ def staff_get(ticket_id: int, staff_member: CurrentStaff) -> StoredTicket:
 def staff_reply(ticket_id: int, body: ReplyIn, staff_member: CurrentStaff) -> StoredTicket:
     """Send the staff reply and close the ticket. 409 if someone already handled it."""
     with database() as db:
-        if visible(get_ticket(db, ticket_id), staff_member).status != "open":
+        visible(get_ticket(db, ticket_id), staff_member)
+        if not mark_handled(db, ticket_id, body.reply.strip()):  # atomic: only one sender wins
             raise HTTPException(status_code=409, detail="This ticket is already handled.")
-        mark_handled(db, ticket_id, body.reply.strip())
         logger.info(
             "staff_reply",
             ticket_id=ticket_id,

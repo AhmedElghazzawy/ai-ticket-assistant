@@ -218,6 +218,7 @@
             "type": "boolean"
           },
           "created_at": {
+            "format": "date-time",
             "title": "Created At",
             "type": "string"
           },
@@ -247,6 +248,7 @@
           "handled_at": {
             "anyOf": [
               {
+                "format": "date-time",
                 "type": "string"
               },
               {

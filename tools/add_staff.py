@@ -33,7 +33,7 @@ def main() -> None:
     password = getpass("Password (at least 12 characters): ")
     if getpass("Again: ") != password:
         sys.exit("The two passwords differ.")
-    with closing(store.connect(store.DB_PATH)) as db:  # HELPDESK_DB in Docker
+    with closing(store.connect()) as db:  # DATABASE_URL: local Docker, or Neon in production
         try:
             role: auth.Role = "admin" if args.admin else "staff"
             auth.create_staff(db, args.email, args.name, role, args.office, password)

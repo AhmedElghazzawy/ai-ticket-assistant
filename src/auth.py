@@ -7,15 +7,16 @@ database does not contain working sessions. Sessions can be ended at once (logou
 
 import hashlib
 import secrets
-import sqlite3
 from datetime import UTC, datetime, timedelta
 from typing import Literal
 
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
+from psycopg.errors import UniqueViolation
 from pydantic import BaseModel
 
 from decision import OfficeId
+from store import Connection
 
 Role = Literal["staff", "admin"]
 
@@ -49,7 +50,7 @@ def now() -> datetime:
 
 
 def create_staff(
-    connection: sqlite3.Connection,
+    connection: Connection,
     email: str,
     name: str,
     role: Role,
@@ -62,30 +63,27 @@ def create_staff(
     if len(password) < MIN_PASSWORD_LENGTH:
         raise ValueError(f"The password must have at least {MIN_PASSWORD_LENGTH} characters.")
     try:
-        cursor = connection.execute(
-            "INSERT INTO staff (email, name, role, office, password_hash, created_at)"
-            " VALUES (?, ?, ?, ?, ?, ?)",
-            (email.strip(), name, role, office, hasher.hash(password), now().isoformat()),
-        )
-    except sqlite3.IntegrityError as error:  # UNIQUE ... COLLATE NOCASE
+        row = connection.execute(
+            "INSERT INTO staff (email, name, role, office, password_hash)"
+            " VALUES (%s, %s, %s, %s, %s) RETURNING id",
+            (email.strip(), name, role, office, hasher.hash(password)),
+        ).fetchone()
+    except UniqueViolation as error:  # the unique index on lower(email)
         raise ValueError(f"{email} already has an account.") from error
-    connection.commit()
-    if cursor.lastrowid is None:  # always set after an INSERT; checked so the type is a plain int
-        raise RuntimeError("SQLite did not return the new staff id.")
-    return cursor.lastrowid
+    if row is None:  # RETURNING always gives the new row; checked so the type is a plain int
+        raise RuntimeError("Postgres did not return the new staff id.")
+    return int(row["id"])
 
 
-def recent_failures(connection: sqlite3.Connection, key: str) -> int:
-    since = (now() - FAILURE_WINDOW).isoformat()
+def recent_failures(connection: Connection, key: str) -> int:
     row = connection.execute(
-        "SELECT count(*) FROM failed_logins WHERE key = ? AND at > ?", (key, since)
+        "SELECT count(*) AS n FROM failed_logins WHERE key = %s AND at > %s",
+        (key, now() - FAILURE_WINDOW),
     ).fetchone()
-    return int(row[0])
+    return int(row["n"]) if row else 0
 
 
-def authenticate(
-    connection: sqlite3.Connection, email: str, password: str, ip: str
-) -> Staff | None:
+def authenticate(connection: Connection, email: str, password: str, ip: str) -> Staff | None:
     """The staff member if email and password match, else None. Raises TooManyAttempts first if
     this account or this address failed too often recently (even the right password waits)."""
     email_key, ip_key = f"email:{email.strip().lower()}", f"ip:{ip}"
@@ -94,67 +92,63 @@ def authenticate(
         or recent_failures(connection, ip_key) >= MAX_FAILURES_PER_IP
     ):
         raise TooManyAttempts
-    row = connection.execute("SELECT * FROM staff WHERE email = ?", (email.strip(),)).fetchone()
+    row = connection.execute(
+        "SELECT * FROM staff WHERE lower(email) = lower(%s)", (email.strip(),)
+    ).fetchone()
     try:
         hasher.verify(row["password_hash"] if row else DUMMY_HASH, password)
         ok = row is not None
     except VerifyMismatchError:
         ok = False
     if not ok:
-        connection.executemany(
-            "INSERT INTO failed_logins (key, at) VALUES (?, ?)",
-            [(email_key, now().isoformat()), (ip_key, now().isoformat())],
-        )
-        connection.commit()
+        with connection.cursor() as cursor:
+            cursor.executemany(
+                "INSERT INTO failed_logins (key) VALUES (%s)", [(email_key,), (ip_key,)]
+            )
         return None
-    return Staff.model_validate(dict(row))
+    return Staff.model_validate(row)
 
 
 def token_hash(token: str) -> str:
     return hashlib.sha256(token.encode()).hexdigest()
 
 
-def create_session(connection: sqlite3.Connection, staff_id: int) -> str:
+def create_session(connection: Connection, staff_id: int) -> str:
     """A new login session; returns the token for the cookie (only its hash is stored)."""
     token = secrets.token_urlsafe(32)  # 256 random bits: impossible to guess
-    expires = (now() + timedelta(hours=SESSION_HOURS)).isoformat()
     connection.execute(
-        "INSERT INTO sessions (token_hash, staff_id, expires_at) VALUES (?, ?, ?)",
-        (token_hash(token), staff_id, expires),
+        "INSERT INTO sessions (token_hash, staff_id, expires_at) VALUES (%s, %s, %s)",
+        (token_hash(token), staff_id, now() + timedelta(hours=SESSION_HOURS)),
     )
-    connection.commit()
     return token
 
 
-def staff_for_session(connection: sqlite3.Connection, token: str) -> Staff | None:
+def staff_for_session(connection: Connection, token: str) -> Staff | None:
     """The logged-in staff member, or None if the token is unknown or expired."""
     row = connection.execute(
         "SELECT staff.* FROM sessions JOIN staff ON staff.id = sessions.staff_id"
-        " WHERE sessions.token_hash = ? AND sessions.expires_at > ?",
-        (token_hash(token), now().isoformat()),
+        " WHERE sessions.token_hash = %s AND sessions.expires_at > now()",
+        (token_hash(token),),
     ).fetchone()
-    return Staff.model_validate(dict(row)) if row else None
+    return Staff.model_validate(row) if row else None
 
 
-def end_session(connection: sqlite3.Connection, token: str) -> None:
+def end_session(connection: Connection, token: str) -> None:
     """Logout: the token stops working at once."""
-    connection.execute("DELETE FROM sessions WHERE token_hash = ?", (token_hash(token),))
-    connection.commit()
+    connection.execute("DELETE FROM sessions WHERE token_hash = %s", (token_hash(token),))
 
 
 DEMO_EMAIL = "demo@demo.invalid"  # .invalid is reserved: it can never be a real address
 
 
-def demo_account(connection: sqlite3.Connection) -> Staff:
+def demo_account(connection: Connection) -> Staff:
     """The demo staff member (created on first use). Its password is random and thrown away,
     so the account can only be entered through the demo button, never with a password."""
-    row = connection.execute("SELECT * FROM staff WHERE demo = 1").fetchone()
+    row = connection.execute("SELECT * FROM staff WHERE demo").fetchone()
     if row is None:
-        connection.execute(
-            "INSERT INTO staff (email, name, role, office, password_hash, created_at, demo)"
-            " VALUES (?, ?, 'admin', NULL, ?, ?, 1)",
-            (DEMO_EMAIL, "Demo", hasher.hash(secrets.token_urlsafe(32)), now().isoformat()),
-        )
-        connection.commit()
-        row = connection.execute("SELECT * FROM staff WHERE demo = 1").fetchone()
-    return Staff.model_validate(dict(row))
+        row = connection.execute(
+            "INSERT INTO staff (email, name, role, office, password_hash, demo)"
+            " VALUES (%s, 'Demo', 'admin', NULL, %s, true) RETURNING *",
+            (DEMO_EMAIL, hasher.hash(secrets.token_urlsafe(32))),
+        ).fetchone()
+    return Staff.model_validate(row)
