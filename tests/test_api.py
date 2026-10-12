@@ -13,6 +13,7 @@ import api
 import auth
 from auth import Role
 from decision import OfficeId
+from pipeline import TicketResult
 from store import connect
 
 client = TestClient(api.app)
@@ -252,3 +253,49 @@ def test_reassign_accepts_only_real_offices(monkeypatch: pytest.MonkeyPatch) -> 
 def test_health_check_answers_ok() -> None:
     response = client.get("/api/health")
     assert response.status_code == 200 and response.json() == {"status": "ok"}
+
+
+# ---------------------------------------------------------------- abuse protection
+
+
+@pytest.fixture
+def fresh_limits(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A fake, cheap pipeline (conftest.py already gives every test empty counters)."""
+    monkeypatch.setattr(api, "process_ticket", lambda *args: fake_result(auto_send=False))
+
+
+def test_one_visitor_gets_at_most_5_tickets_a_minute(fresh_limits: None) -> None:
+    codes = [ask().status_code for _ in range(6)]
+    assert codes == [200] * 5 + [429]
+
+
+def test_the_limit_is_per_visitor(fresh_limits: None) -> None:
+    for _ in range(5):
+        ask()
+    other = TestClient(api.app, client=("203.0.113.9", 50000))  # another visitor
+    assert other.post("/api/tickets", json={"text": "Merhaba", "language": "tr"}).is_success
+
+
+def test_the_whole_system_has_a_daily_cap(
+    fresh_limits: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(api, "DAILY_TICKET_CAP", 2)
+    visitors = [TestClient(api.app, client=(f"203.0.113.{n}", 50000)) for n in range(3)]
+    body = {"text": "Merhaba", "language": "tr"}
+    codes = [v.post("/api/tickets", json=body).status_code for v in visitors]
+    assert codes == [200, 200, 429]  # different visitors, same daily ceiling
+
+
+def test_a_blocked_request_costs_nothing(
+    fresh_limits: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls: list[int] = []
+
+    def counting_pipeline(*args: object) -> TicketResult:
+        calls.append(1)
+        return fake_result(auto_send=False)
+
+    monkeypatch.setattr(api, "process_ticket", counting_pipeline)
+    for _ in range(7):
+        ask()
+    assert len(calls) == 5  # the pipeline (Gemini) never ran for the refused requests

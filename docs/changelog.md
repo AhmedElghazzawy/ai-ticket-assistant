@@ -1267,3 +1267,21 @@ Staff pages show student messages. Until now they only answered requests from th
 - Second run: logged-out /staff/tickets/1 -> login with redirect, wrong password -> "E-posta veya şifre hatalı.", login -> back to /staff/tickets/1; IT staff queue shows only #1, no office filter; #2 (fees) -> "not found"; expired session (set in the database) -> login; admin sees 2 tickets and the office filter; logout -> /staff goes to login; redirect=https://evil.example -> stays on our /staff (checked precisely after a first, ambiguous check). No page errors.
 - Docker: rebuilt; healthy; database migrated (v2 -> v3, ticket kept); an admin created inside the container; staff API 401 without login, 200 with the session cookie. Deleted that test admin afterwards (its password is in this conversation); its session was deleted with it (ON DELETE CASCADE works).
 - README (Turkish): staff accounts, the security paragraph (replaces the "local only" note), migrations, file list. .env.example: COOKIE_SECURE.
+- Commit and push: `37aaec6` Staff login. CI: all three jobs green.
+
+# Deployment prep 1: hosting research and abuse protection (2026-10-12)
+
+## Hosting research (official pages to be confirmed before paying; some sources disagree)
+- Fly.io: shared-cpu-1x 512 MB about $3.69/month, volumes $0.15/GB/month (official docs), Frankfurt maybe slightly more; runs our Docker image, volume for SQLite, automatic HTTPS, EU region.
+- Render: ~$7 + $0.25/GB disk; the free tier cannot attach a disk (database lost on restart).
+- Railway: $5 minimum including $5 usage; EU on the Hobby plan unclear.
+- Azure for Students (GitHub Student Pack): $100 credit, no card, but SQLite on its network file shares is unreliable (would push Postgres earlier).
+- Recommendation: Fly.io Frankfurt (cheapest real option, same image as CI, HTTPS, EU data). Account and payment are my decision.
+
+## Abuse protection (needed before any public link)
+- Problem: anyone on the internet could send unlimited tickets, each ~3 Gemini calls: a bot could burn the free quota or run up a bill.
+- Per visitor: at most 5 tickets per minute and 30 per day (RateLimiter in api.py, in memory only: an IP address is personal data, never written to disk or logs; a lock because requests run on several threads; resets on restart and works for one server, written down). Whole system: DAILY_TICKET_CAP (default 300 per UTC day, from the tickets table) -> worst case ~$2.20 a day at paid prices.
+- Both checks run BEFORE the pipeline (a FastAPI dependency), so a refused request costs nothing. Log events visitor_rate_limited (never the address) and daily_cap_reached.
+- Tests first (4, seen failing): 6th ticket in a minute -> 429; the limit is per visitor; the daily cap stops different visitors; refused requests never reach the pipeline. tests/conftest.py (new): every test starts with fresh counters (the existing tests would otherwise have limited each other). mypy flagged a "clever" one-liner in my test (`calls.append(1) or ...`); rewritten as a plain function. 74 tests pass.
+- Chat: a 429 shows "Kısa sürede çok fazla soru gönderdiniz. Lütfen bir dakika bekleyin." (each turn keeps its own error message); checked in a real browser with Playwright request interception (the browser pretends the server answered 429 / 503: no Gemini cost); the composer stays usable.
+- For deployment (noted now): behind a host's proxy every request seems to come from the proxy, so all visitors would share one counter (and one login limit). uvicorn must trust the proxy's X-Forwarded-For (FORWARDED_ALLOW_IPS) in the host's config; to verify for real when deploying.

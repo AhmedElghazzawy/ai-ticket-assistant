@@ -180,6 +180,14 @@ PRIORITY_ORDER = (
 )
 
 
+def count_tickets_since(connection: sqlite3.Connection, since: datetime) -> int:
+    """How many tickets arrived since this time (for the daily cap)."""
+    row = connection.execute(
+        "SELECT count(*) FROM tickets WHERE created_at >= ?", (since.isoformat(timespec="seconds"),)
+    ).fetchone()
+    return int(row[0])
+
+
 def list_tickets(
     connection: sqlite3.Connection, status: Status, office: OfficeId | None = None
 ) -> list[StoredTicket]:

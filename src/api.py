@@ -5,10 +5,13 @@ Run: uv run uvicorn api:app --app-dir src     then open http://127.0.0.1:8000
 
 import os
 import re
+import threading
 import time
 import uuid
+from collections import defaultdict, deque
 from collections.abc import Awaitable, Callable, Iterator
 from contextlib import closing, contextmanager
+from datetime import UTC, datetime
 from pathlib import Path
 from sqlite3 import Connection
 from typing import Annotated, Literal
@@ -31,6 +34,7 @@ from store import (
     StoredSource,
     StoredTicket,
     connect,
+    count_tickets_since,
     get_ticket,
     list_tickets,
     mark_handled,
@@ -107,13 +111,57 @@ class TicketOut(BaseModel):
     emergency: bool  # show the 112 line (urgent and escalated)
 
 
+class RateLimiter:
+    """Per-visitor limits, counted in memory only: an IP address is personal data, so it is never
+    written to disk or logs. Resets on restart and works for one server: fine for our single
+    machine (several servers would need a shared counter, e.g. Redis)."""
+
+    def __init__(self, limits: tuple[tuple[int, float], ...] = ((5, 60.0), (30, 86_400.0))):
+        self.limits = limits  # (how many, within how many seconds)
+        self.seen: defaultdict[str, deque[float]] = defaultdict(deque)
+        self.lock = threading.Lock()  # requests run on several threads at once
+
+    def allow(self, visitor: str) -> bool:
+        now = time.monotonic()
+        longest = max(window for _, window in self.limits)
+        with self.lock:
+            times = self.seen[visitor]
+            while times and now - times[0] > longest:  # forget what is too old to matter
+                times.popleft()
+            if any(sum(now - t < window for t in times) >= most for most, window in self.limits):
+                return False
+            times.append(now)
+            return True
+
+
+ticket_limiter = RateLimiter()
+# The whole system's ceiling per day (UTC): at ~$0.0074 per ticket, 300 tickets cost at most
+# ~$2.20 a day at paid prices, whatever bots do.
+DAILY_TICKET_CAP = int(os.getenv("DAILY_TICKET_CAP", "300"))
+
+
+def check_ticket_limits(request: Request) -> None:
+    """Runs BEFORE the pipeline, so a refused request never costs a Gemini call."""
+    midnight = datetime.now(UTC).replace(hour=0, minute=0, second=0, microsecond=0)
+    with database() as db:
+        if count_tickets_since(db, midnight) >= DAILY_TICKET_CAP:
+            logger.warning("daily_cap_reached", cap=DAILY_TICKET_CAP)
+            raise HTTPException(
+                status_code=429, detail="The assistant is busy today. Try tomorrow."
+            )
+    visitor = request.client.host if request.client else "unknown"
+    if not ticket_limiter.allow(visitor):
+        logger.info("visitor_rate_limited")  # never the address itself
+        raise HTTPException(status_code=429, detail="Too many questions. Please wait a minute.")
+
+
 @app.get("/api/health")
 def health() -> dict[str, str]:
     """For Docker and hosting services: the app is up and answering."""
     return {"status": "ok"}
 
 
-@app.post("/api/tickets")
+@app.post("/api/tickets", dependencies=[Depends(check_ticket_limits)])
 def create_ticket(ticket: TicketIn) -> TicketOut:
     """Run the whole pipeline for one student message."""
     try:

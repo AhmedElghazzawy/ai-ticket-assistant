@@ -13,14 +13,14 @@ interface Turn {
   id: number;
   question: string;
   result?: TicketOut; // undefined while the pipeline is working
-  failed?: boolean;
+  error?: string; // shown instead of an answer
 }
 
 export function ChatPage() {
   const { language, t } = usePreferences();
   const [turns, setTurns] = useState<Turn[]>([]);
   const bottom = useRef<HTMLDivElement>(null);
-  const busy = turns.some((turn) => !turn.result && !turn.failed);
+  const busy = turns.some((turn) => !turn.result && !turn.error);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: scroll whenever the conversation changes
   useEffect(() => {
@@ -30,16 +30,16 @@ export function ChatPage() {
   async function ask(question: string) {
     const id = Date.now();
     setTurns((current) => [...current, { id, question }]);
-    try {
-      const { data: result } = await createTicket({
-        body: { text: question, language },
-        throwOnError: true, // network or server errors land in the catch below
-      });
-      setTurns((current) => current.map((turn) => (turn.id === id ? { ...turn, result } : turn)));
-    } catch {
+    const update = (change: Partial<Turn>) =>
       setTurns((current) =>
-        current.map((turn) => (turn.id === id ? { ...turn, failed: true } : turn)),
+        current.map((turn) => (turn.id === id ? { ...turn, ...change } : turn)),
       );
+    try {
+      const { data, response } = await createTicket({ body: { text: question, language } });
+      if (data) update({ result: data });
+      else update({ error: response?.status === 429 ? t.tooMany : t.error }); // 429: rate limit
+    } catch {
+      update({ error: t.error }); // the network itself failed
     }
   }
 
@@ -59,12 +59,12 @@ export function ChatPage() {
                   </p>
                 </div>
                 {turn.result && <AnswerCard result={turn.result} />}
-                {turn.failed && (
+                {turn.error && (
                   <p className="flex items-center gap-2 text-sm text-destructive">
-                    <CircleAlert className="size-4" /> {t.error}
+                    <CircleAlert className="size-4" /> {turn.error}
                   </p>
                 )}
-                {!turn.result && !turn.failed && <Thinking />}
+                {!turn.result && !turn.error && <Thinking />}
               </div>
             ))}
             <div ref={bottom} />

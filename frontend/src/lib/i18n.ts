@@ -31,6 +31,7 @@ const tr = {
   helpful: "Bu cevap işinize yaradı mı?",
   newChat: "Yeni talep",
   error: "Şu anda cevap veremiyoruz. Lütfen biraz sonra tekrar deneyin.",
+  tooMany: "Kısa sürede çok fazla soru gönderdiniz. Lütfen bir dakika bekleyin.",
   staff: {
     console: "Personel Paneli",
     queue: "İnceleme kuyruğu",
@@ -143,6 +144,7 @@ const en: Texts = {
   helpful: "Was this answer helpful?",
   newChat: "New request",
   error: "We can't answer right now. Please try again in a moment.",
+  tooMany: "You sent many questions in a short time. Please wait a minute.",
   staff: {
     console: "Staff Console",
     queue: "Review queue",
