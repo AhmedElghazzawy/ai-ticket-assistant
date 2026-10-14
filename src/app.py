@@ -5,11 +5,13 @@ from pathlib import Path
 from typing import Any
 
 import streamlit as st
+from psycopg_pool import ConnectionPool
 
 from config import get_settings
 from decision import OFFICE_NAMES, OFFICE_OF, describe
 from pipeline import process_ticket
-from retrieval import Index, load_index
+from retrieval import open_synced_pool
+from store import Connection
 from tickets import TEST_PATH, TICKETS_PATH, Ticket, load_tickets
 
 # Every text on the page, in both languages. Add new texts to both.
@@ -261,14 +263,14 @@ PRIORITY_NAMES = {
 
 
 @st.cache_resource
-def get_index() -> Index:
-    """Load the saved knowledge-base vectors once per server, not on every click."""
-    return load_index()
+def get_pool() -> ConnectionPool[Connection]:
+    """Open the database (with the knowledge base synced) once per server, not on every click."""
+    return open_synced_pool()
 
 
 def student_answer(ticket: str, t: dict[str, Any], language: str) -> str:
     """Run the whole pipeline and build the chat answer: topic, office, then the cited reply or a hand-off."""
-    r = process_ticket(ticket, language, get_index())
+    r = process_ticket(ticket, language, get_pool().connection)
     c = r.classification
     lines = [
         f"✅ {t['received']}",
@@ -489,7 +491,7 @@ with tab_try:
         elif send:
             try:
                 with st.spinner(t["thinking"]):
-                    r = process_ticket(ticket, language, get_index())
+                    r = process_ticket(ticket, language, get_pool().connection)
                 c = r.classification
                 st.subheader(t["labels"])
                 c1, c2, c3 = st.columns(3)

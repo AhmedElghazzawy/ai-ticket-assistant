@@ -6,7 +6,8 @@ from answer import Answer, draft_answer
 from classifier import Classification, classify
 from decision import Decision, decide
 from knowledge_base import Chunk
-from retrieval import Index, search
+from retrieval import search
+from store import Database
 
 
 class TicketResult(BaseModel):
@@ -18,10 +19,10 @@ class TicketResult(BaseModel):
     decision: Decision
 
 
-def process_ticket(ticket: str, language: str, index: Index) -> TicketResult:
+def process_ticket(ticket: str, language: str, database: Database) -> TicketResult:
     """Run every step. The draft is always made: if a human takes over, they get it as a starting point."""
     classification = classify(ticket)
-    hits = search(ticket, index, language=language)
+    hits = search(ticket, database, language=language)
     answer = draft_answer(ticket, [chunk for _, chunk in hits], language)
     decision = decide(classification, hits[0][0], answer, {chunk.id for _, chunk in hits})
     return TicketResult(classification=classification, hits=hits, answer=answer, decision=decision)

@@ -27,9 +27,8 @@ from auth import Staff
 from decision import OfficeId
 from logs import configure, get_logger
 from pipeline import process_ticket
-from retrieval import load_index
+from retrieval import load_index, open_synced_pool
 from store import (
-    DATABASE_URL,
     Connection,
     Status,
     StoredSource,
@@ -38,7 +37,6 @@ from store import (
     get_ticket,
     list_tickets,
     mark_handled,
-    open_pool,
     reassign,
     reset_demo_tickets,
     save_ticket,
@@ -49,7 +47,7 @@ configure()
 logger = get_logger(__name__)
 # The built React app (cd frontend && npm run build). FastAPI serves it, so one server runs everything.
 DIST_DIR = Path(__file__).resolve().parent.parent / "frontend" / "dist"
-INDEX = load_index()  # the knowledge-base vectors, loaded once when the server starts
+load_index()  # fail at startup, not on the first ticket, if the search index is out of date
 pool: ConnectionPool[Connection] | None = None  # opened on first use (tests replace it)
 pool_lock = threading.Lock()
 
@@ -92,8 +90,8 @@ def database() -> Iterator[Connection]:
     """A connection from the pool for one request, given back afterwards."""
     global pool
     with pool_lock:  # two first requests at the same moment must not open two pools
-        if pool is None:  # first request: open the pool (and bring the schema up to date)
-            pool = open_pool(DATABASE_URL)
+        if pool is None:  # first request: open the pool, update the schema, sync the knowledge base
+            pool = open_synced_pool()
     with pool.connection() as connection:
         yield connection
 
@@ -185,7 +183,7 @@ def health() -> dict[str, str]:
 def create_ticket(ticket: TicketIn) -> TicketOut:
     """Run the whole pipeline for one student message."""
     try:
-        r = process_ticket(ticket.text, ticket.language, INDEX)
+        r = process_ticket(ticket.text, ticket.language, database)
     except Exception as error:  # show students a short message only
         # Only the error TYPE: an error message can contain the model's output, which may echo
         # the student's words (personal data never goes into logs).

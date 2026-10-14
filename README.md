@@ -109,6 +109,7 @@ Dev skoru yaklaşık 10 puan iyimserdi. Kaçırılan escalation testte de 0: kur
 
 - 11 konu × 2 dil = 22 belge, yalnızca resmî BŞEÜ kaynaklarından: Ön Lisans ve Lisans Eğitim-Öğretim Yönetmeliği (Resmî Gazete 07.07.2019), Muafiyet ve İntibak Yönergesi, Yaz Okulu Yönetmeliği, Mühendislik Fakültesi Staj Yönergesi, Öğrenci Kulüpleri Yönergesi, Öğrenci İşleri SSS, 2025-2026 Oryantasyon Sunumu (SOFRA, e-posta, OBS, UZEM, eduroam, kütüphane, yemekhane kartı). Tırnak içindeki 59 cümlenin 59'u resmî metinle birebir kontrol edildi.
 - Her `##` bölümü bir parça (chunk): 112 parça. Embedding: `gemini-embedding-2` (768 boyut, çok dilli). Ticket hangi dildeyse o dilde aranır.
+- Arama Postgres içinde, pgvector ile yapılır (`kb_chunks` tablosu, cosine distance `<=>`). Vektörler bir kez hesaplanıp `data/kb_index.json` dosyasında saklanır (git'te sürümlü); uygulama başlarken tabloya kopyalanır, böylece boş bir veritabanı (ör. Neon) API çağrısı yapmadan dolar. Vektör index'i (HNSW) bilerek yok: ~100 parça için her satırı tam kontrol etmek hızlıdır ve hiçbir sonucu kaçırmaz. Python'daki eski aramayla birebir aynı sonuçlar verdiği ölçüldü (120 ticket, aynı ilk 3 parça ve skorlar).
 - Sonuç (doğru belge ilk 3 sonuçta, cevaplanabilir ticket'lar): **dev %100 (46), test %100 (17)**; ilk sırada: dev %91, test %94.
 - Ticket'ların yalnızca yaklaşık yarısı belgelerle cevaplanabiliyor (dev 46/80, test 17/40).
 
@@ -213,7 +214,7 @@ src/tickets.py          Geçerli bir ticket'ın tanımı (pydantic) ve tickets.j
 src/classifier.py       Sınıflandırıcı: kural kitabından system prompt, structured output
 src/evaluate.py         Değerlendirme: skorlar, escalation hataları, tutarlılık
 src/knowledge_base.py   Belgeleri parçalara (chunk) böler
-src/retrieval.py        Embedding ve belge arama
+src/retrieval.py        Embedding, bilgi tabanını Postgres'e kopyalama ve belge arama (pgvector)
 src/evaluate_retrieval.py  Belge arama değerlendirmesi (hit@1, hit@3)
 src/answer.py           Kaynaklı cevap (önce alıntı, sonra cevap)
 src/decision.py         Otomatik gönder / yönlendir kararı ve birimler

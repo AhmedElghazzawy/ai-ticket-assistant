@@ -6,6 +6,8 @@ student messages (personal data): its address and password are secrets (DATABASE
 
 import json
 import os
+from collections.abc import Callable
+from contextlib import AbstractContextManager
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
@@ -24,6 +26,8 @@ if TYPE_CHECKING:  # only for the type hint, so store.py does not load the AI pi
     from pipeline import TicketResult
 
 Connection = psycopg.Connection[DictRow]  # rows come back as dictionaries
+# A way to borrow a connection briefly (e.g. pool.connection), so slow AI calls never hold one.
+Database = Callable[[], AbstractContextManager[Connection]]
 
 # Read directly, like LOG_FORMAT, so the store works without the API key. The default is the
 # local Docker database (compose.yaml); production sets DATABASE_URL to Neon's address.
@@ -85,6 +89,19 @@ CREATE TABLE failed_logins (                      -- for the login rate limit
     at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX failed_logins_by_key ON failed_logins (key, at);
+""",
+    2: """
+CREATE TABLE kb_chunks (                          -- the knowledge base, searchable by meaning
+    id        TEXT PRIMARY KEY,                     -- e.g. "sinavlar.tr#3"
+    doc       TEXT NOT NULL,                        -- e.g. "sinavlar": the same for TR and EN
+    language  TEXT NOT NULL CHECK (language IN ('tr', 'en')),
+    title     TEXT NOT NULL,
+    source    TEXT NOT NULL,                        -- the official source, cited in answers
+    url       TEXT NOT NULL,
+    text      TEXT NOT NULL,
+    embedding vector(768) NOT NULL                  -- gemini-embedding-2, length 1 (normalized)
+);
+-- No vector index (HNSW) on purpose: for ~100 rows an exact scan is fast and never misses.
 """,
 }
 SCHEMA_VERSION = max(MIGRATIONS)

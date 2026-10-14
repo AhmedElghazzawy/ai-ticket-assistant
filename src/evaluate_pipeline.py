@@ -10,7 +10,7 @@ import time
 from pathlib import Path
 
 from pipeline import process_ticket
-from retrieval import load_index
+from retrieval import open_synced_pool
 from tickets import TEST_PATH, TICKETS_PATH, Ticket, load_tickets
 
 EXPECTED_PATH = TICKETS_PATH.parent / "expected_docs.jsonl"
@@ -30,12 +30,12 @@ def main() -> None:
         r["id"]: r["doc"]
         for r in map(json.loads, EXPECTED_PATH.read_text(encoding="utf-8").splitlines())
     }
-    index = load_index()
+    pool = open_synced_pool()
     rows = []
     for number, t in enumerate(tickets, start=1):
         time.sleep(WAIT_SECONDS)
         try:
-            r = process_ticket(t.text, t.language, index)
+            r = process_ticket(t.text, t.language, pool.connection)
         except Exception as error:  # noqa: BLE001 - skip this ticket, keep the run
             print(f"[{number}/{len(tickets)}] {t.id} ERROR {type(error).__name__}: {error}")
             continue

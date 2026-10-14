@@ -7,22 +7,12 @@ import json
 from pathlib import Path
 from statistics import mean
 
-from retrieval import Index, embed, load_index, query_text, similarity
+from retrieval import embed, nearest, open_synced_pool, query_text
 from tickets import TEST_PATH, TICKETS_PATH, load_tickets
 
 EXPECTED_PATH = TICKETS_PATH.parent / "expected_docs.jsonl"
 RESULTS_PATH = Path(__file__).resolve().parent.parent / "eval" / "retrieval_results.json"
 K = 3
-
-
-def ranked_docs(
-    query_vector: list[float], index: Index, language: str
-) -> list[tuple[float, str, str]]:
-    """All chunks in the ticket's language, best first, as (score, doc, chunk id)."""
-    scored = [
-        (similarity(query_vector, v), c.doc, c.id) for c, v in index if c.language == language
-    ]
-    return sorted(scored, reverse=True)
 
 
 def main() -> None:
@@ -31,7 +21,7 @@ def main() -> None:
         for row in map(json.loads, EXPECTED_PATH.read_text(encoding="utf-8").splitlines())
     }
     sets = {"dev": load_tickets(TICKETS_PATH), "test": load_tickets(TEST_PATH)}
-    index = load_index()
+    pool = open_synced_pool()  # the same search as production: SQL in Postgres
     all_tickets = sets["dev"] + sets["test"]
     vectors = dict(
         zip(
@@ -45,15 +35,16 @@ def main() -> None:
     for name, tickets in sets.items():
         rows = []
         for t in tickets:
-            ranked = ranked_docs(vectors[t.id], index, t.language)
-            top_docs = [doc for _, doc, _ in ranked[:K]]
+            with pool.connection() as connection:
+                ranked = nearest(connection, vectors[t.id], K, t.language)
+            top_docs = [chunk.doc for _, chunk in ranked]
             rows.append(
                 {
                     "id": t.id,
                     "language": t.language,
                     "expected": expected[t.id],
                     "top_score": round(ranked[0][0], 3),
-                    "top_chunks": [cid for _, _, cid in ranked[:K]],
+                    "top_chunks": [chunk.id for _, chunk in ranked],
                     "hit1": top_docs[0] == expected[t.id],
                     "hit3": expected[t.id] in top_docs,
                 }
