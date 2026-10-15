@@ -177,6 +177,9 @@ def open_pool(url: str = DATABASE_URL, schema: str | None = None) -> ConnectionP
         kwargs={"row_factory": dict_row, "autocommit": True},
         min_size=1,
         max_size=5,
+        # Neon closes connections when its free database sleeps (~5 min idle): test each one
+        # before use (one tiny query) and replace it if dead, instead of failing a request.
+        check=ConnectionPool.check_connection,
         open=True,
     )
     with pool.connection() as connection:

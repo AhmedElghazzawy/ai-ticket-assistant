@@ -26,6 +26,8 @@ NOT_IN_HISTORY = [
     ":(exclude)data/knowledge_base",
 ]
 
+IMAGES = {".png", ".jpg", ".jpeg", ".gif", ".svg", ".ico", ".webp"}  # binary or not useful as text
+
 INTRO = """# AI Ticket Assistant: full project context
 
 I am a computer engineering student and a complete beginner in AI engineering.
@@ -50,7 +52,11 @@ def project_files() -> list[Path]:
         ROOT / line
         for line in git("ls-files", "--cached", "--others", "--exclude-standard").splitlines()
     ]
-    return [f for f in files if f.exists() and f.name != ".env" and f != OUTPUT]
+    return [
+        f
+        for f in files
+        if f.exists() and f.name != ".env" and f != OUTPUT and f.suffix not in IMAGES
+    ]
 
 
 def history_section() -> str:

@@ -5,6 +5,8 @@ import subprocess
 import sys
 from datetime import timedelta
 
+import psycopg
+
 import store
 from answer import Answer
 from classifier import Classification
@@ -131,3 +133,21 @@ def test_inside_a_priority_the_ticket_that_waited_longest_comes_first(db: Connec
     for priority in ("urgent", "high", "medium", "low"):
         times = [t.created_at for t in queue if t.priority == priority]
         assert times == sorted(times), priority  # oldest first, by real arrival time
+
+
+def test_pool_replaces_connections_closed_by_the_server() -> None:
+    # Neon's free database sleeps after ~5 idle minutes and closes every connection.
+    # The next request must still work, not fail on a dead connection.
+    pool = store.open_pool()
+    try:
+        held = [pool.getconn() for _ in range(pool.get_stats()["pool_available"])]
+        pids = [c.execute("SELECT pg_backend_pid() AS pid").fetchone()["pid"] for c in held]  # type: ignore[index]
+        for connection in held:
+            pool.putconn(connection)
+        with psycopg.connect(store.DATABASE_URL, autocommit=True) as admin:
+            for pid in pids:  # what Neon does when it sleeps; wait until each one is really gone
+                admin.execute("SELECT pg_terminate_backend(%s, 5000)", [pid])
+        with pool.connection() as connection:
+            assert connection.execute("SELECT 1 AS ok").fetchone() == {"ok": 1}
+    finally:
+        pool.close()

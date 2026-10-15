@@ -4,24 +4,73 @@
 
 **Çalışma Tasarımı I** · Bilecik Şeyh Edebali Üniversitesi (BŞEÜ), Bilgisayar Mühendisliği
 
-Öğrencilerin yardım masasına yazdığı ticket'ları okuyan bir AI asistanı. Sistem ticket'ı etiketler (kategori, öncelik, escalation), üniversitenin resmî belgelerinde cevabı arar (RAG), kaynağını gösteren bir cevap yazar ve karar verir: cevabı otomatik göndermek mi, yoksa doğru birime (bir insana) yönlendirmek mi.
+Öğrencilerin yardım masasına yazdığı talepleri (ticket) okuyan bir AI asistanı. Sistem talebi etiketler (kategori, öncelik, escalation), üniversitenin resmî belgelerinde cevabı arar (RAG), kaynağını gösteren bir cevap yazar ve karar verir: cevabı otomatik göndermek mi, yoksa taslakla birlikte doğru birime (bir insana) yönlendirmek mi.
+
+**Canlı demo:** https://bseu-helpdesk.onrender.com (ücretsiz sunucu: 15 dakika ziyaretçi olmazsa uyur, ilk açılış yaklaşık 1 dakika sürebilir)
+
+## Hocam, nereden başlamalı?
+
+| Ne görmek istiyorsanız | Nerede |
+|---|---|
+| Sistemi denemek (öğrenci tarafı) | Canlı demo → bir soru yazın, ör. "Kaydımı sildirirsem harç iade edilir mi?" |
+| Personel panelini denemek | Canlı demo → `/staff` → **Demo olarak dene** (hesap gerekmez, yalnızca örnek talepler) |
+| Kategoriler, birimler, escalation kuralları | [Kategoriler ve birimler](#kategoriler-ve-birimler-7-kategori) · tam kural kitabı: [`docs/labels.md`](docs/labels.md) |
+| Veri seti | [Veri seti](#veri-seti) · [`data/tickets/`](data/tickets/) |
+| Değerlendirme yöntemi ve sonuçlar | [Sonuçlar özeti](#sonuçlar-özeti) · ayrıntılar aşağıda · ham sonuçlar: [`eval/`](eval/) |
+| Kapsam ve sınırlar | [Kapsam ve sınırlar](#kapsam-ve-sınırlar-v1) |
+| Her değişiklik ve nedeni | [Sürümler (Releases)](https://github.com/AhmedElghazzawy/ai-ticket-assistant/releases) · ayrıntılı çalışma notları: [`docs/changelog.md`](docs/changelog.md) (İngilizce) |
+
+## Ekran görüntüleri
+
+| Öğrenci: kaynaklı otomatik cevap | Personel: inceleme kuyruğu |
+|---|---|
+| ![Öğrenci sayfası](docs/images/student_answer.jpg) | ![İnceleme kuyruğu](docs/images/staff_queue.jpg) |
+
+Personel: yönlendirilen bir talep (neden otomatik gönderilmediği ve yapay zekânın açıklaması):
+
+![Talep ayrıntısı](docs/images/staff_ticket.jpg)
 
 ## Akış (pipeline)
 
+```mermaid
+flowchart LR
+    T[Öğrenci talebi<br/>TR / EN] --> C[Sınıflandırma<br/>kategori · öncelik · escalation]
+    C --> R[Belge arama - RAG<br/>pgvector, ilk 3 parça]
+    R --> A[Kaynaklı taslak cevap<br/>önce alıntı, sonra cevap]
+    A --> D{Karar<br/>sade kod, 6 kontrol}
+    D -->|hepsi geçti| S[Öğrenciye otomatik cevap]
+    D -->|biri bile kaldı| H[İlgili birimin kuyruğu<br/>taslak + nedenler]
 ```
-ticket → sınıflandırma → belge arama (RAG) → kaynaklı taslak cevap → karar → otomatik gönder / birime yönlendir
-```
+
+Sınıflandırma ve cevap yazma Gemini (LLM) ile yapılır; **karar** ise yapay zekâ değil, test edilen sade koddur ([`src/decision.py`](src/decision.py)).
 
 | Aşama | Durum |
 |---|---|
-| Sınıflandırma (classification) | ✅ Phase 1 |
-| Değerlendirme (evaluation) | ✅ Phase 1 |
+| Sınıflandırma ve değerlendirme | ✅ Phase 1 |
 | Kilitli test seti (güvenilir skor) | ✅ Phase 2 |
 | Belge arama (RAG retrieval) | ✅ Phase 3 |
-| Kaynaklı cevap (answer generation) | ✅ Phase 4 |
-| Gönder / gönderme kararı ve yönlendirme | ✅ Phase 4 |
-| Web sayfası (FastAPI) ve otomatik testler (pytest) | ✅ Phase 5 |
-| İnsan inceleme kuyruğu (yönlendirilen talepler personele ulaşır) | ✅ Phase 6 |
+| Kaynaklı cevap, gönder / gönderme kararı, birime yönlendirme | ✅ Phase 4 |
+| API (FastAPI) ve otomatik testler (pytest) | ✅ Phase 5 |
+| İnsan inceleme kuyruğu | ✅ Phase 6 |
+| Altyapı: CI, tip kontrolü, Docker, yapılandırılmış loglar, yeni web arayüzü (React) | ✅ Phase 7 |
+| Personel girişi, demo modu, kötüye kullanım koruması (rate limit) | ✅ |
+| Postgres + pgvector (talepler ve belge arama) | ✅ Phase 10 |
+| Canlı demo (Render + Neon) | ✅ |
+| Daha gerçekçi veri (uzun, yazım hatalı, karışık dilli talepler) | 🔄 Phase 8, devam ediyor |
+| Güven aralıkları, model karşılaştırması, hibrit arama, güvenlik testleri | ⏳ sırada |
+
+## Sonuçlar özeti
+
+Kilitli test seti: prompt'u ayarlamak için hiç kullanılmayan 40 talep (20 TR + 20 EN). Parantez içinde %95 güven aralığı (Wilson): örnek küçük olduğu için aralıklar geniştir.
+
+| Ölçüt | Sonuç | Örnek sayısı |
+|---|---|---|
+| Üç etiketin üçü de doğru | %73,8 (yaklaşık %60–86) | 40 talep, 2 çalıştırma |
+| **Kaçırılan escalation** (en tehlikeli hata) | **0** (gerçek oran %0–21 arasında olabilir) | 14 escalation talebi |
+| Doğru belge ilk 3 sonuçta (hit@3) | %100 (%82–100) | cevaplanabilir 17 talep |
+| Hatalı otomatik gönderim | 1 (zararsız; boşluk sonradan kapatıldı) | 40 talep |
+
+Dürüst not: talepleri ben yazdım ve etiketledim (sentetik veri); gerçek öğrenci mesajları daha uzun ve dağınıktır. Bu yüzden Phase 8'de veri zenginleştiriliyor. Ayrıntılar ve "bu skor neyi kanıtlamaz" bölümü aşağıda.
 
 ## Kategoriler ve birimler (7 kategori)
 
@@ -47,7 +96,7 @@ Tüm kurallar ve sınır durumları: [`docs/labels.md`](docs/labels.md). Araşt�
 - Her kategoride 10-12 ticket; dört öncelik seviyesi de var; ticket'ların %26'sı escalation gerektiriyor.
 - Zor durumlar bilerek eklendi: iki sorunlu ticket'lar, çok kısa ("help", "obs calismiyor"), Türkçe karakter olmadan yazım, karışık dil, sinirli ama basit, kibar ama ciddi, gizli kriz belirtisi, prompt injection.
 - Ticket'lar gerçek BŞEÜ sistem adlarını kullanır: OBS, SOFRA, UZEM, @ogrenci.bilecik.edu.tr, Akıllı Kart.
-- **Phase 2:** 40 yeni ticket (20 TR + 20 EN) **kilitli test seti** olacak: prompt'u ayarlamak için asla kullanılmaz, sadece son skor için.
+- **Kilitli test seti (Phase 2):** 40 ticket (20 TR + 20 EN), [`data/tickets/test_tickets.jsonl`](data/tickets/test_tickets.jsonl): prompt'u ayarlamak için asla kullanılmaz, sadece son skor için.
 
 ## Sınıflandırma yöntemi
 
@@ -224,7 +273,7 @@ src/api.py              FastAPI: POST /api/tickets, giriş (/api/auth), personel
 src/auth.py             Personel hesapları, şifreler (Argon2id), oturumlar, giriş sınırı
 src/config.py           Ayarlar (pydantic-settings): .env'den okunur, başlangıçta kontrol edilir
 src/logs.py             Yapılandırılmış loglar (structlog): JSON satırları, request_id, kişisel veri yok
-Dockerfile, compose.yaml   Tek komutla çalıştırma (çok aşamalı imaj, root olmayan kullanıcı, veri volume'u)
+Dockerfile, compose.yaml   Tek komutla çalıştırma (çok aşamalı imaj, root olmayan kullanıcı, yerel Postgres)
 src/store.py            Talepleri Postgres'e kaydeder (psycopg, bağlantı havuzu, sürümlü şema/migration)
 src/app.py              Eski Streamlit paneli: genel bakış, veri seti, değerlendirme
 frontend/               Web arayüzü: React 19 + TypeScript + Vite, Tailwind CSS + shadcn/ui, TanStack Router + Query
@@ -233,7 +282,7 @@ tools/export_openapi.py API şemasını frontend/openapi.json dosyasına yazar
 tools/add_staff.py      Personel hesabı oluşturur (gizli şifre girişi)
 tools/make_demo_tickets.py  Demo modunun örnek taleplerini veri setinden üretir
 render.yaml             Render dağıtımı (ücretsiz plan, Frankfurt)
-tests/                  pytest testleri (karar kuralları, ayarlar, depo, arama dizini, API)
+tests/                  90 pytest testi (karar kuralları, ayarlar, veritabanı, arama, API, giriş, demo)
 data/knowledge_base/    22 resmî kaynaklı belge (TR + EN)
 src/try_one_ticket.py   İlk API çağrısı testi (Step 1)
 data/tickets/           Etiketli ticket'lar
@@ -242,11 +291,14 @@ docs/labels.md          Etiket kural kitabı
 docs/problem_catalog.md Öğrenci sorunları kataloğu (araştırma)
 docs/changelog.md       Projede yapılan her değişiklik ve nedeni
 tools/make_context.py   Tüm projeyi tek dosyada toplar (öğrenmek için)
+tools/audit_data.py     Veri setinin kapsamını ölçer: etiket dağılımı, uzunluk, zor durumlar (API çağrısı yok)
+docs/images/            README ekran görüntüleri
 ```
 
 ## Sonraki adımlar
 
-- Daha fazla içerik: akademik takvim, ücret tablosu, psikolojik danışmanlık ve yemekhane menüsü.
-- Sınıf arkadaşlarından gerçek ticket'lar toplayıp yeni bir kilitli test seti oluşturmak.
-- Kilitli test setinde tüm sistemin (Phase 4) değerlendirmesi.
-- Personelin cevabını öğrenciye ulaştırmak (e-posta); LangGraph, stres testleri (Phase 6-7).
+- **Phase 8 (devam ediyor):** daha gerçekçi talepler (uzun, yazım hatalı, karışık TR/EN, iki sorunlu), etiketlerin birkaç gün sonra yeniden etiketlenmesiyle tutarlılık ölçümü.
+- **Değerlendirme:** her ölçütte güven aralığı, cevap kalitesi için LLM-as-judge, tek komutla sürümlü rapor; aynı kilitli testte 3-4 modelin karşılaştırılması (doğruluk, kaçırılan escalation, 1.000 talep başına maliyet, gecikme).
+- **Belge arama:** hibrit arama (anahtar kelime + embedding) ve yeniden sıralama (reranking).
+- **Güvenlik ve stres testleri:** prompt injection, boş veya çok uzun mesaj, kişisel veri.
+- **Personel ürünü:** personelin cevabının öğrenciye gerçekten ulaşması ve öğrencinin talebinin durumunu görmesi.
