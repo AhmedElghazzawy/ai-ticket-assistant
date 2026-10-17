@@ -18,6 +18,7 @@
 | Veri seti | [Veri seti](#veri-seti) · [`data/tickets/`](data/tickets/) |
 | Değerlendirme yöntemi ve sonuçlar | [Sonuçlar özeti](#sonuçlar-özeti) · ayrıntılar aşağıda · ham sonuçlar: [`eval/`](eval/) |
 | Kapsam ve sınırlar | [Kapsam ve sınırlar](#kapsam-ve-sınırlar-v1) |
+| Önemli kararlar ve nedenleri | [`docs/decisions/`](docs/decisions/) (model seçimi, karar kuralları, veritabanı, barındırma, güvenlik) |
 | Her değişiklik ve nedeni | [Sürümler (Releases)](https://github.com/AhmedElghazzawy/ai-ticket-assistant/releases) · ayrıntılı çalışma notları: [`docs/changelog.md`](docs/changelog.md) (İngilizce) |
 
 ## Ekran görüntüleri
