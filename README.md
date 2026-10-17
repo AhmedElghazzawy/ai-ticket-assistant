@@ -12,6 +12,7 @@
 
 | Ne görmek istiyorsanız | Nerede |
 |---|---|
+| Projenin durumu: biten, devam eden ve kalan aşamalar | [Proje durumu ve yol haritası](#proje-durumu-ve-yol-haritası) |
 | Sistemi denemek (öğrenci tarafı) | Canlı demo → bir soru yazın, ör. "Kaydımı sildirirsem harç iade edilir mi?" |
 | Personel panelini denemek | Canlı demo → `/staff` → **Demo olarak dene** (hesap gerekmez, yalnızca örnek talepler) |
 | Kategoriler, birimler, escalation kuralları | [Kategoriler ve birimler](#kategoriler-ve-birimler-7-kategori) · tam kural kitabı: [`docs/labels.md`](docs/labels.md) |
@@ -45,20 +46,7 @@ flowchart LR
 
 Sınıflandırma ve cevap yazma Gemini (LLM) ile yapılır; **karar** ise yapay zekâ değil, test edilen sade koddur ([`src/decision.py`](src/decision.py)).
 
-| Aşama | Durum |
-|---|---|
-| Sınıflandırma ve değerlendirme | ✅ Phase 1 |
-| Kilitli test seti (güvenilir skor) | ✅ Phase 2 |
-| Belge arama (RAG retrieval) | ✅ Phase 3 |
-| Kaynaklı cevap, gönder / gönderme kararı, birime yönlendirme | ✅ Phase 4 |
-| API (FastAPI) ve otomatik testler (pytest) | ✅ Phase 5 |
-| İnsan inceleme kuyruğu | ✅ Phase 6 |
-| Altyapı: CI, tip kontrolü, Docker, yapılandırılmış loglar, yeni web arayüzü (React) | ✅ Phase 7 |
-| Personel girişi, demo modu, kötüye kullanım koruması (rate limit) | ✅ |
-| Postgres + pgvector (talepler ve belge arama) | ✅ Phase 10 |
-| Canlı demo (Render + Neon) | ✅ |
-| Daha gerçekçi veri (uzun, yazım hatalı, karışık dilli talepler) | 🔄 Phase 8, devam ediyor |
-| Güven aralıkları, model karşılaştırması, hibrit arama, güvenlik testleri | ⏳ sırada |
+Proje durumu ve yol haritası: [aşağıda](#proje-durumu-ve-yol-haritası).
 
 ## Sonuçlar özeti
 
@@ -296,10 +284,30 @@ tools/audit_data.py     Veri setinin kapsamını ölçer: etiket dağılımı, u
 docs/images/            README ekran görüntüleri
 ```
 
-## Sonraki adımlar
+## Proje durumu ve yol haritası
 
-- **Phase 8 (devam ediyor):** daha gerçekçi talepler (uzun, yazım hatalı, karışık TR/EN, iki sorunlu), etiketlerin birkaç gün sonra yeniden etiketlenmesiyle tutarlılık ölçümü.
-- **Değerlendirme:** her ölçütte güven aralığı, cevap kalitesi için LLM-as-judge, tek komutla sürümlü rapor; aynı kilitli testte 3-4 modelin karşılaştırılması (doğruluk, kaçırılan escalation, 1.000 talep başına maliyet, gecikme).
-- **Belge arama:** hibrit arama (anahtar kelime + embedding) ve yeniden sıralama (reranking).
-- **Güvenlik ve stres testleri:** prompt injection, boş veya çok uzun mesaj, kişisel veri.
-- **Personel ürünü:** personelin cevabının öğrenciye gerçekten ulaşması ve öğrencinin talebinin durumunu görmesi.
+Son güncelleme: 17.10.2026. ✅ tamamlandı · 🟡 kısmen · 🔄 devam ediyor · ⏳ sırada
+
+**Ders aşamaları (hocamın önerdiği akış)**
+
+| Aşama | Durum | Not |
+|---|---|---|
+| 1. Sınıflandırma ve değerlendirme | ✅ | 7 kategori, 4 öncelik, escalation; `low` / `high` thinking karşılaştırması |
+| 2. Güvenilir skor: kilitli test seti | ✅ | 40 talep; dev ile test arasındaki fark ölçüldü |
+| 3. Bilgi tabanı ve belge arama (RAG) | ✅ | 11 konu × 2 dil, resmî kaynaklar; hit@3 %100 |
+| 4. Kaynaklı cevap, karar ve birime yönlendirme | ✅ | 6 kontrollü karar; hatalı otomatik gönderim ölçüldü |
+| 5. API (FastAPI) ve otomatik testler | ✅ | |
+| 6. İnsan inceleme kuyruğu | ✅ | Kuyruk yapıldı. Planlanan LangGraph'a geçiş yapılmadı: akış düz bir adım dizisi olduğu için sade bir Python fonksiyonu yeterli |
+
+**Üretim seviyesine yol haritası**
+
+| Aşama | Durum | Yapılan | Kalan |
+|---|---|---|---|
+| 7. Altyapı | ✅ | ruff, mypy (strict), tipli ayarlar, yapılandırılmış loglar, CI, Docker, React web arayüzü | |
+| 8. Veri | 🔄 | Veri seti analizi (`tools/audit_data.py`): eksikler belirlendi | Daha gerçekçi talepler (uzun, yazım hatalı, karışık dilli, iki sorunlu); etiket tutarlılığı ölçümü |
+| 9. Değerlendirme | ⏳ | (README'deki güven aralıkları elle hesaplandı) | Güven aralıkları kodda, cevap kalitesi için LLM-as-judge, tek komutla sürümlü rapor, 3-4 modelin karşılaştırılması |
+| 10. Belge arama | 🟡 | Postgres + pgvector (sonuçlar aynı kaldı) | Hibrit arama ve reranking (önce daha zor talepler gerekli: hit@3 zaten %100) |
+| 11. Güvenlik ve stres testleri | 🟡 | Rate limit, günlük sınır, giriş sınırı, CSRF, sahte IP koruması (canlıda doğrulandı), loglarda öğrenci metni yok | Prompt injection ve stres testi paketi, kişisel veri işleme, kilitli testte son çalıştırma |
+| 12. Personel ürünü | 🟡 | Giriş, birime göre kuyruk, düzenleyip gönderme, birim değiştirme, demo modu | Cevabın öğrenciye e-postayla ulaşması, öğrencinin talep durumunu görmesi, istatistik sayfası |
+| 13. Canlıya alma | 🟡 | Canlı demo (Render + Neon, Frankfurt), canlıda test edildi | Maliyet ve hata izleme (monitoring); yalnızca CI geçince deploy |
+| 14. Sunum | 🟡 | Bu README, karar kayıtları ([`docs/decisions/`](docs/decisions/)), sürüm v0.9 | Türkçe rapor, 5 dakikalık demo, tarayıcı testleri (Playwright), v1.0 |
