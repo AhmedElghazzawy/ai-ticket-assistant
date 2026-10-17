@@ -1385,3 +1385,11 @@ Staff pages show student messages. Until now they only answered requests from th
 - Honesty found while checking: Phase 6 planned "rebuild as a LangGraph graph", but that was never done (the changelog never mentions it). Now stated plainly: the review queue was built, the LangGraph rebuild was not; src/pipeline.py is a plain function, enough for a straight line of steps.
 - Also stated plainly as gaps: Playwright is installed but there are no browser tests yet; the README's confidence intervals were computed by hand, not by the eval code.
 - README (Turkish): the old status table is replaced by "Proje durumu ve yol haritası": course phases 1-6 and production phases 7-14 with status, done and left; linked from the first row of "Hocam, nereden başlamalı?". The outdated "Sonraki adımlar" section is folded into it.
+- Commit and push: `64621df` status of every phase. CI green, live site healthy.
+
+# Session end: handoff for the next session (2026-10-17)
+- Why: I am closing VS Code; the next session must know what was done, what was talked about and what comes next, from the repo alone.
+- Checks: nothing uncommitted or unpushed; 0 broken relative links in 37 Markdown files; every README in-page link (#...) matches a heading; AGENTS.md differs from CLAUDE.md only in its 4 intentional Codex lines.
+- Problem found and fixed: the email draft for my professor only existed in the chat (it would have been lost when the session closed). Saved as docs/professor_email.md (Turkish, marked "not sent yet").
+- CLAUDE.md and AGENTS.md "Current status": open items in order: (1) I send the email; (2) Render "After CI Checks Pass" setting (my click in the dashboard); (3) Phase 8 tickets (Claude drafts, I label). Plus the deploy note: Claude's deploy commands are blocked by Claude Code's permission check; the working way is one `!` command that I run.
+- Summary of this session (2026-10-15 to 10-17): Phase 8 audit tool; Neon sleep bug fixed in the connection pool (+ test); README for my professor (demo link, screenshots, diagram, results with intervals, roadmap with status); CI pinned to ubuntu-24.04; live deployment on Render + Neon with live security checks; release v0.9; 7 decision records; Phase 6's missing LangGraph rebuild stated honestly.
