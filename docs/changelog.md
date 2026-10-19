@@ -1393,3 +1393,19 @@ Staff pages show student messages. Until now they only answered requests from th
 - Problem found and fixed: the email draft for my professor only existed in the chat (it would have been lost when the session closed). Saved as docs/professor_email.md (Turkish, marked "not sent yet").
 - CLAUDE.md and AGENTS.md "Current status": open items in order: (1) I send the email; (2) Render "After CI Checks Pass" setting (my click in the dashboard); (3) Phase 8 tickets (Claude drafts, I label). Plus the deploy note: Claude's deploy commands are blocked by Claude Code's permission check; the working way is one `!` command that I run.
 - Summary of this session (2026-10-15 to 10-17): Phase 8 audit tool; Neon sleep bug fixed in the connection pool (+ test); README for my professor (demo link, screenshots, diagram, results with intervals, roadmap with status); CI pinned to ubuntu-24.04; live deployment on Render + Neon with live security checks; release v0.9; 7 decision records; Phase 6's missing LangGraph rebuild stated honestly.
+
+# Phase 8: research on real student problems (2026-10-19)
+- Why: Phase 8 tickets must look like real student messages at BŞEÜ, not like ideas we made up. I asked Claude to research which problems students really face in Bilecik and in Turkey in general.
+- Sources: BŞEÜ's page on Şikayetvar (8 complaints, one removed), a DonanımHaber forum thread, news (Bilecik minibüs fare protest 2018, Erasmus grant delays, housing costs), Sayıştay report (6 campuses: center + Bozüyük, Osmaneli, Söğüt, Pazaryeri, Gölpazarı), GSS rules. Ekşi Sözlük refused access (403); the orientation PDF was too large to read.
+- Added to docs/problem_catalog.md: a new section with each problem tagged [BŞEÜ] (real complaint about BŞEÜ) or [TR] (common in Turkey). New ones include: Student Affairs unreachable for two weeks, cafeteria card top-up charged but not credited, library security behaviour, inconsistent guest entry, diploma delays, GSS (health insurance) not working because the student record did not reach SGK, military deferral, residence permit document, Erasmus grant delay, district campuses, housing. New hard cases: personal data in the text, follow-ups, a document that answers only part of the question, problems that belong to another institution (municipality, KYK, SGK, Göç İdaresi).
+- Honest limits (also written in the catalog): few public complaints about BŞEÜ exist; [TR] items come from other universities; amounts were not checked, so tickets will not use exact prices. Complaint texts are never copied, only the type of problem.
+- Two open labeling questions for me: cafeteria card top-up charged but not credited: `billing` (a payment error with the university) or `campus_life` (cafeteria)? Erasmus grant delay: `billing`?
+
+# Capstone wrap-up plan (2026-10-19, paused)
+- Why: I want this project as the capstone on my CV, so the finish must be strong. Plan proposed by Claude, on hold by my decision for now:
+  - A (data and score): ~40 Phase 8 tickets from the research as a new unseen test set (I label), confidence intervals inside src/evaluate.py, one command for all evals with a versioned report, prompt-injection and stress suite, one final run on the locked test set.
+  - B (product proof): 3-4 Playwright browser tests, cost and error monitoring.
+  - C (showcase): English README first (Turkish kept as README.tr.md; needs a change to the language rule), demo GIF/video, cold-start note on the demo link, release v1.0.
+  - D (professor and CV): Turkish report, 5-minute demo script, CV bullet points with real numbers.
+  - Proposed to skip (future work): model comparison on 4 LLMs, hybrid search and reranking (hit@3 already 100%), e-mail replies, Insights page.
+- Still open: my label decisions for "cafeteria card top-up charged but not credited" and "Erasmus grant delay" (billing or not), and the 10 draft tickets from this session (shown in chat only, not saved).
