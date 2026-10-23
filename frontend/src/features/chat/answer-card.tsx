@@ -22,6 +22,12 @@ function SourceCard({ source }: { source: StoredSource }) {
       <span className="min-w-0 flex-1">
         <span className="block truncate text-sm font-medium">{source.section}</span>
         <span className="block truncate text-xs text-muted-foreground">{source.title}</span>
+        {/* The official source line; makes "Resmî olmayan kaynak" visible to the student. */}
+        {source.source && (
+          <span className="block truncate text-xs text-muted-foreground" title={source.source}>
+            {source.source}
+          </span>
+        )}
       </span>
       {source.url && <ArrowUpRight className="size-4 shrink-0 text-muted-foreground" />}
     </>

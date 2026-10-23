@@ -78,6 +78,7 @@ def test_auto_sent_answer_has_reply_and_source(monkeypatch: pytest.MonkeyPatch) 
             "id": CHUNK.id,
             "title": "Katkı Payı ve İadeler",
             "section": "Kayıt sildirince iade",
+            "source": "Öğrenci İşleri SSS",  # shown on the card (e.g. "Resmî olmayan kaynak: ...")
             "url": CHUNK.url,
         }
     ]

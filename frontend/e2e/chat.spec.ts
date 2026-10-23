@@ -6,6 +6,7 @@ const SOURCE = {
   id: "sinavlar.tr#3",
   title: "Sınavlar",
   section: "Sınav programı ve sınava giriş (Madde 19)",
+  source: "Resmî olmayan kaynak: örnek rehber",
   url: "https://example.edu/sinavlar.pdf",
 };
 
@@ -45,6 +46,7 @@ test("an auto-sent answer shows the reply and its source", async ({ page }) => {
     SOURCE.url,
   );
   await expect(page.getByText("Talep no #42")).toBeVisible();
+  await expect(page.getByText("Resmî olmayan kaynak: örnek rehber")).toBeVisible();
 });
 
 test("a forwarded ticket with first help shows the cited part", async ({ page }) => {

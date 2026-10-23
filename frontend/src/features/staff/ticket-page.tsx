@@ -45,6 +45,11 @@ function SourceItem({ source }: { source: StoredSource }) {
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium">{source.section}</p>
         <p className="truncate text-xs text-muted-foreground">{source.title}</p>
+        {source.source && (
+          <p className="truncate text-xs text-muted-foreground" title={source.source}>
+            {source.source}
+          </p>
+        )}
         <p className="mt-1 font-mono text-[0.7rem] text-muted-foreground">{source.id}</p>
       </div>
       <a

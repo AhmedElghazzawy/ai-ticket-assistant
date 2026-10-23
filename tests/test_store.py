@@ -13,7 +13,15 @@ from classifier import Classification
 from decision import Decision, SimpleReason, WeakMatch
 from knowledge_base import Chunk
 from pipeline import TicketResult
-from store import Connection, get_ticket, list_tickets, mark_handled, reassign, save_ticket
+from store import (
+    Connection,
+    StoredSource,
+    get_ticket,
+    list_tickets,
+    mark_handled,
+    reassign,
+    save_ticket,
+)
 from tickets import Priority
 
 CHUNK = Chunk(
@@ -151,3 +159,9 @@ def test_pool_replaces_connections_closed_by_the_server() -> None:
             assert connection.execute("SELECT 1 AS ok").fetchone() == {"ok": 1}
     finally:
         pool.close()
+
+
+def test_sources_saved_before_the_source_field_still_load() -> None:
+    # Live rows from before 2026-10-23 have no "source" key in their JSON.
+    old = {"id": "harc_ucretler.tr#5", "title": "t", "section": "s", "url": "https://x"}
+    assert StoredSource.model_validate(old).source == ""

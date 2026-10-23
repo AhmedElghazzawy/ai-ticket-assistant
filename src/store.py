@@ -113,6 +113,7 @@ class StoredSource(BaseModel):
     id: str  # e.g. "harc_ucretler.tr#5"
     title: str
     section: str
+    source: str = ""  # the official source line, e.g. "Resmî olmayan kaynak: ..."; "" in older rows
     url: str
 
 
@@ -194,7 +195,13 @@ def save_ticket(
     c, decision, answer = result.classification, result.decision, result.answer
     cited = {chunk.id: chunk for _, chunk in result.hits}
     sources = [
-        StoredSource(id=i, title=cited[i].title, section=cited[i].section, url=cited[i].url)
+        StoredSource(
+            id=i,
+            title=cited[i].title,
+            section=cited[i].section,
+            source=cited[i].source,
+            url=cited[i].url,
+        )
         for i in answer.sources
         if i in cited  # a cited id that was never retrieved is not shown (the decision flags it)
     ]

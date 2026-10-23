@@ -113,6 +113,10 @@ export type StoredSource = {
      */
     section: string;
     /**
+     * Source
+     */
+    source?: string;
+    /**
      * Title
      */
     title: string;

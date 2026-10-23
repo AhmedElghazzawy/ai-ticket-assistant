@@ -171,6 +171,11 @@
             "title": "Section",
             "type": "string"
           },
+          "source": {
+            "default": "",
+            "title": "Source",
+            "type": "string"
+          },
           "title": {
             "title": "Title",
             "type": "string"
