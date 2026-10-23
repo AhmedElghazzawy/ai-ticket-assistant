@@ -29,6 +29,10 @@
 
 Görüntülerdeki cevaplar modelin gerçek çıktılarıdır (dev çalıştırması, 23.10.2026); yalnızca tarayıcı ile sunucu arasındaki adım tekrar oynatılmıştır.
 
+Başlangıç ekranı: canlı örnek (gerçek bir test sorusu, gerçek skorlar ve gerçek cevap) ve ölçülen sonuçlar:
+
+![Başlangıç ekranı](docs/images/student_home.jpg)
+
 | Öğrenci: kaynaklı otomatik cevap | Öğrenci: yönlendirilen talepte "ön bilgi" |
 |---|---|
 | ![Öğrenci sayfası](docs/images/student_answer.jpg) | ![Ön bilgi](docs/images/student_first_help.jpg) |
@@ -106,6 +110,7 @@ Phase 8, öğrencilerin çoğunun hiç yardım almadan beklediğini gösterdi: b
 - **Geri bildirim:** "Bu cevap işinize yaradı mı?" düğmeleri artık gerçekten kaydediliyor (önceden görünüyor ama hiçbir şey kaydetmiyordu).
 - **"Nasıl karar verildi?":** her cevabın altında açılabilen bir iz: sınıflandırma, belge eşleşmesi ve eşik, belgelerin soruyu karşılayıp karşılamadığı, kaynağın doğrulanması ve karar. Öğrenciye yalnızca kontrol sonuçları gösterilir; taslak ve modelin kendi metni personelde kalır.
 - **İstatistikler (personel):** toplam talep, otomatik cevap, hemen yardım alan, bekleyen, medyan cevap süresi ve faydalı bulunma oranı; her sayının yanında örnek sayısı (n). Talep sonuçları, kategori ve son 14 gün grafikleri; her grafik tablo olarak da görülebilir. Grafik renkleri renk körlüğüne karşı bir doğrulama betiğiyle kontrol edildi.
+- **Canlı örnek ve ölçülen sonuçlar (başlangıç ekranı):** soru yazılmadan önce, gerçek bir test sorusunun dört kontrolden gerçek skorlarıyla geçişi ve gerçek cevabı oynatılır ("Bu soruyu sor" ile gerçekten sorulabilir); yanında ölçülen sonuçlar: 0/11 kaçırılan escalation, 30/30 doğru belge ilk 3'te, 0/40 hatalı otomatik gönderim, 22 resmî belge. Hareketi azaltma ayarı açık olanlar için animasyon durur.
 - **Dürüst bekleme göstergesi:** eski gösterge, adımlar bitmeden zamanlayıcıyla "✓" koyuyordu. Yeni gösterge yalnızca talebin izlediği yolu ve gerçek geçen süreyi gösterir.
 
 ## Kategoriler ve birimler (7 kategori)

@@ -51,6 +51,19 @@ const tr = {
   ticketGone: "Bu talep artık görüntülenemiyor.",
   checkStatus: "Durumu yenile",
   backToChat: "Yeni soru sor",
+  showcase: {
+    label: "Canlı örnek · gerçek soru, gerçek cevap",
+    ask: "Bu soruyu sor",
+    answer: "Otomatik cevap",
+  },
+  results: {
+    title: "Ölçülen sonuçlar",
+    missed: "kaçırılan escalation",
+    top3: "doğru belge ilk 3 sonuçta",
+    unsafe: "hatalı otomatik gönderim",
+    documents: "resmî belge (TR + EN)",
+    note: "Kilitli, gerçekçi 40 talepten oluşan test seti. Ayrıntılar ve güven aralıkları README'de.",
+  },
   trace: {
     title: "Nasıl karar verildi?",
     steps: ["Sınıflandırma", "Belge arama", "Cevap kontrolü", "Karar"],
@@ -245,6 +258,19 @@ const en: Texts = {
   ticketGone: "This ticket can no longer be shown.",
   checkStatus: "Refresh status",
   backToChat: "Ask a new question",
+  showcase: {
+    label: "Live example · real question, real answer",
+    ask: "Ask this question",
+    answer: "Automatic answer",
+  },
+  results: {
+    title: "Measured results",
+    missed: "missed escalations",
+    top3: "right document in the top 3",
+    unsafe: "wrong automatic answers",
+    documents: "official documents (TR + EN)",
+    note: "Locked test set of 40 realistic tickets. Details and confidence intervals in the README.",
+  },
   trace: {
     title: "How was this decided?",
     steps: ["Classification", "Document search", "Answer check", "Decision"],

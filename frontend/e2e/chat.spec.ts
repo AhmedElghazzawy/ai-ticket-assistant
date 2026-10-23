@@ -119,3 +119,21 @@ test("the decision trace explains a forwarded ticket", async ({ page }) => {
   await expect(page.getByText("En iyi belge eşleşmesi 0.81 (eşik 0.65).")).toBeVisible();
   await expect(page.getByText("Talep, cevaplaması için ilgili birime iletildi.")).toBeVisible();
 });
+
+test("the live example can be asked for real", async ({ page }) => {
+  let sent: unknown = null;
+  await page.route("**/api/tickets", async (route) => {
+    sent = route.request().postDataJSON();
+    await route.fulfill({
+      json: { ...BASE, auto_send: true, reply: "Geri ödenmez.", sources: [SOURCE] },
+    });
+  });
+  await page.goto("/");
+  await expect(page.getByText("0/11")).toBeVisible(); // measured results on the start page
+  await page.getByRole("button", { name: "Bu soruyu sor" }).click();
+  await expect(page.getByText("Geri ödenmez.")).toBeVisible();
+  expect(sent).toEqual({
+    text: "Kaydımı sildirdim, bu dönem ödediğim harcın iadesini alabilir miyim?",
+    language: "tr",
+  });
+});
