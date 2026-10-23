@@ -15,6 +15,7 @@ from google.genai import errors, types
 
 from classifier import THINKING_LEVEL, classify
 from config import get_settings
+from stats import wilson_interval
 from tickets import TEST_PATH, TICKETS_PATH, Ticket, load_tickets
 
 RUNS = 2  # each ticket is classified twice, to measure consistency
@@ -64,16 +65,29 @@ def score(tickets: list[Ticket], predictions: Predictions) -> dict[str, Any]:
     if not done:
         return {"n": 0}
     result: dict[str, Any] = {"n": len(done)}
+
+    def add_rate(key: str, correct: int) -> None:
+        """Save the accuracy and its 95% interval, e.g. category and category_ci."""
+        result[key] = correct / len(done)
+        result[f"{key}_ci"] = wilson_interval(correct, len(done))
+
     for field in FIELDS:
-        result[field] = sum(predictions[t.id][field] == getattr(t, field) for t in done) / len(done)
-    result["all_three"] = sum(
-        all(predictions[t.id][f] == getattr(t, f) for f in FIELDS) for t in done
-    ) / len(done)
-    result["priority_within_one"] = sum(
-        abs(PRIORITY_ORDER.index(predictions[t.id]["priority"]) - PRIORITY_ORDER.index(t.priority))
-        <= 1
-        for t in done
-    ) / len(done)
+        add_rate(field, sum(predictions[t.id][field] == getattr(t, field) for t in done))
+    add_rate(
+        "all_three",
+        sum(all(predictions[t.id][f] == getattr(t, f) for f in FIELDS) for t in done),
+    )
+    add_rate(
+        "priority_within_one",
+        sum(
+            abs(
+                PRIORITY_ORDER.index(predictions[t.id]["priority"])
+                - PRIORITY_ORDER.index(t.priority)
+            )
+            <= 1
+            for t in done
+        ),
+    )
     # The most dangerous error: the ticket needed a human, but the model did not escalate.
     result["missed_escalations"] = [
         t.id for t in done if t.escalate and not predictions[t.id]["escalate"]
@@ -107,10 +121,18 @@ def print_report(results: dict[str, Any]) -> None:
     print(
         f"\nModel {results['model']}, thinking {results['thinking_level']}, runs completed: {results['runs']}"
     )
-    print(f"{'':22}{'all':>7}{'tr':>7}{'en':>7}")
+    if results["score_run1"]["n"] == 0:
+        print("No ticket was classified, nothing to score.")
+        return
+    print(f"{'':22}{'all':>7}{'tr':>7}{'en':>7}   95% CI (all, n={results['score_run1']['n']})")
     for key in ("category", "priority", "escalate", "all_three", "priority_within_one"):
         row = [results[s].get(key) for s in ("score_run1", "score_run1_tr", "score_run1_en")]
-        print(f"{key:22}" + "".join(f"{v:>7.1%}" if v is not None else f"{'-':>7}" for v in row))
+        low, high = results["score_run1"][f"{key}_ci"]
+        print(
+            f"{key:22}"
+            + "".join(f"{v:>7.1%}" if v is not None else f"{'-':>7}" for v in row)
+            + f"   {low:.0%}-{high:.0%}"
+        )
     print("missed escalations:", results["score_run1"].get("missed_escalations") or "none")
     print("over-escalations:  ", results["score_run1"].get("over_escalations") or "none")
     if results["consistency"]:

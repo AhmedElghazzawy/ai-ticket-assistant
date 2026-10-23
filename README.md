@@ -54,7 +54,7 @@ Kilitli test seti: prompt'u ayarlamak için hiç kullanılmayan 40 talep (20 TR 
 
 | Ölçüt | Sonuç | Örnek sayısı |
 |---|---|---|
-| Üç etiketin üçü de doğru | %73,8 (yaklaşık %60–86) | 40 talep, 2 çalıştırma |
+| Üç etiketin üçü de doğru | %73,8 (2 çalıştırma: %72,5 ve %75,0; her biri için yaklaşık %57–86) | 40 talep, 2 çalıştırma |
 | **Kaçırılan escalation** (en tehlikeli hata) | **0** (gerçek oran %0–21 arasında olabilir) | 14 escalation talebi |
 | Doğru belge ilk 3 sonuçta (hit@3) | %100 (%82–100) | cevaplanabilir 17 talep |
 | Hatalı otomatik gönderim | 1 (zararsız; boşluk sonradan kapatıldı) | 40 talep |
@@ -305,7 +305,7 @@ Son güncelleme: 17.10.2026. ✅ tamamlandı · 🟡 kısmen · 🔄 devam ediyo
 |---|---|---|---|
 | 7. Altyapı | ✅ | ruff, mypy (strict), tipli ayarlar, yapılandırılmış loglar, CI, Docker, React web arayüzü | |
 | 8. Veri | 🔄 | Veri seti analizi (`tools/audit_data.py`): eksikler belirlendi | Daha gerçekçi talepler (uzun, yazım hatalı, karışık dilli, iki sorunlu); etiket tutarlılığı ölçümü |
-| 9. Değerlendirme | ⏳ | (README'deki güven aralıkları elle hesaplandı) | Güven aralıkları kodda, cevap kalitesi için LLM-as-judge, tek komutla sürümlü rapor, 3-4 modelin karşılaştırılması |
+| 9. Değerlendirme | 🟡 | Sınıflandırma skorlarında %95 güven aralığı (Wilson) kodda (`src/stats.py`) | Retrieval ve pipeline değerlendirmesinde güven aralıkları, cevap kalitesi için LLM-as-judge, tek komutla sürümlü rapor, 3-4 modelin karşılaştırılması |
 | 10. Belge arama | 🟡 | Postgres + pgvector (sonuçlar aynı kaldı) | Hibrit arama ve reranking (önce daha zor talepler gerekli: hit@3 zaten %100) |
 | 11. Güvenlik ve stres testleri | 🟡 | Rate limit, günlük sınır, giriş sınırı, CSRF, sahte IP koruması (canlıda doğrulandı), loglarda öğrenci metni yok | Prompt injection ve stres testi paketi, kişisel veri işleme, kilitli testte son çalıştırma |
 | 12. Personel ürünü | 🟡 | Giriş, birime göre kuyruk, düzenleyip gönderme, birim değiştirme, demo modu | Cevabın öğrenciye e-postayla ulaşması, öğrencinin talep durumunu görmesi, istatistik sayfası |

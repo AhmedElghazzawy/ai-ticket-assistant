@@ -10,7 +10,7 @@ Kural kitabı ve prompt 80 dev talebine bakılarak düzeltildi. Aynı talepler �
 
 ## Sonuçlar
 - Dev skoru yaklaşık 10 puan iyimser çıktı (üçü de doğru: dev %84,4, test %73,8). Bu fark, kilidin neden gerekli olduğunu gösterir.
-- 40 talep küçüktür; güven aralıkları geniştir (yaklaşık %60–86). Sonuçlar örnek sayısıyla birlikte raporlanır.
+- 40 talep küçüktür; güven aralıkları geniştir (iki çalıştırma %72,5 ve %75,0; her biri için yaklaşık %57–86). Sonuçlar örnek sayısıyla birlikte raporlanır.
 - Test talepleri de sentetiktir; sınıf arkadaşlarından gerçek talepler daha güçlü bir test olurdu.
 
 ## Alternatifler

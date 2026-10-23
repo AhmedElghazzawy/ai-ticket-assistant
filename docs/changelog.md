@@ -1409,3 +1409,17 @@ Staff pages show student messages. Until now they only answered requests from th
   - D (professor and CV): Turkish report, 5-minute demo script, CV bullet points with real numbers.
   - Proposed to skip (future work): model comparison on 4 LLMs, hybrid search and reranking (hit@3 already 100%), e-mail replies, Insights page.
 - Still open: my label decisions for "cafeteria card top-up charged but not credited" and "Erasmus grant delay" (billing or not), and the 10 draft tickets from this session (shown in chat only, not saved).
+
+# Phase 9 start: confidence intervals in the code (2026-10-23)
+- Professor email: the first email (live demo, v0.9 results) was sent. The next update email is written by me with Claude chat, not in this repo. This session's work: stage A of the capstone plan (Phase 8 tickets as a new unseen test set + confidence intervals in the code).
+- Why: the README's 95% intervals were computed by hand. Now every run computes them, so nobody has to trust hand arithmetic.
+- New src/stats.py: `wilson_interval(successes, n)` (Wilson score interval, z = 1.96). Chosen because it stays inside 0-100% and works with small samples and scores near 100% (hit@3 17/17). Own module because the retrieval and pipeline evals can reuse it.
+- Test-first: tests/test_stats.py (7 tests: 17/17 -> 81.6%-100%, the README's number; 5/10 -> 23.7%-76.3%; 0/14 starts at 0; bigger sample -> narrower; impossible counts refused). Failed first (no module), then passed.
+- src/evaluate.py: `score()` saves `<key>_ci` next to every accuracy (category, priority, escalate, all_three, priority_within_one); the report prints a "95% CI (all, n=...)" column; guard when nothing was classified (the report would have crashed).
+- New tests/test_evaluate.py (4 tests): `score()` had no test before. Accuracy with its interval, missed escalation reported, unanswered tickets left out, nothing classified -> {"n": 0}.
+- Problem found: Docker/Colima on my Mac is stuck (`docker compose ps` and `colima status` hang), so the full suite (needs Postgres) could not run. The new tests ran with `pytest --noconftest` (skips the shared database setup). Fix: I run `colima restart`.
+- My own mistake: ran mypy as `mypy src tests` (error in test_auth.py: add_staff not found); CI runs plain `uv run mypy`, which passes. Lesson: run checks exactly like CI.
+- Real check, no AI calls: re-scored the saved locked-test predictions (eval/results_high_test.json): run 1 all three 72.5% (57-84%, n=40), category 87.5% (74-95%), priority 85.0% (71-93%), escalate 90.0% (77-96%), 0 missed escalations.
+- Problem found in the README: "73.8% (about 60-86%)" is the mean of 2 runs (29/40 and 30/40), but the interval matches 30/40 only (the better run); the honest interval for the mean is about 57-85%. Computing it on 80 answers (2 runs x 40) would be wrong and too narrow (63-82%): the second run repeats the same 40 tickets, so the sample is still 40.
+- After `colima restart` (exit 0) and `docker compose up -d db`: full suite 101 passed (90 old + 11 new) on real Postgres.
+- Fixed (my OK: "continue"): README results table, ADR 0003 and the CLAUDE.md / AGENTS.md status line now say 73.8% is the mean of 2 runs (72.5% and 75.0%) with a per-run 95% CI of about 57-86% (n=40), instead of "about 60-86%". docs/professor_email.md left unchanged: it is a copy of an email already sent. Roadmap Phase 9 marked partial in README, CLAUDE.md and AGENTS.md (intervals in the classifier eval done; retrieval and pipeline evals left).
