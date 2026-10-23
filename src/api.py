@@ -24,7 +24,7 @@ from pydantic import BaseModel, Field
 
 import auth
 from auth import Staff
-from decision import OfficeId
+from decision import Decision, OfficeId, show_first_help
 from logs import configure, get_logger
 from pipeline import process_ticket
 from retrieval import load_index, open_synced_pool
@@ -104,13 +104,14 @@ class TicketIn(BaseModel):
 
 
 class TicketOut(BaseModel):
-    """What the student sees. `reply` is only filled when every safety check passed."""
+    """What the student sees. `reply` is filled only for an auto-sent answer or a safe first help."""
 
     ticket_id: int  # shown to the student, so staff and student can refer to the same request
     category: Category
     priority: Priority
     office: OfficeId  # an ID: the page shows the name in the student's language
     auto_send: bool
+    first_help: bool  # forwarded, but the cited draft helps now (decision.show_first_help)
     reply: str | None  # None: a human answers, so the unchecked draft never leaves the server
     sources: list[StoredSource]
     emergency: bool  # show the 112 line (urgent and escalated)
@@ -209,14 +210,17 @@ def create_ticket(ticket: TicketIn) -> TicketOut:
         top_score=round(saved.top_score, 4),
     )
     # The response is built from the SAVED ticket, so students and staff always see the same data.
+    first_help = show_first_help(Decision(auto_send=saved.auto_send, reasons=saved.reasons))
+    shown = saved.auto_send or first_help
     return TicketOut(
         ticket_id=saved.id,
         category=saved.category,
         priority=saved.priority,
         office=saved.office,
         auto_send=saved.auto_send,
-        reply=saved.draft if saved.auto_send else None,
-        sources=saved.sources if saved.auto_send else [],
+        first_help=first_help,
+        reply=saved.draft if shown else None,
+        sources=saved.sources if shown else [],
         emergency=saved.escalate and saved.priority == "urgent",
     )
 

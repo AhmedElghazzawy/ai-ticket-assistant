@@ -11,7 +11,7 @@ from fastapi.testclient import TestClient
 import api
 import auth
 from auth import Role
-from decision import OfficeId
+from decision import OfficeId, SimpleReason
 from pipeline import TicketResult
 
 client = TestClient(api.app)
@@ -82,6 +82,24 @@ def test_auto_sent_answer_has_reply_and_source(monkeypatch: pytest.MonkeyPatch) 
         }
     ]
     assert body["office"] == "fees"  # an ID: the page shows the name in the student's language
+
+
+def test_partly_answered_ticket_shows_first_help(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Forwarded because the documents answer only part: the cited part helps the student now.
+    partly = fake_result(False, forward_reason=SimpleReason(code="not_covered"))
+    monkeypatch.setattr(api, "process_ticket", lambda *args: partly)
+    body = ask().json()
+    assert body["auto_send"] is False
+    assert body["first_help"] is True
+    assert body["reply"] == "SECRET DRAFT"
+    assert [source["id"] for source in body["sources"]] == [CHUNK.id]
+
+
+def test_escalated_ticket_shows_no_first_help(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(api, "process_ticket", lambda *args: fake_result(False, escalate=True))
+    body = ask().json()
+    assert body["first_help"] is False
+    assert body["reply"] is None
 
 
 def test_urgent_escalation_shows_emergency(monkeypatch: pytest.MonkeyPatch) -> None:

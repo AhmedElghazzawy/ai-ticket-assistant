@@ -67,7 +67,7 @@ jobs:
         run: uv run python tools/export_openapi.py && git diff --exit-code frontend/openapi.json
 
   frontend:
-    name: Frontend (lint, types, build)
+    name: Frontend (lint, types, build, browser tests)
     runs-on: ubuntu-24.04 # pinned: ubuntu-latest moves to 26 on 2026-10-19; upgrade on purpose
     timeout-minutes: 10
     defaults:
@@ -96,6 +96,12 @@ jobs:
 
       - name: Production build
         run: npm run build
+
+      - name: Browser for Playwright (Chromium only)
+        run: npx playwright install --with-deps chromium
+
+      - name: Browser tests (Playwright, API faked, desktop + phone)
+        run: npm run test:e2e
 
   docker:
     name: Docker image builds

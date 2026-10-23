@@ -390,7 +390,7 @@
         "type": "object"
       },
       "TicketOut": {
-        "description": "What the student sees. `reply` is only filled when every safety check passed.",
+        "description": "What the student sees. `reply` is filled only for an auto-sent answer or a safe first help.",
         "properties": {
           "auto_send": {
             "title": "Auto Send",
@@ -411,6 +411,10 @@
           },
           "emergency": {
             "title": "Emergency",
+            "type": "boolean"
+          },
+          "first_help": {
+            "title": "First Help",
             "type": "boolean"
           },
           "office": {
@@ -463,6 +467,7 @@
           "priority",
           "office",
           "auto_send",
+          "first_help",
           "reply",
           "sources",
           "emergency"

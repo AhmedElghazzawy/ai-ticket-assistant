@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Playwright output (screenshots and traces of failed runs)
+test-results
+playwright-report

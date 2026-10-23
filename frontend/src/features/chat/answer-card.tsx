@@ -42,6 +42,22 @@ function SourceCard({ source }: { source: StoredSource }) {
   );
 }
 
+function SourceList({ sources }: { sources: StoredSource[] }) {
+  const { t } = usePreferences();
+  return (
+    <div className="space-y-2">
+      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        {t.sources}
+      </p>
+      <div className="grid gap-2 sm:grid-cols-2">
+        {sources.map((source) => (
+          <SourceCard key={source.id} source={source} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function TicketMeta({ result }: { result: TicketOut }) {
   const { t } = usePreferences();
   return (
@@ -60,7 +76,7 @@ function EmergencyBanner() {
   return (
     <a
       href="tel:112"
-      className="flex items-center gap-3 rounded-lg bg-destructive px-4 py-3 text-sm font-semibold text-white"
+      className="flex items-center gap-3 rounded-lg bg-destructive px-4 py-3 text-sm font-semibold text-destructive-foreground"
     >
       <Phone className="size-4" /> {t.emergency}
     </a>
@@ -75,16 +91,7 @@ function AnsweredCard({ result }: { result: TicketOut }) {
         <BadgeCheck className="size-4" /> {t.answered}
       </p>
       <p className="text-[0.95rem] leading-relaxed">{result.reply}</p>
-      <div className="space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          {t.sources}
-        </p>
-        <div className="grid gap-2 sm:grid-cols-2">
-          {result.sources.map((source) => (
-            <SourceCard key={source.id} source={source} />
-          ))}
-        </div>
-      </div>
+      <SourceList sources={result.sources} />
       <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-3">
         <TicketMeta result={result} />
         <div className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -108,7 +115,19 @@ function ForwardedCard({ result }: { result: TicketOut }) {
       <p className="flex items-center gap-1.5 text-xs font-semibold text-warning-foreground dark:text-warning">
         <Forward className="size-4" /> {t.forwarded}
       </p>
-      <p className="text-[0.95rem] leading-relaxed">{t.forwardedText}</p>
+      {result.first_help && result.reply ? (
+        // Forwarded, but the cited part of the draft passed every safety check (decision.show_first_help).
+        <div className="space-y-3 rounded-lg border bg-background p-3.5">
+          <p className="flex items-center gap-1.5 text-xs font-semibold text-success">
+            <BadgeCheck className="size-4" /> {t.firstHelp}
+          </p>
+          <p className="text-[0.95rem] leading-relaxed">{result.reply}</p>
+          <p className="text-xs text-muted-foreground">{t.firstHelpNote}</p>
+          <SourceList sources={result.sources} />
+        </div>
+      ) : (
+        <p className="text-[0.95rem] leading-relaxed">{t.forwardedText}</p>
+      )}
       <div className="space-y-3 rounded-lg border border-warning/40 bg-warning/10 p-3.5">
         <div className="flex items-start gap-3">
           <Building2 className="mt-0.5 size-4 shrink-0 text-muted-foreground" />

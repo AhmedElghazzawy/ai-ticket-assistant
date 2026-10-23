@@ -5,7 +5,7 @@ import type { Language, Priority, Reason } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const PRIORITY_STYLE: Record<Priority, string> = {
-  urgent: "bg-destructive text-white",
+  urgent: "bg-destructive text-destructive-foreground",
   high: "bg-warning/20 text-warning-foreground ring-1 ring-warning/50 dark:text-warning",
   medium: "bg-secondary text-secondary-foreground",
   low: "bg-muted text-muted-foreground",

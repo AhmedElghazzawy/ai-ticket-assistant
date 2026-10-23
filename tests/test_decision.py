@@ -4,7 +4,7 @@ from typing import get_args
 
 from answer import Answer
 from classifier import Classification
-from decision import MIN_SCORE, OFFICE_NAMES, OFFICE_OF, WeakMatch, decide
+from decision import MIN_SCORE, OFFICE_NAMES, OFFICE_OF, WeakMatch, decide, show_first_help
 from tickets import Category
 
 RETRIEVED = {"sinavlar.en#4", "sinavlar.en#1"}
@@ -74,3 +74,40 @@ def test_urgent_ticket_is_never_auto_sent() -> None:
         reason="test", category="account_access", priority="urgent", escalate=False
     )
     assert not decide(urgent, 0.80, GOOD_ANSWER, RETRIEVED).auto_send
+
+
+# First help: a forwarded draft may reach the student only when it is safe (docs/decisions/0008).
+PARTIAL = Answer(evidence="a rule", covered=False, reply="part answer", sources=["sinavlar.en#4"])
+
+
+def test_partly_answered_ticket_gets_first_help() -> None:
+    decision = decide(labels(), 0.80, PARTIAL, RETRIEVED)
+    assert not decision.auto_send
+    assert show_first_help(decision)
+
+
+def test_auto_sent_ticket_is_not_first_help() -> None:
+    assert not show_first_help(decide(labels(), 0.80, GOOD_ANSWER, RETRIEVED))
+
+
+def test_escalated_ticket_never_gets_first_help() -> None:
+    # Crisis, harassment, refunds, disputes: a person answers, no AI text reaches the student.
+    assert not show_first_help(decide(labels(escalate=True), 0.80, GOOD_ANSWER, RETRIEVED))
+
+
+def test_draft_without_a_checked_citation_never_gets_first_help() -> None:
+    no_source = Answer(evidence="", covered=False, reply="we will forward it", sources=[])
+    invented = Answer(evidence="a rule", covered=False, reply="x", sources=["staj.en#2"])
+    assert not show_first_help(decide(labels(), 0.80, no_source, RETRIEVED))
+    assert not show_first_help(decide(labels(), 0.80, invented, RETRIEVED))
+
+
+def test_weak_match_never_gets_first_help() -> None:
+    assert not show_first_help(decide(labels(), MIN_SCORE - 0.01, PARTIAL, RETRIEVED))
+
+
+def test_category_other_and_urgent_can_get_first_help() -> None:
+    # Clear, cited answers help these students now; a person still answers too.
+    assert show_first_help(decide(labels(category="other"), 0.80, GOOD_ANSWER, RETRIEVED))
+    urgent = Classification(reason="t", category="it_support", priority="urgent", escalate=False)
+    assert show_first_help(decide(urgent, 0.80, GOOD_ANSWER, RETRIEVED))

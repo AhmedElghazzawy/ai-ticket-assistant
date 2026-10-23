@@ -24,6 +24,9 @@ const tr = {
   forwardedText:
     "Bu konuda kesin bir cevabı yalnızca bir personel verebilir. Talebiniz ve yapay zekânın hazırladığı taslak, aşağıdaki birime iletildi.",
   nextStep: "Bir personel talebinizi inceleyip size dönüş yapacak.",
+  firstHelp: "Ön bilgi",
+  firstHelpNote:
+    "Bu kısım resmî belgelere dayanıyor. Sorunuzun geri kalanını ilgili birimdeki personel yanıtlayacak.",
   emergency: "Acil bir tehlike varsa hemen 112'yi arayın.",
   sources: "Kaynaklar",
   ticketNo: "Talep no",
@@ -32,6 +35,17 @@ const tr = {
   newChat: "Yeni talep",
   error: "Şu anda cevap veremiyoruz. Lütfen biraz sonra tekrar deneyin.",
   tooMany: "Kısa sürede çok fazla soru gönderdiniz. Lütfen bir dakika bekleyin.",
+  notice:
+    "Öğrenci projesidir, resmî bir BŞEÜ hizmeti değildir. TC kimlik no, şifre gibi kişisel bilgilerinizi yazmayın.",
+  howTitle: "Nasıl çalışır?",
+  howSteps: [
+    { title: "Sorunuzu yazın", text: "Türkçe veya İngilizce, kendi cümlelerinizle." },
+    { title: "Resmî belgelerde aranır", text: "Yönetmelikler, yönergeler ve Öğrenci İşleri SSS." },
+    { title: "Cevap veya doğru birim", text: "Kaynaklı cevap; hassas konular personele gider." },
+  ],
+  quickLinks: "Sık kullanılan sistemler",
+  footer:
+    "Çalışma Tasarımı I öğrenci projesi · Bilgisayar Mühendisliği · BŞEÜ'nün resmî hizmeti değildir.",
   staff: {
     console: "Personel Paneli",
     queue: "İnceleme kuyruğu",
@@ -142,6 +156,9 @@ const en: Texts = {
   forwardedText:
     "Only a staff member can give a definite answer here. Your request and the AI's draft were sent to the office below.",
   nextStep: "A staff member will review your request and get back to you.",
+  firstHelp: "First help",
+  firstHelpNote:
+    "This part is based on official documents. A staff member at the office below will answer the rest.",
   emergency: "If you are in immediate danger, call 112 now.",
   sources: "Sources",
   ticketNo: "Ticket no",
@@ -150,6 +167,23 @@ const en: Texts = {
   newChat: "New request",
   error: "We can't answer right now. Please try again in a moment.",
   tooMany: "You sent many questions in a short time. Please wait a minute.",
+  notice:
+    "A student project, not an official BŞEÜ service. Do not write personal data such as your ID number or passwords.",
+  howTitle: "How it works",
+  howSteps: [
+    { title: "Write your question", text: "In Turkish or English, in your own words." },
+    {
+      title: "Official documents are searched",
+      text: "Regulations, directives and the Student Affairs FAQ.",
+    },
+    {
+      title: "An answer or the right office",
+      text: "Answers cite their source; sensitive cases go to staff.",
+    },
+  ],
+  quickLinks: "Frequently used systems",
+  footer:
+    "Çalışma Tasarımı I student project · Computer Engineering · Not an official BŞEÜ service.",
   staff: {
     console: "Staff Console",
     queue: "Review queue",

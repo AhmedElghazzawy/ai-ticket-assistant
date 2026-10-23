@@ -225,7 +225,7 @@ export type TicketIn = {
 /**
  * TicketOut
  *
- * What the student sees. `reply` is only filled when every safety check passed.
+ * What the student sees. `reply` is filled only for an auto-sent answer or a safe first help.
  */
 export type TicketOut = {
     /**
@@ -240,6 +240,10 @@ export type TicketOut = {
      * Emergency
      */
     emergency: boolean;
+    /**
+     * First Help
+     */
+    first_help: boolean;
     /**
      * Office
      */

@@ -33,7 +33,9 @@ Answer the student's ticket using ONLY the official rules given below the ticket
 
 Rules for you:
 - First copy into `evidence` the exact sentence(s) from the rules that answer the ticket.
-- If the rules do not answer the question, set `covered` to false, leave `evidence` empty and `sources` empty,
+- If the rules answer only PART of the ticket, set `covered` to false, but still copy the evidence for that part,
+  cite it in `sources`, answer that part, and say the rest will be forwarded to the responsible office.
+- If the rules answer nothing, set `covered` to false, leave `evidence` empty and `sources` empty,
   and write a short reply saying the request will be forwarded to the responsible office.
 - Never add facts, phone numbers, e-mail addresses, deadlines or procedures that are not in the rules.
 - Keep the reply short (3-6 sentences), polite, and in the requested language.

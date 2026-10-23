@@ -10,6 +10,7 @@ import sys
 import time
 from pathlib import Path
 
+from decision import show_first_help
 from pipeline import process_ticket
 from retrieval import open_synced_pool
 from tickets import DATASETS, TICKETS_PATH, Ticket, load_tickets
@@ -55,6 +56,8 @@ def main() -> None:
                 "expected_doc": expected[t.id],
                 "should_auto_send": should_auto_send(t, expected[t.id]),
                 "auto_send": r.decision.auto_send,
+                "first_help": show_first_help(r.decision),
+                "escalate": t.escalate,
                 "reasons": [reason.model_dump() for reason in r.decision.reasons],
                 "covered": r.answer.covered,
                 "sources": r.answer.sources,
@@ -68,12 +71,17 @@ def main() -> None:
     unsafe = [r["id"] for r in rows if r["auto_send"] and not r["should_auto_send"]]
     could = [r for r in rows if r["should_auto_send"]]
     sent = [r for r in rows if r["auto_send"]]
+    first_help = [r for r in rows if r["first_help"]]
     summary = {
         "tickets": len(rows),
         "auto_sent": len(sent),
         "unsafe_auto_sends": unsafe,
         "helpful": f"{sum(r['auto_send'] for r in could)}/{len(could)} answerable tickets were auto-sent",
         "wrong_document_cited": [r["id"] for r in sent if not r["cites_expected_doc"]],
+        "first_help": len(first_help),
+        "helped_now": f"{len(sent) + len(first_help)}/{len(rows)} students got an answer or first help",
+        # Must stay empty: AI text shown to a student whose ticket (by my labels) needed a human.
+        "first_help_on_escalated": [r["id"] for r in first_help if r["escalate"]],
     }
     print(json.dumps(summary, ensure_ascii=False, indent=1))
     path = RESULTS_DIR / f"pipeline_results_{dataset}.json"

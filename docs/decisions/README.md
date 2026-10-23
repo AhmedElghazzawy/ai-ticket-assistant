@@ -11,5 +11,6 @@ Projedeki önemli seçimler, her biri kısa bir dosyada: bağlam, karar, sonuçl
 | [0005](0005-hosting-render-neon.md) | Barındırma: Render (ücretsiz, Frankfurt) + Neon (ücretsiz Postgres) | Kabul edildi |
 | [0006](0006-demo-mode-keeps-login.md) | Personel girişi kalır; herkese açık deneme için ayrı demo modu | Kabul edildi |
 | [0007](0007-client-ip-header.md) | Rate limit için ziyaretçi adresi: yalnızca güvenilen proxy başlığı | Kabul edildi |
+| [0008](0008-first-help-on-forwarded-tickets.md) | Yönlendirilen taleplerde güvenli "ön bilgi" (escalate edilenlerde asla) | Kabul edildi |
 
 Yeni bir önemli karar alındığında bir sonraki numarayla yeni dosya eklenir. Bir karar değişirse eski dosya silinmez: durumu "Yerini aldı: 00XX" olur.

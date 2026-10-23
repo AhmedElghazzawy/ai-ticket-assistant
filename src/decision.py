@@ -113,3 +113,13 @@ def decide(
     if not answer.sources or not set(answer.sources) <= retrieved_ids:
         reasons.append(SimpleReason(code="no_citation"))
     return Decision(auto_send=not reasons, reasons=reasons)
+
+
+# A forwarded draft never reaches the student if any of these checks failed (docs/decisions/0008).
+NO_FIRST_HELP = {"escalation", "no_citation", "weak_match"}
+
+
+def show_first_help(decision: Decision) -> bool:
+    """Forwarded, but the draft may help the student now: not escalated, a strong document match,
+    and every cited rule was really retrieved. A person still answers the ticket."""
+    return not decision.auto_send and not {r.code for r in decision.reasons} & NO_FIRST_HELP

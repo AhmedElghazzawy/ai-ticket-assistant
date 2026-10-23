@@ -19,9 +19,13 @@ CHUNK = Chunk(
 
 
 def fake_result(
-    auto_send: bool, escalate: bool = False, priority: Priority = "low"
+    auto_send: bool,
+    escalate: bool = False,
+    priority: Priority = "low",
+    forward_reason: SimpleReason | None = None,
 ) -> TicketResult:
-    """A hand-made pipeline result."""
+    """A hand-made pipeline result. Forwarded results default to the reason "escalation"."""
+    reason = forward_reason or SimpleReason(code="escalation")
     return TicketResult(
         classification=Classification(
             reason="test", category="billing", priority=priority, escalate=escalate
@@ -30,7 +34,5 @@ def fake_result(
         answer=Answer(
             evidence="Geri ödenmez.", covered=True, reply="SECRET DRAFT", sources=[CHUNK.id]
         ),
-        decision=Decision(
-            auto_send=auto_send, reasons=[] if auto_send else [SimpleReason(code="escalation")]
-        ),
+        decision=Decision(auto_send=auto_send, reasons=[] if auto_send else [reason]),
     )
