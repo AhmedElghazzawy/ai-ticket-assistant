@@ -48,13 +48,13 @@ export function ChatPage() {
       <AppHeader onNewChat={() => setTurns([])} />
       <main className="mx-auto w-full max-w-3xl flex-1 px-4">
         {turns.length === 0 ? (
-          <EmptyState onPick={ask} />
+          <EmptyState onSend={ask} busy={busy} />
         ) : (
           <div className="space-y-6 py-8">
             {turns.map((turn) => (
               <div key={turn.id} className="space-y-3">
                 <div className="flex justify-end">
-                  <p className="max-w-[85%] rounded-2xl rounded-br-md bg-primary px-4 py-2.5 text-[0.95rem] whitespace-pre-wrap text-primary-foreground">
+                  <p className="max-w-[85%] rounded-2xl rounded-br-md border bg-secondary px-4 py-2.5 text-[0.95rem] whitespace-pre-wrap text-secondary-foreground">
                     {turn.question}
                   </p>
                 </div>
@@ -71,11 +71,14 @@ export function ChatPage() {
           </div>
         )}
       </main>
-      <div className="sticky bottom-0 bg-linear-to-t from-background via-background to-background/0 pt-6 pb-4">
-        <div className="mx-auto max-w-3xl px-4">
-          <Composer onSend={ask} busy={busy} />
+      {turns.length > 0 && (
+        // The start screen has its own input box in the middle; this one appears once a chat starts.
+        <div className="sticky bottom-0 bg-linear-to-t from-background via-background to-background/0 pt-6 pb-4">
+          <div className="mx-auto max-w-3xl px-4">
+            <Composer onSend={ask} busy={busy} />
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

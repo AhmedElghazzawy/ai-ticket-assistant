@@ -110,7 +110,7 @@ function DemoBanner() {
   const { data: me } = useQuery(meOptions());
   if (!me?.demo) return null;
   return (
-    <p className="border-b border-warning/40 bg-warning/15 px-4 py-2 text-center text-xs font-medium lg:px-8">
+    <p className="border-b bg-muted/50 px-4 py-2 text-center text-xs font-medium text-warning-foreground lg:px-8 dark:text-warning">
       {t.staff.demoBanner}
     </p>
   );

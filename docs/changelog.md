@@ -1532,3 +1532,12 @@ Staff pages show student messages. Until now they only answered requests from th
 - Checks: ruff, mypy strict, 131 tests.
 - Commit and push: `ab581b2` (eval intervals, stress fixes).
 - Retrieval eval on all three sets (160 embeddings, 4 batches with 60 s pauses, 0 errors): dev hit@3 100% (92-100%, n=46), hit@1 91%; test 100% (82-100%, n=17), hit@1 94%; Phase 8 (harder, realistic) 100% (89-100%, n=30), hit@1 97%. Even messy tickets find the right document: search is not the weak point, so hybrid search / reranking (roadmap 10) would add complexity without a measurable gain on this data. eval/retrieval_results.json now includes phase8.
+- Commit and push: `76a035f` (retrieval on Phase 8).
+
+# Stage 2b: dark and premium redesign (2026-10-23)
+- My feedback on the red design: "it looks really ugly". Claude's own reading: too much heavy red (band, bubbles, pink tiles), a beige bar clashing with the red band, a template look. I chose "dark and premium" from three directions (clean light / bold hero / dark premium).
+- Dark is the default (index.html pre-paint script and preferences.tsx; a saved choice wins); light mode stays in the theme menu and was cleaned up (neutral).
+- New tokens (index.css), contrast computed with the script: page #09090B, cards #131316, text #FAFAFA (19:1), muted #A1A1AA (7.8:1); red FILLS crimson #C8102E (white text 5.9:1), red TEXT #F2555A (5.9:1) via a new token brand-text; teal #2DD4BF, amber #FBBF24, urgent #FB923C. Named glow styles in one place (glow-soft, glow-input, hero-glow).
+- Header: slim transparent bar with the red "BŞEÜ" tile (still not the official logo); the red band and its onBrand variants removed. The not-official notice moved under the hero input (still visible; the browser test checks it).
+- Start screen: big fading title, the input box in the middle (the bottom input appears only once a chat starts), examples as pills, "Nasıl çalışır?" as 01/02/03 steps, quick links, footer. User messages in a dark-gray bubble; answer cards calm; office box neutral (amber on black looked muddy); a single source card gets the full width (titles were cut off); staff demo banner neutral.
+- Checked with screenshots (desktop, phone, light mode, first help, staff queue) before showing; then I looked at it myself on the local server and approved it. Checks: Biome, TypeScript, build, 8 browser tests. README screenshots retaken in the new design.

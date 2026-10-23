@@ -55,7 +55,7 @@ function SourceList({ sources }: { sources: StoredSource[] }) {
       <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         {t.sources}
       </p>
-      <div className="grid gap-2 sm:grid-cols-2">
+      <div className={sources.length > 1 ? "grid gap-2 sm:grid-cols-2" : "grid gap-2"}>
         {sources.map((source) => (
           <SourceCard key={source.id} source={source} />
         ))}
@@ -134,7 +134,7 @@ function ForwardedCard({ result }: { result: TicketOut }) {
       ) : (
         <p className="text-[0.95rem] leading-relaxed">{t.forwardedText}</p>
       )}
-      <div className="space-y-3 rounded-lg border border-warning/40 bg-warning/10 p-3.5">
+      <div className="space-y-3 rounded-lg border bg-muted/40 p-3.5">
         <div className="flex items-start gap-3">
           <Building2 className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
           <div>

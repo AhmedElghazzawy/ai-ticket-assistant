@@ -9,7 +9,7 @@
     <script>
       // Apply dark mode before the page paints, so dark-mode users never see a white flash.
       try {
-        const theme = localStorage.getItem("theme") || "system";
+        const theme = localStorage.getItem("theme") || "dark"; // dark by default (design choice, 2026-10-23)
         const dark = theme === "dark" || (theme === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
         document.documentElement.classList.toggle("dark", dark);
       } catch {}

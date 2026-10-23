@@ -36,8 +36,8 @@ function save(key: string, value: string): void {
 
 export function PreferencesProvider({ children }: { children: ReactNode }) {
   const [language, setLanguage] = useState(() => load("language", ["tr", "en"] as const, "tr"));
-  const [theme, setTheme] = useState(() =>
-    load("theme", ["light", "dark", "system"] as const, "system"),
+  const [theme, setTheme] = useState(
+    () => load("theme", ["light", "dark", "system"] as const, "dark"), // dark by default; a saved choice wins
   );
 
   useEffect(() => {

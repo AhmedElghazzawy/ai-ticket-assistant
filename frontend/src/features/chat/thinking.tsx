@@ -32,7 +32,7 @@ export function Thinking() {
             {index < step ? (
               <Check className="size-4 text-success" />
             ) : index === step ? (
-              <LoaderCircle className="size-4 animate-spin text-primary" />
+              <LoaderCircle className="size-4 animate-spin text-brand-text" />
             ) : (
               <span className="size-4 rounded-full border" />
             )}

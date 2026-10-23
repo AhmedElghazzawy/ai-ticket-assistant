@@ -26,7 +26,7 @@ export function Composer({ onSend, busy }: { onSend: (text: string) => void; bus
 
   return (
     <form onSubmit={submit} className="space-y-2">
-      <div className="relative rounded-2xl border bg-card shadow-sm transition-shadow focus-within:border-ring/50 focus-within:ring-3 focus-within:ring-ring/15">
+      <div className="glow-input relative rounded-2xl border bg-card transition-shadow">
         <Textarea
           value={text}
           onChange={(event) => setText(event.target.value)}

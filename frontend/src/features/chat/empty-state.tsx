@@ -1,18 +1,6 @@
-import {
-  ArrowUpRight,
-  BookOpenCheck,
-  CalendarDays,
-  CreditCard,
-  FileSearch,
-  GraduationCap,
-  KeyRound,
-  MessageSquareText,
-  Route,
-} from "lucide-react";
+import { ArrowUpRight, ShieldAlert } from "lucide-react";
 import { usePreferences } from "@/app/preferences";
-
-const ICONS = [GraduationCap, CreditCard, CalendarDays, KeyRound]; // same order as t.examples
-const STEP_ICONS = [MessageSquareText, FileSearch, Route]; // same order as t.howSteps
+import { Composer } from "./composer";
 
 // Official addresses, the same ones our knowledge-base documents cite (bilisim_hesaplar).
 const SYSTEMS = [
@@ -25,21 +13,17 @@ const SYSTEMS = [
 function Examples({ onPick }: { onPick: (question: string) => void }) {
   const { t } = usePreferences();
   return (
-    <div className="mt-8 grid w-full max-w-2xl gap-2.5 sm:grid-cols-2">
-      {t.examples.map((question, index) => {
-        const Icon = ICONS[index] ?? GraduationCap;
-        return (
-          <button
-            key={question}
-            type="button"
-            onClick={() => onPick(question)}
-            className="group flex items-center gap-3 rounded-xl border bg-card p-3.5 text-left text-sm shadow-xs transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
-          >
-            <Icon className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
-            {question}
-          </button>
-        );
-      })}
+    <div className="flex flex-wrap justify-center gap-2">
+      {t.examples.map((question) => (
+        <button
+          key={question}
+          type="button"
+          onClick={() => onPick(question)}
+          className="rounded-full border bg-card/60 px-3.5 py-1.5 text-sm text-muted-foreground transition-colors hover:border-ring/50 hover:text-foreground"
+        >
+          {question}
+        </button>
+      ))}
     </div>
   );
 }
@@ -47,23 +31,20 @@ function Examples({ onPick }: { onPick: (question: string) => void }) {
 function HowItWorks() {
   const { t } = usePreferences();
   return (
-    <section className="mt-12 w-full max-w-2xl text-left">
-      <h2 className="font-heading text-sm font-bold">{t.howTitle}</h2>
-      <ol className="mt-3 grid gap-3 sm:grid-cols-3">
-        {t.howSteps.map((step, index) => {
-          const Icon = STEP_ICONS[index] ?? Route;
-          return (
-            <li key={step.title} className="rounded-xl border bg-card p-3.5">
-              <span className="flex items-center gap-2 text-sm font-semibold">
-                <span className="flex size-7 items-center justify-center rounded-lg bg-accent text-accent-foreground">
-                  <Icon className="size-4" />
-                </span>
-                {step.title}
-              </span>
-              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{step.text}</p>
-            </li>
-          );
-        })}
+    <section className="w-full">
+      <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+        {t.howTitle}
+      </h2>
+      <ol className="mt-4 grid gap-6 sm:grid-cols-3">
+        {t.howSteps.map((step, index) => (
+          <li key={step.title}>
+            <span className="font-heading text-sm font-bold text-brand-text tabular-nums">
+              {String(index + 1).padStart(2, "0")}
+            </span>
+            <p className="mt-1 text-sm font-semibold">{step.title}</p>
+            <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{step.text}</p>
+          </li>
+        ))}
       </ol>
     </section>
   );
@@ -72,16 +53,18 @@ function HowItWorks() {
 function QuickLinks() {
   const { t } = usePreferences();
   return (
-    <section className="mt-8 w-full max-w-2xl text-left">
-      <h2 className="font-heading text-sm font-bold">{t.quickLinks}</h2>
-      <div className="mt-3 flex flex-wrap gap-2">
+    <section className="w-full">
+      <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+        {t.quickLinks}
+      </h2>
+      <div className="mt-4 flex flex-wrap gap-2">
         {SYSTEMS.map((system) => (
           <a
             key={system.name}
             href={system.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 rounded-lg border bg-card px-3 py-2 text-sm font-medium transition-colors hover:border-primary/40 hover:text-primary"
+            className="flex items-center gap-1 rounded-lg border bg-card/60 px-3 py-1.5 text-sm font-medium transition-colors hover:border-ring/50"
           >
             {system.name} <ArrowUpRight className="size-3.5 text-muted-foreground" />
           </a>
@@ -91,21 +74,35 @@ function QuickLinks() {
   );
 }
 
-export function EmptyState({ onPick }: { onPick: (question: string) => void }) {
+export function EmptyState({ onSend, busy }: { onSend: (text: string) => void; busy: boolean }) {
   const { t } = usePreferences();
   return (
-    <div className="flex flex-col items-center py-10 text-center sm:py-14">
-      <span className="mb-5 flex size-12 items-center justify-center rounded-2xl bg-accent text-accent-foreground">
-        <BookOpenCheck className="size-6" />
-      </span>
-      <h1 className="font-heading text-2xl font-bold tracking-tight text-balance sm:text-3xl">
-        {t.welcomeTitle}
-      </h1>
-      <p className="mt-3 max-w-lg text-pretty text-muted-foreground">{t.welcomeText}</p>
-      <Examples onPick={onPick} />
-      <HowItWorks />
-      <QuickLinks />
-      <p className="mt-12 max-w-2xl text-xs text-muted-foreground">{t.footer}</p>
+    <div className="relative">
+      {/* The soft red glow behind the welcome area (decoration only). */}
+      <div
+        aria-hidden
+        className="hero-glow pointer-events-none absolute inset-x-0 top-0 h-[34rem]"
+      />
+      <div className="relative mx-auto flex max-w-2xl flex-col items-center pt-16 text-center sm:pt-24">
+        <h1 className="bg-linear-to-b from-foreground to-foreground/65 bg-clip-text pb-1 font-heading text-3xl font-bold tracking-tight text-balance text-transparent sm:text-5xl">
+          {t.welcomeTitle}
+        </h1>
+        <p className="mt-4 max-w-lg text-pretty text-muted-foreground">{t.welcomeText}</p>
+        <div className="mt-8 w-full text-left">
+          <Composer onSend={onSend} busy={busy} />
+        </div>
+        <p className="mt-3 flex items-start gap-1.5 text-left text-xs text-muted-foreground">
+          <ShieldAlert className="mt-px size-3.5 shrink-0" /> {t.notice}
+        </p>
+        <div className="mt-8">
+          <Examples onPick={onSend} />
+        </div>
+      </div>
+      <div className="relative mx-auto mt-20 max-w-2xl space-y-12 border-t pt-10 pb-12">
+        <HowItWorks />
+        <QuickLinks />
+        <p className="text-xs text-muted-foreground">{t.footer}</p>
+      </div>
     </div>
   );
 }
