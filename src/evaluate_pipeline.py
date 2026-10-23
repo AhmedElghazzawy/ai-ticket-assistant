@@ -9,10 +9,12 @@ import json
 import sys
 import time
 from pathlib import Path
+from typing import Any
 
 from decision import show_first_help
 from pipeline import process_ticket
 from retrieval import open_synced_pool
+from stats import wilson_interval
 from tickets import DATASETS, TICKETS_PATH, Ticket, load_tickets
 
 EXPECTED_PATH = TICKETS_PATH.parent / "expected_docs.jsonl"
@@ -28,6 +30,27 @@ def should_auto_send(ticket: Ticket, expected_doc: str) -> bool:
         and ticket.priority != "urgent"  # same rule as src/decision.py
         and expected_doc != "none"
     )
+
+
+def summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    """Safety counts (must stay empty) and helpfulness rates with their 95% intervals."""
+    could = [r for r in rows if r["should_auto_send"]]
+    sent = [r for r in rows if r["auto_send"]]
+    first_help = [r for r in rows if r["first_help"]]
+    helped = len(sent) + len(first_help)
+    return {
+        "tickets": len(rows),
+        "auto_sent": len(sent),
+        "unsafe_auto_sends": [r["id"] for r in sent if not r["should_auto_send"]],
+        "helpful": f"{sum(r['auto_send'] for r in could)}/{len(could)} answerable tickets were auto-sent",
+        "wrong_document_cited": [r["id"] for r in sent if not r["cites_expected_doc"]],
+        "auto_resolution_ci": wilson_interval(len(sent), len(rows)),
+        "first_help": len(first_help),
+        "helped_now": f"{helped}/{len(rows)} students got an answer or first help",
+        "helped_now_ci": wilson_interval(helped, len(rows)),
+        # Must stay empty: AI text shown to a student whose ticket (by my labels) needed a human.
+        "first_help_on_escalated": [r["id"] for r in first_help if r["escalate"]],
+    }
 
 
 def main() -> None:
@@ -68,21 +91,7 @@ def main() -> None:
         )
         print(f"[{number}/{len(tickets)}] {t.id} auto_send={r.decision.auto_send}", flush=True)
 
-    unsafe = [r["id"] for r in rows if r["auto_send"] and not r["should_auto_send"]]
-    could = [r for r in rows if r["should_auto_send"]]
-    sent = [r for r in rows if r["auto_send"]]
-    first_help = [r for r in rows if r["first_help"]]
-    summary = {
-        "tickets": len(rows),
-        "auto_sent": len(sent),
-        "unsafe_auto_sends": unsafe,
-        "helpful": f"{sum(r['auto_send'] for r in could)}/{len(could)} answerable tickets were auto-sent",
-        "wrong_document_cited": [r["id"] for r in sent if not r["cites_expected_doc"]],
-        "first_help": len(first_help),
-        "helped_now": f"{len(sent) + len(first_help)}/{len(rows)} students got an answer or first help",
-        # Must stay empty: AI text shown to a student whose ticket (by my labels) needed a human.
-        "first_help_on_escalated": [r["id"] for r in first_help if r["escalate"]],
-    }
+    summary = summarize(rows)
     print(json.dumps(summary, ensure_ascii=False, indent=1))
     path = RESULTS_DIR / f"pipeline_results_{dataset}.json"
     path.write_text(

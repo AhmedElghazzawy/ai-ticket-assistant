@@ -20,7 +20,7 @@ import structlog
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, Response
 from psycopg_pool import ConnectionPool
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 import auth
 from auth import Staff
@@ -101,6 +101,18 @@ class TicketIn(BaseModel):
 
     text: str = Field(min_length=1, max_length=2000)
     language: Literal["tr", "en"]
+
+    @field_validator("text")
+    @classmethod
+    def clean_text(cls, text: str) -> str:
+        """Trimmed; blank text and NUL characters (Postgres cannot store them) are refused here,
+        before any Gemini call is paid for (Phase 11 stress tests)."""
+        text = text.strip()
+        if not text:
+            raise ValueError("the message is blank")
+        if "\x00" in text:
+            raise ValueError("the message contains a NUL character")
+        return text
 
 
 class TicketOut(BaseModel):

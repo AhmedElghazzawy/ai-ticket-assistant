@@ -1,6 +1,7 @@
 """Tests for the pipeline eval's answer key: by my labels, should a ticket be auto-sent? No AI calls."""
 
-from evaluate_pipeline import should_auto_send
+from evaluate_pipeline import should_auto_send, summarize
+from stats import wilson_interval
 from tickets import Category, Priority, Ticket
 
 
@@ -25,3 +26,39 @@ def test_escalation_other_and_no_document_are_not_sent() -> None:
     assert not should_auto_send(ticket(escalate=True), "harc_ucretler")
     assert not should_auto_send(ticket(category="other"), "staj")
     assert not should_auto_send(ticket(), "none")
+
+
+def result_row(
+    tid: str,
+    should: bool,
+    sent: bool,
+    first_help: bool = False,
+    escalate: bool = False,
+    cites: bool = True,
+) -> dict[str, object]:
+    return {
+        "id": tid,
+        "should_auto_send": should,
+        "auto_send": sent,
+        "first_help": first_help,
+        "escalate": escalate,
+        "cites_expected_doc": cites,
+    }
+
+
+ROWS = [
+    result_row("a", should=True, sent=True),
+    result_row("b", should=True, sent=False, first_help=True),
+    result_row("c", should=False, sent=True),  # unsafe: sent although it needed a human
+    result_row("d", should=False, sent=False, first_help=True, escalate=True),  # must never happen
+]
+
+
+def test_pipeline_summary_counts_and_intervals() -> None:
+    s = summarize(ROWS)
+    assert s["auto_sent"] == 2
+    assert s["unsafe_auto_sends"] == ["c"]
+    assert s["first_help"] == 2
+    assert s["first_help_on_escalated"] == ["d"]
+    assert s["auto_resolution_ci"] == wilson_interval(2, 4)
+    assert s["helped_now_ci"] == wilson_interval(4, 4)

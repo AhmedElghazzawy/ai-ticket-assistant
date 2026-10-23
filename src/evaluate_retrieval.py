@@ -6,13 +6,38 @@ Run: uv run python src/evaluate_retrieval.py
 import json
 from pathlib import Path
 from statistics import mean
+from typing import Any
 
 from retrieval import embed, nearest, open_synced_pool, query_text
+from stats import wilson_interval
 from tickets import DATASETS, TICKETS_PATH, load_tickets
 
 EXPECTED_PATH = TICKETS_PATH.parent / "expected_docs.jsonl"
 RESULTS_PATH = Path(__file__).resolve().parent.parent / "eval" / "retrieval_results.json"
 K = 3
+
+
+def summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    """hit@1 and hit@3 with their 95% intervals, over the tickets a document really answers."""
+    answerable = [r for r in rows if r["expected"] != "none"]
+    unanswerable = [r for r in rows if r["expected"] == "none"]
+    hits1, hits3 = sum(r["hit1"] for r in answerable), sum(r["hit3"] for r in answerable)
+    return {
+        "answerable": len(answerable),
+        "hit@1": hits1 / len(answerable),
+        "hit@1_ci": wilson_interval(hits1, len(answerable)),
+        "hit@3": hits3 / len(answerable),
+        "hit@3_ci": wilson_interval(hits3, len(answerable)),
+        "top_score_answerable": [
+            round(min(r["top_score"] for r in answerable), 3),
+            round(mean(r["top_score"] for r in answerable), 3),
+        ],
+        "top_score_none": [
+            round(mean(r["top_score"] for r in unanswerable), 3),
+            round(max(r["top_score"] for r in unanswerable), 3),
+        ],
+        "misses": [r["id"] for r in answerable if not r["hit3"]],
+    }
 
 
 def main() -> None:
@@ -49,25 +74,12 @@ def main() -> None:
                     "hit3": expected[t.id] in top_docs,
                 }
             )
-        answerable = [r for r in rows if r["expected"] != "none"]
-        unanswerable = [r for r in rows if r["expected"] == "none"]
-        summary = {
-            "answerable": len(answerable),
-            "hit@1": mean(r["hit1"] for r in answerable),
-            "hit@3": mean(r["hit3"] for r in answerable),
-            "top_score_answerable": [
-                round(min(r["top_score"] for r in answerable), 3),
-                round(mean(r["top_score"] for r in answerable), 3),
-            ],
-            "top_score_none": [
-                round(mean(r["top_score"] for r in unanswerable), 3),
-                round(max(r["top_score"] for r in unanswerable), 3),
-            ],
-            "misses": [r["id"] for r in answerable if not r["hit3"]],
-        }
+        summary = summarize(rows)
         results[name] = {"summary": summary, "rows": rows}
+        low, high = summary["hit@3_ci"]
         print(
-            f"{name}: {summary['answerable']} answerable tickets | hit@1 {summary['hit@1']:.0%} | hit@3 {summary['hit@3']:.0%}"
+            f"{name}: {summary['answerable']} answerable tickets | hit@1 {summary['hit@1']:.0%} | "
+            f"hit@3 {summary['hit@3']:.0%} (95% CI {low:.0%}-{high:.0%})"
         )
         print(
             f"   top score, answerable: min {summary['top_score_answerable'][0]}, mean {summary['top_score_answerable'][1]}"

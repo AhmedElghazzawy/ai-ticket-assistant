@@ -60,6 +60,57 @@ def test_unknown_language_is_rejected() -> None:
     assert ask(language="de").status_code == 422
 
 
+# Stress tests (Phase 11): bad input is refused BEFORE any Gemini call is paid for.
+def count_pipeline_calls(monkeypatch: pytest.MonkeyPatch) -> list[str]:
+    calls: list[str] = []
+
+    def fake(text: str, *args: object) -> TicketResult:
+        calls.append(text)
+        return fake_result(auto_send=False)
+
+    monkeypatch.setattr(api, "process_ticket", fake)
+    return calls
+
+
+@pytest.mark.parametrize("text", ["   ", "\n\t \n", "\u3000"])  # spaces, newlines, wide space
+def test_blank_text_is_rejected_without_calling_the_model(
+    monkeypatch: pytest.MonkeyPatch, text: str
+) -> None:
+    calls = count_pipeline_calls(monkeypatch)
+    assert ask(text=text).status_code == 422
+    assert calls == []
+
+
+def test_text_length_limit_is_exact(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls = count_pipeline_calls(monkeypatch)
+    assert ask(text="a" * 2000).status_code == 200
+    assert ask(text="a" * 2001).status_code == 422
+    assert len(calls) == 1
+
+
+def test_nul_character_is_rejected_without_calling_the_model(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Postgres cannot store NUL in text: without this check, the model would run, then saving fails.
+    calls = count_pipeline_calls(monkeypatch)
+    assert ask(text="Harç\x00 iade").status_code == 422
+    assert calls == []
+
+
+def test_text_is_trimmed_before_the_model_sees_it(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls = count_pipeline_calls(monkeypatch)
+    ask(text="  Harç iade edilir mi?\n")
+    assert calls == ["Harç iade edilir mi?"]
+
+
+def test_html_in_a_ticket_stays_plain_text_for_staff(monkeypatch: pytest.MonkeyPatch) -> None:
+    attack = "<script>alert('x')</script><img src=x onerror=alert(1)> Harç?"
+    monkeypatch.setattr(api, "process_ticket", lambda *args: fake_result(auto_send=False))
+    ask(text=attack)
+    queue = staff_client().get("/api/staff/tickets").json()
+    assert queue[0]["text"] == attack  # exact text as data; the page shows it as text, never HTML
+
+
 def test_forwarded_ticket_never_shows_the_draft(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(api, "process_ticket", lambda *args: fake_result(auto_send=False))
     response = ask()
