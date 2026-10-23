@@ -12,7 +12,7 @@ from fastapi.testclient import TestClient
 import api
 import auth
 from auth import Role
-from decision import OfficeId, SimpleReason
+from decision import MIN_SCORE, OfficeId, SimpleReason
 from pipeline import TicketResult
 
 client = TestClient(api.app)
@@ -146,6 +146,16 @@ def test_partly_answered_ticket_shows_first_help(monkeypatch: pytest.MonkeyPatch
     assert body["first_help"] is True
     assert body["reply"] == "SECRET DRAFT"
     assert [source["id"] for source in body["sources"]] == [CHUNK.id]
+
+
+def test_answer_explains_how_it_was_decided(monkeypatch: pytest.MonkeyPatch) -> None:
+    # "Nasıl karar verildi?": reason codes and the match score, never the draft or model text.
+    partly = fake_result(False, forward_reason=SimpleReason(code="not_covered"))
+    monkeypatch.setattr(api, "process_ticket", lambda *args: partly)
+    body = ask().json()
+    assert body["reasons"] == [{"code": "not_covered"}]
+    assert body["top_score"] == 0.8 and body["min_score"] == MIN_SCORE
+    assert "ai_reason" not in body  # the model's own explanation stays with staff
 
 
 def test_escalated_ticket_shows_no_first_help(monkeypatch: pytest.MonkeyPatch) -> None:

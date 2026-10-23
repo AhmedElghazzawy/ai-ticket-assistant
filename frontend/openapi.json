@@ -482,6 +482,10 @@
             "title": "First Help",
             "type": "boolean"
           },
+          "min_score": {
+            "title": "Min Score",
+            "type": "number"
+          },
           "office": {
             "enum": [
               "it",
@@ -502,6 +506,31 @@
             ],
             "title": "Priority",
             "type": "string"
+          },
+          "reasons": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "category_other": "#/components/schemas/SimpleReason",
+                  "escalation": "#/components/schemas/SimpleReason",
+                  "no_citation": "#/components/schemas/SimpleReason",
+                  "not_covered": "#/components/schemas/SimpleReason",
+                  "urgent": "#/components/schemas/SimpleReason",
+                  "weak_match": "#/components/schemas/WeakMatch"
+                },
+                "propertyName": "code"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/SimpleReason"
+                },
+                {
+                  "$ref": "#/components/schemas/WeakMatch"
+                }
+              ]
+            },
+            "title": "Reasons",
+            "type": "array"
           },
           "reply": {
             "anyOf": [
@@ -524,6 +553,10 @@
           "ticket_id": {
             "title": "Ticket Id",
             "type": "integer"
+          },
+          "top_score": {
+            "title": "Top Score",
+            "type": "number"
           }
         },
         "required": [
@@ -536,7 +569,10 @@
           "reply",
           "sources",
           "emergency",
-          "access_code"
+          "access_code",
+          "reasons",
+          "top_score",
+          "min_score"
         ],
         "title": "TicketOut",
         "type": "object"

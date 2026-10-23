@@ -287,6 +287,10 @@ export type TicketOut = {
      */
     first_help: boolean;
     /**
+     * Min Score
+     */
+    min_score: number;
+    /**
      * Office
      */
     office: 'it' | 'student_affairs' | 'fees' | 'sks' | 'duty';
@@ -294,6 +298,10 @@ export type TicketOut = {
      * Priority
      */
     priority: 'low' | 'medium' | 'high' | 'urgent';
+    /**
+     * Reasons
+     */
+    reasons: Array<SimpleReason | WeakMatch>;
     /**
      * Reply
      */
@@ -306,6 +314,10 @@ export type TicketOut = {
      * Ticket Id
      */
     ticket_id: number;
+    /**
+     * Top Score
+     */
+    top_score: number;
 };
 
 /**

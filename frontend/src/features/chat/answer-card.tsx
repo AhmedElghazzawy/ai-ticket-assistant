@@ -15,6 +15,7 @@ import { giveFeedback } from "@/client";
 import { Button } from "@/components/ui/button";
 import type { StoredSource, TicketOut } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { DecisionTrace } from "./decision-trace";
 
 /** Thumbs up / down, saved with the ticket's secret code (the last choice counts). */
 function FeedbackButtons({ result }: { result: TicketOut }) {
@@ -137,6 +138,7 @@ function AnsweredCard({ result }: { result: TicketOut }) {
       </p>
       <p className="text-[0.95rem] leading-relaxed">{result.reply}</p>
       <SourceList sources={result.sources} />
+      <DecisionTrace result={result} />
       <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-3">
         <TicketMeta result={result} />
         <FeedbackButtons result={result} />
@@ -181,6 +183,7 @@ function ForwardedCard({ result }: { result: TicketOut }) {
           <p className="text-sm">{t.nextStep}</p>
         </div>
       </div>
+      <DecisionTrace result={result} />
       <div className="border-t pt-3">
         <TicketMeta result={result} />
       </div>

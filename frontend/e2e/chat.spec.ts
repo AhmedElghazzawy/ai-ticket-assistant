@@ -21,6 +21,9 @@ const BASE: TicketOut = {
   sources: [],
   emergency: false,
   access_code: "secret-code-1234567890",
+  reasons: [],
+  top_score: 0.78,
+  min_score: 0.65,
 };
 
 async function askWithAnswer(page: Page, answer: Partial<TicketOut>) {
@@ -100,4 +103,19 @@ test("my tickets shows the staff reply for a ticket sent from this browser", asy
   await page.goto("/my-tickets");
   await expect(page.getByText("#42")).toBeVisible();
   await expect(page.getByText("Dilekçe verin.")).toBeVisible();
+});
+
+test("the decision trace explains a forwarded ticket", async ({ page }) => {
+  await askWithAnswer(page, {
+    reasons: [{ code: "escalation" }],
+    top_score: 0.81,
+  });
+  const trace = page.getByRole("button", { name: "Nasıl karar verildi?" });
+  await expect(trace).toHaveAttribute("aria-expanded", "false");
+  await trace.click();
+  await expect(
+    page.getByText("Bu konuda karar bir personele ait (yükseltme kuralı)."),
+  ).toBeVisible();
+  await expect(page.getByText("En iyi belge eşleşmesi 0.81 (eşik 0.65).")).toBeVisible();
+  await expect(page.getByText("Talep, cevaplaması için ilgili birime iletildi.")).toBeVisible();
 });

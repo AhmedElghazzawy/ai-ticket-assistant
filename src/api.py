@@ -25,7 +25,7 @@ from pydantic import BaseModel, Field, field_validator
 
 import auth
 from auth import Staff
-from decision import Decision, OfficeId, show_first_help
+from decision import MIN_SCORE, Decision, OfficeId, Reason, show_first_help
 from logs import configure, get_logger
 from pipeline import process_ticket
 from retrieval import load_index, open_synced_pool
@@ -132,6 +132,10 @@ class TicketOut(BaseModel):
     sources: list[StoredSource]
     emergency: bool  # show the 112 line (urgent and escalated)
     access_code: str  # shown ONCE: with it, only this student can see the status and give feedback
+    # "Nasıl karar verildi?": the checks behind the decision (never the draft or the model's text)
+    reasons: list[Reason]  # failed checks; empty when the answer was sent automatically
+    top_score: float  # the best document match
+    min_score: float  # the threshold it is compared with
 
 
 class RateLimiter:
@@ -254,6 +258,9 @@ def create_ticket(ticket: TicketIn) -> TicketOut:
         sources=saved.sources if shown else [],
         emergency=saved.escalate and saved.priority == "urgent",
         access_code=code,
+        reasons=saved.reasons,
+        top_score=saved.top_score,
+        min_score=MIN_SCORE,
     )
 
 
