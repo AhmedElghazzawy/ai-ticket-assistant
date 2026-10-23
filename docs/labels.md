@@ -24,6 +24,7 @@ Etiket ID'leri (`account_access` vb.) kodda kullanıldığı için İngilizce ka
 - **Buraya girer:** öğrencinin resmi kaydı: kayıtta görünen notlar, GNO, transkript, öğrenci belgesi, mezuniyet durumu, kayıttaki kişisel bilgilerin düzeltilmesi.
 - Staj evrakları da buraya girer: staj formu, SGK girişi, stajın kredi olarak sayılması.
 - Akıllı Kart (öğrenci kimlik kartı) da buraya girer: kayıp, çalınma, basılmaması, hatalı bilgi.
+- Devam durumu ve devamsızlık da buraya girer (devamsızlıktan DZ notu kayda işlenir).
 - Disiplin soruşturması da buraya girer (Öğrenci İşleri yürütür; escalation kural 6).
 - **Buraya girmez:** bu dönem ders seçme veya değiştirme → `registration`. Staj yeri bulma, kariyer tavsiyesi → `other`.
 - **Örnek:** "Staj başvurum için resmi transkripte ihtiyacım var."
