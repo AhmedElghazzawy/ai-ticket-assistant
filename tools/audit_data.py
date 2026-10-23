@@ -12,7 +12,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
-from tickets import TEST_PATH, TICKETS_PATH, Ticket, load_tickets  # noqa: E402
+from tickets import DATASETS, TICKETS_PATH, Ticket, load_tickets  # noqa: E402
 
 EXPECTED_PATH = TICKETS_PATH.parent / "expected_docs.jsonl"
 
@@ -77,7 +77,7 @@ def main() -> None:
         r["id"]: r["doc"]
         for r in map(json.loads, EXPECTED_PATH.read_text(encoding="utf-8").splitlines())
     }
-    for name, path in (("DEV", TICKETS_PATH), ("LOCKED TEST", TEST_PATH)):
+    for name, path in DATASETS.items():
         tickets = load_tickets(path)
         print(f"\n===== {name}: {len(tickets)} tickets =====")
         table("category", tickets, lambda t: t.category)
