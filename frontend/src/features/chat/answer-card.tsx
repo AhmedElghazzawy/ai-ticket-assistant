@@ -108,8 +108,8 @@ function TicketMeta({ result }: { result: TicketOut }) {
   const { t } = usePreferences();
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-      <span className="font-semibold tabular-nums text-foreground">
-        {t.ticketNo} #{result.ticket_id}
+      <span className="font-semibold text-foreground">
+        {t.ticketNo} <span className="font-mono">#{result.ticket_id}</span>
       </span>
       <span aria-hidden>·</span>
       <span>{t.categories[result.category]}</span>

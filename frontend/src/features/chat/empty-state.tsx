@@ -81,6 +81,10 @@ export function EmptyState({ onSend, busy }: { onSend: (text: string) => void; b
       {/* The soft red glow behind the welcome area (decoration only). */}
       <div
         aria-hidden
+        className="hero-dots pointer-events-none absolute inset-x-0 top-0 h-[34rem]"
+      />
+      <div
+        aria-hidden
         className="hero-glow pointer-events-none absolute inset-x-0 top-0 h-[34rem]"
       />
       <div className="relative mx-auto flex max-w-2xl flex-col items-center pt-16 text-center sm:pt-24">

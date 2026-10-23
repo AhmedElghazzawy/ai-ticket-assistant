@@ -1,42 +1,57 @@
-import { Check, LoaderCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { usePreferences } from "@/app/preferences";
 import { cn } from "@/lib/utils";
 
-const STEP_MS = 800;
+const STAGE_MS = 1200;
 
-/** The pipeline's stages while waiting. Timed for now; real progress comes with streaming (SSE). */
+/** While waiting: the PATH a request takes, with a highlight moving along it, and the real
+ *  elapsed time. The server answers in one request, so this never claims a step is finished
+ *  (an earlier version showed timed checkmarks; real progress would need streaming, SSE). */
 export function Thinking() {
   const { t } = usePreferences();
-  const [step, setStep] = useState(0);
+  const [tick, setTick] = useState(0);
+  const [seconds, setSeconds] = useState(0);
 
   useEffect(() => {
-    const timer = setInterval(
-      () => setStep((current) => Math.min(current + 1, t.steps.length - 1)),
-      STEP_MS,
-    );
-    return () => clearInterval(timer);
-  }, [t.steps.length]);
+    const stages = setInterval(() => setTick((n) => n + 1), STAGE_MS);
+    const clock = setInterval(() => setSeconds((n) => n + 1), 1000);
+    return () => {
+      clearInterval(stages);
+      clearInterval(clock);
+    };
+  }, []);
 
+  const active = tick % t.steps.length;
   return (
-    <div className="rounded-2xl border bg-card p-4 shadow-sm sm:p-5" aria-live="polite">
-      <ol className="space-y-2.5">
+    <div className="rounded-2xl border bg-card p-4 sm:p-5">
+      <div className="flex items-center justify-between gap-3">
+        <p className="flex items-center gap-2 text-sm font-medium" aria-live="polite">
+          <span className="relative flex size-2">
+            <span className="absolute inline-flex size-full animate-ping rounded-full bg-brand-text opacity-60" />
+            <span className="relative inline-flex size-2 rounded-full bg-brand-text" />
+          </span>
+          {t.working}
+        </p>
+        <span className="font-mono text-xs text-muted-foreground tabular-nums">
+          {t.elapsed(seconds)}
+        </span>
+      </div>
+      <ol className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
         {t.steps.map((label, index) => (
-          <li
-            key={label}
-            className={cn(
-              "flex items-center gap-2.5 text-sm transition-colors",
-              index > step ? "text-muted-foreground/50" : "text-foreground",
+          <li key={label} className="flex items-center gap-2">
+            {index > 0 && (
+              <span aria-hidden className="text-muted-foreground/50">
+                →
+              </span>
             )}
-          >
-            {index < step ? (
-              <Check className="size-4 text-success" />
-            ) : index === step ? (
-              <LoaderCircle className="size-4 animate-spin text-brand-text" />
-            ) : (
-              <span className="size-4 rounded-full border" />
-            )}
-            {label}
+            <span
+              className={cn(
+                "transition-colors duration-500",
+                index === active ? "text-foreground" : "text-muted-foreground/60",
+              )}
+            >
+              {label}
+            </span>
           </li>
         ))}
       </ol>

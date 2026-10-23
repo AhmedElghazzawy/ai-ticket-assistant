@@ -1569,3 +1569,10 @@ Staff pages show student messages. Until now they only answered requests from th
 - Browser test (new file e2e/insights.spec.ts, API faked): the computed tiles (70% helped right away, 1.6 h median, 75% helpful, n = 4), a labeled mark, and 3 tables. 16/16 pass.
 - Not removed yet: the old Streamlit panel (src/app.py) also shows the dataset and eval results, which Insights does not cover.
 - Checks: ruff, mypy strict, 145 pytest; Biome, TypeScript, build, 16 Playwright runs.
+- Commit and push: `9a4aa82` (Insights). Live check: POST /api/tickets/lookup with a fake code -> 404 (so Neon got migration 3: a missing column would give 500/503); /api/staff/insights still 404 while that commit was deploying.
+
+# Feature 5: signature details (2026-10-23)
+- Correction of my own plan: I had promised a "live stepper that follows the real steps", but the server answers in ONE request, so the page cannot know the current step; faking it would be dishonest. Real progress would need streaming (SSE): later, if worth it.
+- Honesty problem found in the EXISTING waiting indicator: every 800 ms it put a checkmark next to a step ("✓ Talebiniz okunuyor"), as if that step were finished, made up by a timer. New Thinking component: no checkmarks; the path (Okunuyor -> Resmî belgelerde aranıyor -> Cevap yazılıyor) with a highlight moving along it in a loop, a pulsing dot, and a REAL elapsed-time counter in monospace ("3 sn"). TR + EN texts.
+- Ticket numbers in monospace (an "evidence / record" feel, matching the trace's step numbers); a faint dot-grid texture behind the hero glow (.hero-dots, masked to fade out; decoration only).
+- Checks: Biome, TypeScript, build, 16 Playwright runs (the split "Talep no" + "#42" text still matches). Screenshots checked (hero, waiting state with a never-answering fake API).

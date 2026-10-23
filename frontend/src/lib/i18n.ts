@@ -18,7 +18,9 @@ const tr = {
   placeholder: "Sorununuzu yazın…",
   send: "Gönder",
   disclaimer: "Yapay zekâ hata yapabilir. Resmî kararları her zaman ilgili birim verir.",
-  steps: ["Talebiniz okunuyor", "Resmî belgelerde aranıyor", "Cevap hazırlanıyor"],
+  steps: ["Okunuyor", "Resmî belgelerde aranıyor", "Cevap yazılıyor"],
+  working: "Yapay zekâ talebiniz üzerinde çalışıyor",
+  elapsed: (s: number) => `${s} sn`,
   answered: "Resmî belgelere dayanarak yanıtlandı",
   forwarded: "İlgili birime iletildi",
   forwardedText:
@@ -215,7 +217,9 @@ const en: Texts = {
   placeholder: "Describe your problem…",
   send: "Send",
   disclaimer: "AI can make mistakes. Official decisions are always made by the responsible office.",
-  steps: ["Reading your request", "Searching official documents", "Writing the answer"],
+  steps: ["Reading", "Searching official documents", "Writing the answer"],
+  working: "The AI is working on your request",
+  elapsed: (s: number) => `${s} s`,
   answered: "Answered from official documents",
   forwarded: "Forwarded to the right office",
   forwardedText:

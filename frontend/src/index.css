@@ -204,4 +204,13 @@
   .hero-glow {
     background: var(--glow);
   }
+  /* A faint dot grid behind the hero, fading out at the edges (decoration only). */
+  .hero-dots {
+    background-image: radial-gradient(
+      color-mix(in oklch, var(--foreground) 14%, transparent) 1px,
+      transparent 1px
+    );
+    background-size: 22px 22px;
+    mask-image: radial-gradient(55% 50% at 50% 40%, black, transparent 75%);
+  }
 }
