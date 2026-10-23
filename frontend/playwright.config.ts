@@ -6,7 +6,13 @@ export default defineConfig({
   testDir: "./e2e",
   forbidOnly: !!process.env.CI,
   reporter: process.env.CI ? "github" : "list",
-  use: { baseURL: "http://127.0.0.1:4173", trace: "retain-on-failure" },
+  use: {
+    baseURL: "http://127.0.0.1:4173",
+    trace: "retain-on-failure",
+    // CI: the Google Chrome already installed on GitHub's runners (no download, no apt packages;
+    // `playwright install --with-deps` once hung 10 minutes on a slow Ubuntu mirror).
+    channel: process.env.CI ? "chrome" : undefined,
+  },
   projects: [
     { name: "desktop", use: { ...devices["Desktop Chrome"] } },
     { name: "phone", use: { ...devices["Pixel 7"] } },
