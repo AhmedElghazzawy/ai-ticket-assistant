@@ -24,29 +24,48 @@ class Chunk(BaseModel):
         return self.text.splitlines()[0].strip()
 
 
+SOURCE_KEYS = ("- Kaynak:", "- Source:")
+LINK_KEYS = ("- Bağlantı:", "- Link:")
+
+
+def field_value(lines: list[str], keys: tuple[str, ...]) -> str | None:
+    """The value of the first line starting with one of `keys`, e.g. "- Link: https://..."."""
+    return next((line.split(":", 1)[1].strip() for line in lines if line.startswith(keys)), None)
+
+
+def split_section(section: str, source: str, url: str) -> tuple[str, str, str]:
+    """A section's text, source and link. Its own "- Kaynak:" / "- Bağlantı:" lines override the
+    document's (for documents built from several sources) and are not part of the searchable text."""
+    heading, *body = section.strip().splitlines()
+    own = [line for line in body if line.startswith(SOURCE_KEYS + LINK_KEYS)]
+    text = "\n".join([heading, *(line for line in body if line not in own)])
+    return text, field_value(own, SOURCE_KEYS) or source, field_value(own, LINK_KEYS) or url
+
+
 def split_document(path: Path) -> list[Chunk]:
     """Split one Markdown document into chunks at each '## ' heading."""
     doc, language = path.name.removesuffix(".md").split(".")  # "sinavlar.tr.md" -> "sinavlar", "tr"
     header, *sections = path.read_text(encoding="utf-8").split("\n## ")
-    title = header.splitlines()[0].removeprefix("# ").strip()
-    source = next(
-        line for line in header.splitlines() if line.startswith(("- Kaynak:", "- Source:"))
-    )
-    source = source.split(":", 1)[1].strip()
-    url = next(line for line in header.splitlines() if line.startswith(("- Bağlantı:", "- Link:")))
-    url = url.split(":", 1)[1].strip()
-    return [
-        Chunk(
-            id=f"{doc}.{language}#{n}",
-            doc=doc,
-            language=language,
-            title=title,
-            source=source,
-            url=url,
-            text=section.strip(),
+    lines = header.splitlines()
+    title = lines[0].removeprefix("# ").strip()
+    source, url = field_value(lines, SOURCE_KEYS), field_value(lines, LINK_KEYS)
+    if source is None or url is None:
+        raise ValueError(f"{path.name}: the header needs a source line and a link line")
+    chunks = []
+    for n, section in enumerate(sections, start=1):
+        text, section_source, section_url = split_section(section, source, url)
+        chunks.append(
+            Chunk(
+                id=f"{doc}.{language}#{n}",
+                doc=doc,
+                language=language,
+                title=title,
+                source=section_source,
+                url=section_url,
+                text=text,
+            )
         )
-        for n, section in enumerate(sections, start=1)
-    ]
+    return chunks
 
 
 def load_chunks() -> list[Chunk]:
