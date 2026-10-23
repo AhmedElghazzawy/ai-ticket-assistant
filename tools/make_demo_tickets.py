@@ -25,8 +25,8 @@ MAX_PER_CATEGORY = 3
 
 
 def reasons(row: dict[str, Any], labels: dict[str, Any]) -> list[dict[str, Any]]:
-    """Today's reason codes: labels from the classifier, retrieval checks from the pipeline run
-    (that run predates the 'urgent' rule, so it is added from the label)."""
+    """Reason codes: label checks from the classifier run (so they match its explanation),
+    retrieval checks from the pipeline run, which stores codes since 2026-10-12."""
     found: list[dict[str, Any]] = []
     if labels["category"] == "other":
         found.append({"code": "category_other"})
@@ -34,13 +34,11 @@ def reasons(row: dict[str, Any], labels: dict[str, Any]) -> list[dict[str, Any]]
         found.append({"code": "escalation"})
     if labels["priority"] == "urgent":
         found.append({"code": "urgent"})
-    for sentence in row["reasons"]:
-        if sentence.startswith("weak document match"):
+    for reason in row["reasons"]:
+        if reason["code"] == "weak_match":
             found.append({"code": "weak_match", "score": row["top_score"], "min": MIN_SCORE})
-        elif sentence.startswith("the documents do not answer"):
-            found.append({"code": "not_covered"})
-        elif sentence.startswith("the reply does not cite"):
-            found.append({"code": "no_citation"})
+        elif reason["code"] in ("not_covered", "no_citation"):
+            found.append({"code": reason["code"]})
     return found
 
 
@@ -84,6 +82,7 @@ def main() -> None:
                         "id": i,
                         "title": chunks[i].title,
                         "section": chunks[i].section,
+                        "source": chunks[i].source,
                         "url": chunks[i].url,
                     }
                     for i in row["sources"]

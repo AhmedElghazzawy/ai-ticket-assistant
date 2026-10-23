@@ -8,6 +8,8 @@
 
 **Canlı demo:** https://bseu-helpdesk.onrender.com (ücretsiz sunucu: 15 dakika ziyaretçi olmazsa uyur, ilk açılış yaklaşık 1 dakika sürebilir)
 
+> Bu bir öğrenci projesidir, BŞEÜ'nün resmî bir hizmeti değildir. Arayüz renkleri bilecik.edu.tr'nin kendi stil dosyalarından alınmıştır; resmî logo, üniversitenin izni olmadan kullanılmaz.
+
 ## Hocam, nereden başlamalı?
 
 | Ne görmek istiyorsanız | Nerede |
@@ -18,19 +20,22 @@
 | Kategoriler, birimler, escalation kuralları | [Kategoriler ve birimler](#kategoriler-ve-birimler-7-kategori) · tam kural kitabı: [`docs/labels.md`](docs/labels.md) |
 | Veri seti | [Veri seti](#veri-seti) · [`data/tickets/`](data/tickets/) |
 | Değerlendirme yöntemi ve sonuçlar | [Sonuçlar özeti](#sonuçlar-özeti) · ayrıntılar aşağıda · ham sonuçlar: [`eval/`](eval/) |
+| Yeni (23.10.2026): gerçekçi talepler ve "ön bilgi" | [Phase 8 sonuçları](#gerçekçi-talepler-phase-8) · [Ön bilgi](#ön-bilgi-yönlendirilen-taleplerde-yardım) |
 | Kapsam ve sınırlar | [Kapsam ve sınırlar](#kapsam-ve-sınırlar-v1) |
 | Önemli kararlar ve nedenleri | [`docs/decisions/`](docs/decisions/) (model seçimi, karar kuralları, veritabanı, barındırma, güvenlik) |
 | Her değişiklik ve nedeni | [Sürümler (Releases)](https://github.com/AhmedElghazzawy/ai-ticket-assistant/releases) · ayrıntılı çalışma notları: [`docs/changelog.md`](docs/changelog.md) (İngilizce) |
 
 ## Ekran görüntüleri
 
-| Öğrenci: kaynaklı otomatik cevap | Personel: inceleme kuyruğu |
+Görüntülerdeki cevaplar modelin gerçek çıktılarıdır (dev çalıştırması, 23.10.2026); yalnızca tarayıcı ile sunucu arasındaki adım tekrar oynatılmıştır.
+
+| Öğrenci: kaynaklı otomatik cevap | Öğrenci: yönlendirilen talepte "ön bilgi" |
 |---|---|
-| ![Öğrenci sayfası](docs/images/student_answer.jpg) | ![İnceleme kuyruğu](docs/images/staff_queue.jpg) |
+| ![Öğrenci sayfası](docs/images/student_answer.jpg) | ![Ön bilgi](docs/images/student_first_help.jpg) |
 
-Personel: yönlendirilen bir talep (neden otomatik gönderilmediği ve yapay zekânın açıklaması):
-
-![Talep ayrıntısı](docs/images/staff_ticket.jpg)
+| Personel: inceleme kuyruğu | Personel: yönlendirilen talep, kaynaklı taslak |
+|---|---|
+| ![İnceleme kuyruğu](docs/images/staff_queue.jpg) | ![Talep ayrıntısı](docs/images/staff_ticket.jpg) |
 
 ## Akış (pipeline)
 
@@ -42,6 +47,7 @@ flowchart LR
     A --> D{Karar<br/>sade kod, 6 kontrol}
     D -->|hepsi geçti| S[Öğrenciye otomatik cevap]
     D -->|biri bile kaldı| H[İlgili birimin kuyruğu<br/>taslak + nedenler]
+    H -.->|escalation yok, kaynak doğrulandı| F[Öğrenciye ön bilgi<br/>cevabın kaynaklı kısmı]
 ```
 
 Sınıflandırma ve cevap yazma Gemini (LLM) ile yapılır; **karar** ise yapay zekâ değil, test edilen sade koddur ([`src/decision.py`](src/decision.py)).
@@ -59,7 +65,36 @@ Kilitli test seti: prompt'u ayarlamak için hiç kullanılmayan 40 talep (20 TR 
 | Doğru belge ilk 3 sonuçta (hit@3) | %100 (%82–100) | cevaplanabilir 17 talep |
 | Hatalı otomatik gönderim | 1 (zararsız; boşluk sonradan kapatıldı) | 40 talep |
 
-Dürüst not: talepleri ben yazdım ve etiketledim (sentetik veri); gerçek öğrenci mesajları daha uzun ve dağınıktır. Bu yüzden Phase 8'de veri zenginleştiriliyor. Ayrıntılar ve "bu skor neyi kanıtlamaz" bölümü aşağıda.
+Dürüst not: talepleri ben yazdım ve etiketledim (sentetik veri); gerçek öğrenci mesajları daha uzun ve dağınıktır. Bu yüzden Phase 8'de daha gerçekçi 40 talepten oluşan ikinci bir kilitli set hazırlandı (aşağıda). Ayrıntılar ve "bu skor neyi kanıtlamaz" bölümü aşağıda.
+
+## Gerçekçi talepler (Phase 8)
+
+İkinci kilitli set: 40 talep (20 TR + 20 EN), BŞEÜ ve Türkiye'deki gerçek öğrenci sorunları üzerine yapılan bir araştırmadan ([`docs/problem_catalog.md`](docs/problem_catalog.md)) Claude tarafından taslak olarak yazıldı; **her etiketi ben verdim**. Uzun ve dağınık mesajlar, yazım hataları, Türkçe karakter kullanılmayan metinler, karışık TR/EN, iki sorunlu talepler, (sahte) kişisel veri, takip mesajları, ilçe yerleşkeleri, başka kurumların işi (KYK, SGK, belediye, Göç İdaresi), hafifçe yazılmış taciz ve kriz belirtileri, bir prompt injection. En uzun talep 462 karakter (eski setlerde 180'i geçen yoktu). Set kilitlidir: sonuçlarına bakarak prompt değiştirilmez.
+
+| Ölçüt (sınıflandırma, 1. çalıştırma) | Sonuç | %95 güven aralığı |
+|---|---|---|
+| Kategori | %92,5 | %80–97 |
+| Öncelik | %85,0 | %71–93 |
+| Escalation | %95,0 | %83–99 |
+| Üçü de doğru | %72,5 (2. çalıştırma %77,5) | %57–84 |
+| **Kaçırılan escalation** | **0 / 11** (iki çalıştırmada da) | |
+
+| Ölçüt (tüm akış) | Sonuç |
+|---|---|
+| Hatalı otomatik gönderim | **0** |
+| Yanlış belge gösteren cevap | 0 |
+| İnsansız cevaplanan | 15/40 (%37,5; aralık %24–53) |
+
+Okuma notları: daha zor taleplerde üç etiket skoru eski kilitli setle aynıdır (%72,5), ama aralıklar geniş olduğu için "düşmedi" demek doğru, "daha iyi" demek değil. 11 hatanın 5'i modelin önceliği düşük vermesi; 5'inde etiketin kendisi tartışmalıdır (ör. model kural 3'ü benden daha harfiyen uyguladı). Etiketler, modelin cevabı görüldükten sonra değiştirilmedi: resmî skor %72,5'tir. 40 talepten 4'ü dev setindeki bir konuyu yeni kelimelerle tekrar eder. Ham sonuçlar: [`eval/results_high_phase8.json`](eval/results_high_phase8.json), [`eval/pipeline_results_phase8.json`](eval/pipeline_results_phase8.json).
+
+## Ön bilgi: yönlendirilen taleplerde yardım
+
+Phase 8, öğrencilerin çoğunun hiç yardım almadan beklediğini gösterdi: belgeler sorunun bir kısmını cevaplasa bile öğrenci yalnızca "birime iletildi" görüyordu. Artık yönlendirilen bir talepte cevabın **kaynaklı kısmı** öğrenciye hemen "Ön bilgi" olarak gösterilir; personel geri kalanını cevaplar ([karar kaydı 0008](docs/decisions/0008-first-help-on-forwarded-tickets.md)).
+
+- Yalnızca şu durumda: talep **escalate edilmemiş**, belge eşleşmesi zayıf değil ve taslağın gösterdiği her kaynak gerçekten bulunan bir belge. Kriz, taciz, ele geçirilmiş hesap, iade, not itirazı ve disiplin taleplerinde öğrenciye yapay zekâ metni gösterilmez (acilse 112 düğmesi).
+- Kural sade koddur ve testlidir ([`src/decision.py`](src/decision.py), `show_first_help`).
+- Dev setinde (80 talep): hemen yardım alan öğrenci **15/79'dan 27/80'e** çıktı (%34; aralık %24–45), escalation gerektiren hiçbir talepte ön bilgi gösterilmedi, hatalı otomatik gönderim 0. 11 ön bilginin hepsi okundu; biri prompt injection içeren bir talepti ve model saldırıyı yok sayıp yalnızca gerçek soruyu (eduroam) cevapladı. Dev seti prompt'ların geliştirildiği settir; adil sayı yeni taleplerle ölçülecek.
+- Kaynak adlarını artık model yazmaz: öğrencinin gördüğü kaynak kartları, doğrulanmış parça kimliklerinden kodla oluşturulur ve kaynak satırını gösterir (ör. KYK bölümü için "Resmî olmayan kaynak: kariyer.net ..."). Phase 8'de modelin bir kaynak adını karıştırdığı görülmüştü.
 
 ## Kategoriler ve birimler (7 kategori)
 
@@ -86,6 +121,7 @@ Tüm kurallar ve sınır durumları: [`docs/labels.md`](docs/labels.md). Araşt�
 - Zor durumlar bilerek eklendi: iki sorunlu ticket'lar, çok kısa ("help", "obs calismiyor"), Türkçe karakter olmadan yazım, karışık dil, sinirli ama basit, kibar ama ciddi, gizli kriz belirtisi, prompt injection.
 - Ticket'lar gerçek BŞEÜ sistem adlarını kullanır: OBS, SOFRA, UZEM, @ogrenci.bilecik.edu.tr, Akıllı Kart.
 - **Kilitli test seti (Phase 2):** 40 ticket (20 TR + 20 EN), [`data/tickets/test_tickets.jsonl`](data/tickets/test_tickets.jsonl): prompt'u ayarlamak için asla kullanılmaz, sadece son skor için.
+- **Kilitli gerçekçi set (Phase 8):** 40 ticket (20 TR + 20 EN), [`data/tickets/phase8_tickets.jsonl`](data/tickets/phase8_tickets.jsonl): araştırmaya dayanan, daha uzun ve dağınık talepler; %27,5'i escalation gerektiriyor. Taslaklar Claude'dan, etiketlerin hepsi benden.
 
 ## Sınıflandırma yöntemi
 
@@ -225,8 +261,10 @@ uv run python src/tickets.py            # veri setini kontrol et ve özetini gö
 uv run streamlit run src/app.py         # eski panel: genel bakış, veri seti, değerlendirme (Insights sayfası gelince kaldırılacak)
 uv run python src/evaluate.py high      # sınıflandırma değerlendirmesi (yaklaşık 20 dakika)
 uv run python src/evaluate_retrieval.py # belge arama değerlendirmesi
-uv run python src/evaluate_pipeline.py  # tüm sistem: hatalı otomatik gönderim sayısı
+uv run python src/evaluate_pipeline.py  # tüm sistem: hatalı otomatik gönderim, ön bilgi
 ```
+
+Veri seti adı eklenebilir: `dev` (varsayılan), `test` (kilitli) veya `phase8` (kilitli gerçekçi set), ör. `uv run python src/evaluate.py high phase8`. Kilitli setlerde yalnızca ölçülür, prompt ayarlanmaz.
 
 Kod kalitesi kontrolleri (API çağrısı yok, birkaç saniye):
 
@@ -236,6 +274,7 @@ uv run ruff check             # linter: hata kalıpları, import sırası, moder
 uv run ruff format --check    # kod biçimi
 uv run mypy                   # tip kontrolü (strict mod)
 cd frontend && npx biome ci . && npm run typecheck && npm run build   # web arayüzü: lint, tipler, derleme
+cd frontend && npm run test:e2e   # tarayıcı testleri (Playwright; API taklit edilir, Gemini çağrısı yok)
 ```
 
 API değiştiğinde: `uv run python tools/export_openapi.py` ve `cd frontend && npm run generate`. Web arayüzünün TypeScript tipleri API şemasından üretilir; CI ikisinin güncel olduğunu kontrol eder.
@@ -271,7 +310,8 @@ tools/export_openapi.py API şemasını frontend/openapi.json dosyasına yazar
 tools/add_staff.py      Personel hesabı oluşturur (gizli şifre girişi)
 tools/make_demo_tickets.py  Demo modunun örnek taleplerini veri setinden üretir
 render.yaml             Render dağıtımı (ücretsiz plan, Frankfurt)
-tests/                  90 pytest testi (karar kuralları, ayarlar, veritabanı, arama, API, giriş, demo)
+tests/                  121 pytest testi (karar kuralları, ön bilgi, ayarlar, veritabanı, arama, belge bölme, API, giriş, demo, değerlendirme)
+frontend/e2e/           Tarayıcı testleri (Playwright): öğrencinin her cevap türünde gördüğü sayfa
 data/knowledge_base/    22 resmî kaynaklı belge (TR + EN)
 src/try_one_ticket.py   İlk API çağrısı testi (Step 1)
 data/tickets/           Etiketli ticket'lar
@@ -286,7 +326,7 @@ docs/images/            README ekran görüntüleri
 
 ## Proje durumu ve yol haritası
 
-Son güncelleme: 17.10.2026. ✅ tamamlandı · 🟡 kısmen · 🔄 devam ediyor · ⏳ sırada
+Son güncelleme: 23.10.2026. ✅ tamamlandı · 🟡 kısmen · 🔄 devam ediyor · ⏳ sırada
 
 **Ders aşamaları (hocamın önerdiği akış)**
 
@@ -304,10 +344,10 @@ Son güncelleme: 17.10.2026. ✅ tamamlandı · 🟡 kısmen · 🔄 devam ediyo
 | Aşama | Durum | Yapılan | Kalan |
 |---|---|---|---|
 | 7. Altyapı | ✅ | ruff, mypy (strict), tipli ayarlar, yapılandırılmış loglar, CI, Docker, React web arayüzü | |
-| 8. Veri | 🔄 | Veri seti analizi (`tools/audit_data.py`): eksikler belirlendi | Daha gerçekçi talepler (uzun, yazım hatalı, karışık dilli, iki sorunlu); etiket tutarlılığı ölçümü |
-| 9. Değerlendirme | 🟡 | Sınıflandırma skorlarında %95 güven aralığı (Wilson) kodda (`src/stats.py`) | Retrieval ve pipeline değerlendirmesinde güven aralıkları, cevap kalitesi için LLM-as-judge, tek komutla sürümlü rapor, 3-4 modelin karşılaştırılması |
+| 8. Veri | 🟡 | Veri seti analizi (`tools/audit_data.py`); gerçek öğrenci sorunları araştırması; 40 gerçekçi talepten oluşan ikinci kilitli set ve ilk ölçüm | Etiket tutarlılığı ölçümü (birkaç gün sonra kendi etiketlerimi yeniden vermem) |
+| 9. Değerlendirme | 🟡 | Sınıflandırma skorlarında %95 güven aralığı (Wilson) kodda (`src/stats.py`); akış değerlendirmesinde "ön bilgi" ve escalation gerektiren taleplerde ön bilgi kontrolü | Retrieval ve pipeline değerlendirmesinde güven aralıkları, cevap kalitesi için LLM-as-judge, tek komutla sürümlü rapor, 3-4 modelin karşılaştırılması |
 | 10. Belge arama | 🟡 | Postgres + pgvector (sonuçlar aynı kaldı) | Hibrit arama ve reranking (önce daha zor talepler gerekli: hit@3 zaten %100) |
 | 11. Güvenlik ve stres testleri | 🟡 | Rate limit, günlük sınır, giriş sınırı, CSRF, sahte IP koruması (canlıda doğrulandı), loglarda öğrenci metni yok | Prompt injection ve stres testi paketi, kişisel veri işleme, kilitli testte son çalıştırma |
-| 12. Personel ürünü | 🟡 | Giriş, birime göre kuyruk, düzenleyip gönderme, birim değiştirme, demo modu | Cevabın öğrenciye e-postayla ulaşması, öğrencinin talep durumunu görmesi, istatistik sayfası |
+| 12. Personel ürünü | 🟡 | Giriş, birime göre kuyruk, düzenleyip gönderme, birim değiştirme, demo modu; yönlendirilen taleplerde öğrenciye güvenli "ön bilgi" | Cevabın öğrenciye e-postayla ulaşması, öğrencinin talep durumunu görmesi, istatistik sayfası |
 | 13. Canlıya alma | 🟡 | Canlı demo (Render + Neon, Frankfurt), canlıda test edildi | Maliyet ve hata izleme (monitoring); yalnızca CI geçince deploy |
-| 14. Sunum | 🟡 | Bu README, karar kayıtları ([`docs/decisions/`](docs/decisions/)), sürüm v0.9 | Türkçe rapor, 5 dakikalık demo, tarayıcı testleri (Playwright), v1.0 |
+| 14. Sunum | 🟡 | Bu README, karar kayıtları ([`docs/decisions/`](docs/decisions/), 8 kayıt), sürüm v0.9, BŞEÜ renkleriyle yeni arayüz (resmî olmadığı uyarısıyla), CI'da çalışan tarayıcı testleri (Playwright, masaüstü + telefon) | Türkçe rapor, 5 dakikalık demo, resmî logo (izin gelirse), v1.0 |
