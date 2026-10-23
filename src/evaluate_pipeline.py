@@ -2,6 +2,7 @@
 
 Run: uv run python src/evaluate_pipeline.py        (dev tickets)
      uv run python src/evaluate_pipeline.py test   (the locked test tickets: measure only)
+     uv run python src/evaluate_pipeline.py phase8 (the locked Phase 8 tickets: measure only)
 """
 
 import json
@@ -11,7 +12,7 @@ from pathlib import Path
 
 from pipeline import process_ticket
 from retrieval import open_synced_pool
-from tickets import TEST_PATH, TICKETS_PATH, Ticket, load_tickets
+from tickets import DATASETS, TICKETS_PATH, Ticket, load_tickets
 
 EXPECTED_PATH = TICKETS_PATH.parent / "expected_docs.jsonl"
 RESULTS_DIR = Path(__file__).resolve().parent.parent / "eval"
@@ -24,8 +25,10 @@ def should_auto_send(ticket: Ticket, expected_doc: str) -> bool:
 
 
 def main() -> None:
-    on_test = len(sys.argv) > 1 and sys.argv[1] == "test"
-    tickets = load_tickets(TEST_PATH if on_test else TICKETS_PATH)
+    dataset = sys.argv[1] if len(sys.argv) > 1 else "dev"
+    if dataset not in DATASETS:
+        sys.exit(f"Unknown dataset {dataset!r}; choose one of {list(DATASETS)}")
+    tickets = load_tickets(DATASETS[dataset])
     expected = {
         r["id"]: r["doc"]
         for r in map(json.loads, EXPECTED_PATH.read_text(encoding="utf-8").splitlines())
@@ -68,7 +71,7 @@ def main() -> None:
         "wrong_document_cited": [r["id"] for r in sent if not r["cites_expected_doc"]],
     }
     print(json.dumps(summary, ensure_ascii=False, indent=1))
-    path = RESULTS_DIR / f"pipeline_results_{'test' if on_test else 'dev'}.json"
+    path = RESULTS_DIR / f"pipeline_results_{dataset}.json"
     path.write_text(
         json.dumps({"summary": summary, "rows": rows}, ensure_ascii=False, indent=1),
         encoding="utf-8",

@@ -2,6 +2,7 @@
 
 Run: uv run python src/evaluate.py high        (dev tickets, thinking level high)
      uv run python src/evaluate.py high test   (the LOCKED test tickets: measure only, never tune on them)
+     uv run python src/evaluate.py high phase8 (the LOCKED Phase 8 tickets: measure only)
 """
 
 import json
@@ -16,7 +17,7 @@ from google.genai import errors, types
 from classifier import THINKING_LEVEL, classify
 from config import get_settings
 from stats import wilson_interval
-from tickets import TEST_PATH, TICKETS_PATH, Ticket, load_tickets
+from tickets import DATASETS, Ticket, load_tickets
 
 RUNS = 2  # each ticket is classified twice, to measure consistency
 WAIT_SECONDS = 5  # pause between calls to stay under the free-tier requests-per-minute limit
@@ -158,15 +159,17 @@ def print_mistakes(tickets: list[Ticket], predictions: Predictions) -> None:
 
 def main() -> None:
     level = types.ThinkingLevel[sys.argv[1].upper()] if len(sys.argv) > 1 else THINKING_LEVEL
-    on_test = len(sys.argv) > 2 and sys.argv[2] == "test"
-    tickets = load_tickets(TEST_PATH if on_test else TICKETS_PATH)
+    dataset = sys.argv[2] if len(sys.argv) > 2 else "dev"
+    if dataset not in DATASETS:
+        sys.exit(f"Unknown dataset {dataset!r}; choose one of {list(DATASETS)}")
+    tickets = load_tickets(DATASETS[dataset])
     runs = predict_all(tickets, level)
     by_language = {lang: [t for t in tickets if t.language == lang] for lang in ("tr", "en")}
     results = {
         "date": datetime.now().isoformat(timespec="seconds"),
         "model": get_settings().gemini_model,
         "thinking_level": level.value,
-        "dataset": "test" if on_test else "dev",
+        "dataset": dataset,
         "runs": len(runs),
         "score_run1": score(tickets, runs[0]),
         "score_run1_tr": score(by_language["tr"], runs[0]),
@@ -176,7 +179,7 @@ def main() -> None:
         "predictions": runs,
     }
     RESULTS_DIR.mkdir(exist_ok=True)
-    suffix = "_test" if on_test else ""
+    suffix = "" if dataset == "dev" else f"_{dataset}"
     path = RESULTS_DIR / f"results_{level.value.lower()}{suffix}.json"
     path.write_text(json.dumps(results, ensure_ascii=False, indent=2), encoding="utf-8")
     print_report(results)

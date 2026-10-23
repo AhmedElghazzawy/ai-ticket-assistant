@@ -10,7 +10,7 @@
 {"id": "en-005", "text": "Where is the lost and found office on campus? I lost my student ID card.", "language": "en", "category": "other", "priority": "low", "escalate": false}
 {"id": "tr-006", "text": "OBS'ye girebiliyorum ama UZEM'de (ders.bilecik.edu.tr) canlı derse giremiyorum, sayfa sürekli yükleniyor.", "language": "tr", "category": "it_support", "priority": "medium", "escalate": false}
 {"id": "tr-007", "text": "Babam hastalandı ve çalışmam gerekiyor, kayıt dondurmak istiyorum. Bu dönem harç ödemem gerekir mi?", "language": "tr", "category": "academic_records", "priority": "medium", "escalate": false}
-{"id": "tr-008", "text": "yemekhane kartima 200 tl yukledim ama bakiye gozukmuyor", "language": "tr", "category": "campus_life", "priority": "medium", "escalate": true}
+{"id": "tr-008", "text": "yemekhane kartima 200 tl yukledim ama bakiye gozukmuyor", "language": "tr", "category": "campus_life", "priority": "high", "escalate": true}
 {"id": "tr-009", "text": "Son zamanlarda derslere odaklanamıyorum, hiçbir şeyin anlamı yok gibi geliyor. Psikolojik danışmanlıktan nasıl randevu alabilirim?", "language": "tr", "category": "campus_life", "priority": "urgent", "escalate": true}
 {"id": "tr-010", "text": "Engelli öğrenciyim, sınavlarda ek süre hakkım var mı?", "language": "tr", "category": "other", "priority": "low", "escalate": false}
 {"id": "en-006", "text": "This is the third time I'm writing about my double-charged tuition and nobody answers. If it isn't fixed this week I'll contact a lawyer.", "language": "en", "category": "billing", "priority": "high", "escalate": true}

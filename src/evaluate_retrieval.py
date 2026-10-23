@@ -8,7 +8,7 @@ from pathlib import Path
 from statistics import mean
 
 from retrieval import embed, nearest, open_synced_pool, query_text
-from tickets import TEST_PATH, TICKETS_PATH, load_tickets
+from tickets import DATASETS, TICKETS_PATH, load_tickets
 
 EXPECTED_PATH = TICKETS_PATH.parent / "expected_docs.jsonl"
 RESULTS_PATH = Path(__file__).resolve().parent.parent / "eval" / "retrieval_results.json"
@@ -20,9 +20,9 @@ def main() -> None:
         row["id"]: row["doc"]
         for row in map(json.loads, EXPECTED_PATH.read_text(encoding="utf-8").splitlines())
     }
-    sets = {"dev": load_tickets(TICKETS_PATH), "test": load_tickets(TEST_PATH)}
+    sets = {name: load_tickets(path) for name, path in DATASETS.items()}
     pool = open_synced_pool()  # the same search as production: SQL in Postgres
-    all_tickets = sets["dev"] + sets["test"]
+    all_tickets = [t for tickets in sets.values() for t in tickets]
     vectors = dict(
         zip(
             [t.id for t in all_tickets],

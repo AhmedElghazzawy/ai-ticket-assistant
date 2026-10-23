@@ -23,6 +23,10 @@ TICKETS_PATH = Path(__file__).resolve().parent.parent / "data" / "tickets" / "ti
 TEST_PATH = (
     TICKETS_PATH.parent / "test_tickets.jsonl"
 )  # LOCKED test set (Phase 2): measure only, never tune on it
+PHASE8_PATH = (
+    TICKETS_PATH.parent / "phase8_tickets.jsonl"
+)  # second LOCKED set (Phase 8): realistic tickets, measure only
+DATASETS = {"dev": TICKETS_PATH, "test": TEST_PATH, "phase8": PHASE8_PATH}
 
 
 class Ticket(BaseModel):

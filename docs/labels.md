@@ -30,16 +30,16 @@ Etiket ID'leri (`account_access` vb.) kodda kullanıldığı için İngilizce ka
 
 ### `billing` (Ödemeler) → Öğrenci İşleri, İstatistik Disiplin ve Harçlar Şube Müdürlüğü
 - **Buraya girer:** öğrenci ile üniversite arasındaki para işleri: harç / katkı payı, harç muafiyeti, üniversite bursları (başvuru dahil), kısmi zamanlı öğrenci ödemeleri, çift çekim, iadeler, makbuzlar, harçtan kaynaklanan kayıt engelleri.
-- **Buraya girmez:** KYK yurt ücreti, KYK burs ve kredisi (devlet, üniversite değil) → yurt için `campus_life`, burs/kredi için `other`. Yemekhane fiyatları → `campus_life`.
+- **Buraya girmez:** KYK yurt ücreti, KYK burs ve kredisi (devlet, üniversite değil) → yurt için `campus_life`, burs/kredi için `other`. Yemekhane fiyatları ve yemek kartı → `campus_life`. Erasmus / Farabi hibesi → `other`.
 - **Örnek:** "Bu dönem harç ücreti hesabımdan iki kez çekildi."
 
 ### `campus_life` (Kampüs Yaşamı) → Sağlık, Kültür ve Spor (SKS) Daire Başkanlığı
-- **Buraya girer:** kampüsteki günlük yaşam: yemekhane, öğrenci kulüpleri ve etkinlikler, kampüse ulaşım, psikolojik danışmanlık randevusu, spor tesisleri, kütüphane (çalışma saatleri, salonlar). Kütüphane veritabanlarına kampüs dışından erişim ise `it_support`'tur. Yurt soruları da buraya girer: Bilecik'teki yurtlar KYK'ya aittir, bu yüzden cevap öğrenciyi KYK'ya yönlendirir.
+- **Buraya girer:** kampüsteki günlük yaşam: yemekhane (yemek kartı ve karta para yükleme sorunları dahil), öğrenci kulüpleri ve etkinlikler, kampüse ulaşım, psikolojik danışmanlık randevusu, spor tesisleri, kütüphane (çalışma saatleri, salonlar). Kütüphane veritabanlarına kampüs dışından erişim ise `it_support`'tur. Yurt soruları da buraya girer: Bilecik'teki yurtlar KYK'ya aittir, bu yüzden cevap öğrenciyi KYK'ya yönlendirir.
 - **Buraya girmez:** öğrencinin üniversiteye ödediği para → `billing`. Psikolojik danışmanlık randevusu isteyen bir ticket kriz belirtisi içerse bile `campus_life`'tır (ama `escalate = true`). Bir öğrenci veya personelden gelen tehdit ve taciz ise `other`'dır.
 - **Örnek:** "Yemekhanede vejetaryen menü var mı?"
 
 ### `other` (Diğer) → Öğrenci İşleri nöbetçi personeli
-- **Buraya girer:** yukarıdaki 6 kategoriye uymayan gerçek talepler: kayıp eşya, kariyer ve staj yeri bulma, KYK burs ve kredisi, engelli öğrenci birimi ve erişilebilirlik soruları, somut talebi olmayan şikâyetler, anlaşılmayan ticket'lar.
+- **Buraya girer:** yukarıdaki 6 kategoriye uymayan gerçek talepler: kayıp eşya, kariyer ve staj yeri bulma, KYK burs ve kredisi, Erasmus / Farabi hibesi (Uluslararası İlişkiler Ofisi bizim birimlerimiz arasında değil; nöbetçi personel yönlendirir), engelli öğrenci birimi ve erişilebilirlik soruları, somut talebi olmayan şikâyetler, anlaşılmayan ticket'lar.
 - Bir öğrenci veya personelden gelen tehdit ve taciz de buraya girer: kategori `other`'dır, asıl işi escalation (kural 1) yapar.
 - **Buraya girmez:** ticket 6 kategoriden birine uyuyorsa, belirsiz olsa bile o kategori kullanılır.
 - **Örnek:** "Kampüste kayıp eşya bürosu nerede?"
@@ -52,6 +52,8 @@ Escalation ise ticket'taki **tüm** sorunlara bakar: sorunlardan biri escalation
 ## Ek kurallar
 
 **Altın kural:** öğrencinin üniversiteye olan ödemeleri ve üniversiteden alacakları (harç, üniversite bursu, iade) `billing`'e gider. Yemekhane fiyatları veya KYK ödemeleri gibi öğrencinin üniversite hesabıyla ilgisi olmayan para konuları `billing` değildir.
+
+**Para hatası kuralı:** para hatasında (ör. çekildi ama yansımadı) kategori, o parayı alan veya ödeyen birimin kategorisidir; çünkü hatayı o birim düzeltebilir. Yemek kartına yüklenen para karta geçmediyse → `campus_life` (SKS), harç iki kez çekildiyse → `billing`. Her ikisinde de `escalate = true` (kural 4).
 
 **Dil kuralı:** `language` alanı, ticket'ın çoğunun yazıldığı dildir. Türkçe ve İngilizce karışık bir ticket hangi dilde daha çok yazılmışsa o dili alır.
 

@@ -130,8 +130,8 @@ Kaynak türü: **[BŞEÜ]** = BŞEÜ hakkında gerçek bir şikâyet (Şikayetva
 - Erasmus dönüşü derslerin / notların tanınması gecikti [TR]
 
 ### billing
-- **Yemek kartına online para yüklendi, işlem "onaylanmadı" görünüyor ama para hesaptan çekildi, karta geçmedi** [BŞEÜ, Kasım 2023] → para hatası, escalate kural 4. ⚠️ Etiket sorusu: yemekhane `campus_life`, ama bu üniversiteye yapılan bir ödeme hatası → `billing` mi?
-- Erasmus hibesi gecikti veya eksik ödendi [TR] → üniversitenin ödediği para, `billing`?
+- **Yemek kartına online para yüklendi, işlem "onaylanmadı" görünüyor ama para hesaptan çekildi, karta geçmedi** [BŞEÜ, Kasım 2023] → para hatası, escalate kural 4. Karar (2026-10-23): `campus_life` (SKS hatayı düzeltebilir; labels.md "Para hatası kuralı").
+- Erasmus hibesi gecikti veya eksik ödendi [TR] → Karar (2026-10-23): `other` (Uluslararası İlişkiler Ofisi bizim birimlerimizden değil).
 - Kısmi zamanlı öğrenci (yarı zamanlı çalışma) ücreti yatmadı [TR] (listede vardı, Türkiye genelinde de sık)
 
 ### campus_life
