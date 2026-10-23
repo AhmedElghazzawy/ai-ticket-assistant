@@ -20,8 +20,13 @@ WAIT_SECONDS = 5  # pause between tickets (free-tier limits)
 
 
 def should_auto_send(ticket: Ticket, expected_doc: str) -> bool:
-    """By my labels: no escalation, not 'other', and a document really answers it."""
-    return not ticket.escalate and ticket.category != "other" and expected_doc != "none"
+    """By my labels: no escalation, not 'other', not urgent, and a document really answers it."""
+    return (
+        not ticket.escalate
+        and ticket.category != "other"
+        and ticket.priority != "urgent"  # same rule as src/decision.py
+        and expected_doc != "none"
+    )
 
 
 def main() -> None:
