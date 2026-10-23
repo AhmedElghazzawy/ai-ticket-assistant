@@ -20,7 +20,7 @@
 | Kategoriler, birimler, escalation kuralları | [Kategoriler ve birimler](#kategoriler-ve-birimler-7-kategori) · tam kural kitabı: [`docs/labels.md`](docs/labels.md) |
 | Veri seti | [Veri seti](#veri-seti) · [`data/tickets/`](data/tickets/) |
 | Değerlendirme yöntemi ve sonuçlar | [Sonuçlar özeti](#sonuçlar-özeti) · ayrıntılar aşağıda · ham sonuçlar: [`eval/`](eval/) |
-| Yeni (23.10.2026): gerçekçi talepler ve "ön bilgi" | [Phase 8 sonuçları](#gerçekçi-talepler-phase-8) · [Ön bilgi](#ön-bilgi-yönlendirilen-taleplerde-yardım) |
+| Yeni (23.10.2026): gerçekçi talepler, "ön bilgi", Taleplerim, karar izi, istatistikler | [Phase 8 sonuçları](#gerçekçi-talepler-phase-8) · [Ön bilgi](#ön-bilgi-yönlendirilen-taleplerde-yardım) · [Yeni özellikler](#öğrenci-ve-personel-için-yeni-özellikler-23102026) |
 | Kapsam ve sınırlar | [Kapsam ve sınırlar](#kapsam-ve-sınırlar-v1) |
 | Önemli kararlar ve nedenleri | [`docs/decisions/`](docs/decisions/) (model seçimi, karar kuralları, veritabanı, barındırma, güvenlik) |
 | Her değişiklik ve nedeni | [Sürümler (Releases)](https://github.com/AhmedElghazzawy/ai-ticket-assistant/releases) · ayrıntılı çalışma notları: [`docs/changelog.md`](docs/changelog.md) (İngilizce) |
@@ -32,6 +32,10 @@ Görüntülerdeki cevaplar modelin gerçek çıktılarıdır (dev çalıştırma
 | Öğrenci: kaynaklı otomatik cevap | Öğrenci: yönlendirilen talepte "ön bilgi" |
 |---|---|
 | ![Öğrenci sayfası](docs/images/student_answer.jpg) | ![Ön bilgi](docs/images/student_first_help.jpg) |
+
+| Öğrenci: "Nasıl karar verildi?" | Personel: istatistikler (demo verisi) |
+|---|---|
+| ![Karar izi](docs/images/student_trace.jpg) | ![İstatistikler](docs/images/staff_insights.jpg) |
 
 | Personel: inceleme kuyruğu | Personel: yönlendirilen talep, kaynaklı taslak |
 |---|---|
@@ -95,6 +99,14 @@ Phase 8, öğrencilerin çoğunun hiç yardım almadan beklediğini gösterdi: b
 - Kural sade koddur ve testlidir ([`src/decision.py`](src/decision.py), `show_first_help`).
 - Dev setinde (80 talep): hemen yardım alan öğrenci **15/79'dan 27/80'e** çıktı (%34; aralık %24–45), escalation gerektiren hiçbir talepte ön bilgi gösterilmedi, hatalı otomatik gönderim 0. 11 ön bilginin hepsi okundu; biri prompt injection içeren bir talepti ve model saldırıyı yok sayıp yalnızca gerçek soruyu (eduroam) cevapladı. Dev seti prompt'ların geliştirildiği settir; adil sayı yeni taleplerle ölçülecek.
 - Kaynak adlarını artık model yazmaz: öğrencinin gördüğü kaynak kartları, doğrulanmış parça kimliklerinden kodla oluşturulur ve kaynak satırını gösterir (ör. KYK bölümü için "Resmî olmayan kaynak: kariyer.net ..."). Phase 8'de modelin bir kaynak adını karıştırdığı görülmüştü.
+
+## Öğrenci ve personel için yeni özellikler (23.10.2026)
+
+- **Taleplerim:** her talebe rastgele bir gizli kod verilir (veritabanında yalnızca özeti saklanır). Tarayıcı öğrencinin taleplerini hatırlar; öğrenci "Taleplerim" sayfasında durumu ve personelin cevabını görür. Yanlış kod ile var olmayan numara aynı cevabı alır ([karar kaydı 0009](docs/decisions/0009-student-ticket-access-code.md)).
+- **Geri bildirim:** "Bu cevap işinize yaradı mı?" düğmeleri artık gerçekten kaydediliyor (önceden görünüyor ama hiçbir şey kaydetmiyordu).
+- **"Nasıl karar verildi?":** her cevabın altında açılabilen bir iz: sınıflandırma, belge eşleşmesi ve eşik, belgelerin soruyu karşılayıp karşılamadığı, kaynağın doğrulanması ve karar. Öğrenciye yalnızca kontrol sonuçları gösterilir; taslak ve modelin kendi metni personelde kalır.
+- **İstatistikler (personel):** toplam talep, otomatik cevap, hemen yardım alan, bekleyen, medyan cevap süresi ve faydalı bulunma oranı; her sayının yanında örnek sayısı (n). Talep sonuçları, kategori ve son 14 gün grafikleri; her grafik tablo olarak da görülebilir. Grafik renkleri renk körlüğüne karşı bir doğrulama betiğiyle kontrol edildi.
+- **Dürüst bekleme göstergesi:** eski gösterge, adımlar bitmeden zamanlayıcıyla "✓" koyuyordu. Yeni gösterge yalnızca talebin izlediği yolu ve gerçek geçen süreyi gösterir.
 
 ## Kategoriler ve birimler (7 kategori)
 
@@ -206,7 +218,7 @@ Dev skoru yaklaşık 10 puan iyimserdi. Kaçırılan escalation testte de 0: kur
 
 ## Kapsam ve sınırlar (v1)
 
-- Personelin cevabı kaydedilir ama öğrenciye otomatik ulaştırılmaz (bu prototipte e-posta sistemi yok).
+- Personelin cevabı öğrenciye "Taleplerim" sayfasında ulaşır, ama yalnızca talebin gönderildiği tarayıcıda (gizli kod orada saklanır). E-posta bildirimi ve öğrenci girişi (SSO) yoktur.
 - Her ticket **tek bir kategori** alır; iki farklı birimi ilgilendiren bir ticket'ın bir kısmı yanlış birime gidebilir.
 - Bilgi tabanı 11 konuyla sınırlı; tarihler ve ücret tutarları belgelerde yok, bu yüzden bu sorular insana yönlendirilir.
 - Staj kuralları yalnızca Mühendislik Fakültesi içindir; KYK bölümü resmî olmayan bir kaynağa dayanır.
@@ -258,7 +270,7 @@ docker compose exec app python tools/add_staff.py ...                           
 
 ```sh
 uv run python src/tickets.py            # veri setini kontrol et ve özetini göster
-uv run streamlit run src/app.py         # eski panel: genel bakış, veri seti, değerlendirme (Insights sayfası gelince kaldırılacak)
+uv run streamlit run src/app.py         # eski panel: veri seti ve değerlendirme sonuçları (talep istatistikleri artık personel panelinde: /staff/insights)
 uv run python src/evaluate.py high      # sınıflandırma değerlendirmesi (yaklaşık 20 dakika)
 uv run python src/evaluate_retrieval.py # belge arama değerlendirmesi
 uv run python src/evaluate_pipeline.py  # tüm sistem: hatalı otomatik gönderim, ön bilgi
@@ -310,7 +322,7 @@ tools/export_openapi.py API şemasını frontend/openapi.json dosyasına yazar
 tools/add_staff.py      Personel hesabı oluşturur (gizli şifre girişi)
 tools/make_demo_tickets.py  Demo modunun örnek taleplerini veri setinden üretir
 render.yaml             Render dağıtımı (ücretsiz plan, Frankfurt)
-tests/                  121 pytest testi (karar kuralları, ön bilgi, ayarlar, veritabanı, arama, belge bölme, API, giriş, demo, değerlendirme)
+tests/                  145 pytest testi (karar kuralları, ön bilgi, ayarlar, veritabanı, arama, belge bölme, API, stres testleri, giriş, öğrencinin talebi, istatistikler, demo, değerlendirme)
 frontend/e2e/           Tarayıcı testleri (Playwright): öğrencinin her cevap türünde gördüğü sayfa
 data/knowledge_base/    22 resmî kaynaklı belge (TR + EN)
 src/try_one_ticket.py   İlk API çağrısı testi (Step 1)
@@ -347,7 +359,7 @@ Son güncelleme: 23.10.2026. ✅ tamamlandı · 🟡 kısmen · 🔄 devam ediyo
 | 8. Veri | 🟡 | Veri seti analizi (`tools/audit_data.py`); gerçek öğrenci sorunları araştırması; 40 gerçekçi talepten oluşan ikinci kilitli set ve ilk ölçüm | Etiket tutarlılığı ölçümü (birkaç gün sonra kendi etiketlerimi yeniden vermem) |
 | 9. Değerlendirme | 🟡 | Sınıflandırma skorlarında %95 güven aralığı (Wilson) kodda (`src/stats.py`); akış değerlendirmesinde "ön bilgi" ve escalation gerektiren taleplerde ön bilgi kontrolü | Retrieval ve pipeline değerlendirmesinde güven aralıkları, cevap kalitesi için LLM-as-judge, tek komutla sürümlü rapor, 3-4 modelin karşılaştırılması |
 | 10. Belge arama | 🟡 | Postgres + pgvector (sonuçlar aynı kaldı) | Hibrit arama ve reranking (önce daha zor talepler gerekli: hit@3 zaten %100) |
-| 11. Güvenlik ve stres testleri | 🟡 | Rate limit, günlük sınır, giriş sınırı, CSRF, sahte IP koruması (canlıda doğrulandı), loglarda öğrenci metni yok | Prompt injection ve stres testi paketi, kişisel veri işleme, kilitli testte son çalıştırma |
-| 12. Personel ürünü | 🟡 | Giriş, birime göre kuyruk, düzenleyip gönderme, birim değiştirme, demo modu; yönlendirilen taleplerde öğrenciye güvenli "ön bilgi" | Cevabın öğrenciye e-postayla ulaşması, öğrencinin talep durumunu görmesi, istatistik sayfası |
+| 11. Güvenlik ve stres testleri | 🟡 | Rate limit, günlük sınır, giriş sınırı, CSRF, sahte IP koruması (canlıda doğrulandı), loglarda öğrenci metni yok; stres testleri (boş metin ve NUL karakteri artık modele hiç ulaşmıyor, uzunluk sınırı, HTML düz metin kalıyor) | Prompt injection test paketi, kişisel veri işleme, kilitli testte son çalıştırma |
+| 12. Personel ürünü | 🟡 | Giriş, birime göre kuyruk, düzenleyip gönderme, birim değiştirme, demo modu; güvenli "ön bilgi"; öğrencinin talep durumunu ve personel cevabını görmesi (gizli kod, karar kaydı 0009); çalışan geri bildirim düğmeleri; "Nasıl karar verildi?" izi; istatistik sayfası | E-posta bildirimi, öğrenci girişi (SSO) |
 | 13. Canlıya alma | 🟡 | Canlı demo (Render + Neon, Frankfurt), canlıda test edildi | Maliyet ve hata izleme (monitoring); yalnızca CI geçince deploy |
-| 14. Sunum | 🟡 | Bu README, karar kayıtları ([`docs/decisions/`](docs/decisions/), 8 kayıt), sürüm v0.9, BŞEÜ renkleriyle yeni arayüz (resmî olmadığı uyarısıyla), CI'da çalışan tarayıcı testleri (Playwright, masaüstü + telefon) | Türkçe rapor, 5 dakikalık demo, resmî logo (izin gelirse), v1.0 |
+| 14. Sunum | 🟡 | Bu README, karar kayıtları ([`docs/decisions/`](docs/decisions/), 9 kayıt), sürüm v0.9, BŞEÜ renkleriyle yeni arayüz (resmî olmadığı uyarısıyla), CI'da çalışan tarayıcı testleri (Playwright, masaüstü + telefon) | Türkçe rapor, 5 dakikalık demo, resmî logo (izin gelirse), v1.0 |
