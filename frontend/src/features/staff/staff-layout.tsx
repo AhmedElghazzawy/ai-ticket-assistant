@@ -82,10 +82,13 @@ function Sidebar() {
         >
           <Inbox className="size-4" /> {t.staff.queue} <OpenCount />
         </Link>
-        <span className={`${item} cursor-not-allowed text-muted-foreground/60`}>
+        <Link
+          to="/staff/insights"
+          className={`${item} text-muted-foreground hover:bg-sidebar-accent hover:text-foreground`}
+          activeProps={{ className: "bg-sidebar-accent text-foreground" }}
+        >
           <ChartColumn className="size-4" /> {t.staff.insights}
-          <span className="ml-auto text-[0.65rem] uppercase">{t.staff.soon}</span>
-        </span>
+        </Link>
       </nav>
       <div className="space-y-3 border-t p-3">
         <Link

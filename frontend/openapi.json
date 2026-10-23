@@ -1,6 +1,25 @@
 {
   "components": {
     "schemas": {
+      "DayCount": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "day": {
+            "format": "date",
+            "title": "Day",
+            "type": "string"
+          }
+        },
+        "required": [
+          "day",
+          "count"
+        ],
+        "title": "DayCount",
+        "type": "object"
+      },
       "FeedbackIn": {
         "properties": {
           "code": {
@@ -32,6 +51,82 @@
           }
         },
         "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "Insights": {
+        "properties": {
+          "by_category": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "propertyNames": {
+              "enum": [
+                "account_access",
+                "it_support",
+                "registration",
+                "academic_records",
+                "billing",
+                "campus_life",
+                "other"
+              ]
+            },
+            "title": "By Category",
+            "type": "object"
+          },
+          "by_day": {
+            "items": {
+              "$ref": "#/components/schemas/DayCount"
+            },
+            "title": "By Day",
+            "type": "array"
+          },
+          "feedback_helpful": {
+            "title": "Feedback Helpful",
+            "type": "integer"
+          },
+          "feedback_n": {
+            "title": "Feedback N",
+            "type": "integer"
+          },
+          "first_help_total": {
+            "title": "First Help Total",
+            "type": "integer"
+          },
+          "handled_n": {
+            "title": "Handled N",
+            "type": "integer"
+          },
+          "median_reply_minutes": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Reply Minutes"
+          },
+          "outcomes": {
+            "$ref": "#/components/schemas/Outcomes"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "outcomes",
+          "first_help_total",
+          "median_reply_minutes",
+          "handled_n",
+          "feedback_helpful",
+          "feedback_n",
+          "by_category",
+          "by_day"
+        ],
+        "title": "Insights",
         "type": "object"
       },
       "LoginIn": {
@@ -108,6 +203,35 @@
           "office"
         ],
         "title": "OfficeIn",
+        "type": "object"
+      },
+      "Outcomes": {
+        "description": "Every ticket counted exactly once (the stacked bar adds up to the total).",
+        "properties": {
+          "auto_sent": {
+            "title": "Auto Sent",
+            "type": "integer"
+          },
+          "first_help_waiting": {
+            "title": "First Help Waiting",
+            "type": "integer"
+          },
+          "handled": {
+            "title": "Handled",
+            "type": "integer"
+          },
+          "waiting": {
+            "title": "Waiting",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "auto_sent",
+          "first_help_waiting",
+          "waiting",
+          "handled"
+        ],
+        "title": "Outcomes",
         "type": "object"
       },
       "ReplyIn": {
@@ -865,6 +989,28 @@
           }
         },
         "summary": "Health"
+      }
+    },
+    "/api/staff/insights": {
+      "get": {
+        "description": "Statistics for the Insights page, with the same scope as the queue (own office; admin all).",
+        "operationId": "staff_insights",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Insights"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Staff Insights",
+        "tags": [
+          "staff"
+        ]
       }
     },
     "/api/staff/tickets": {

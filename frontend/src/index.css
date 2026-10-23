@@ -30,6 +30,11 @@
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
   --color-gold: var(--gold);
+  --color-series-auto: var(--series-auto);
+  --color-series-first-help: var(--series-first-help);
+  --color-series-waiting: var(--series-waiting);
+  --color-series-handled: var(--series-handled);
+  --color-series-single: var(--series-single);
   --color-brand-text: var(--brand-text);
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
@@ -106,6 +111,14 @@
   --sidebar-accent-foreground: oklch(0.21 0.006 285.9);
   --sidebar-border: oklch(0.92 0.004 286.3);
   --sidebar-ring: oklch(0.462 0.189 28.5);
+  /* Chart series (Insights): validated with the dataviz skill's palette validator (CVD, normal
+     vision, lightness, chroma). Light: teal and yellow are under 3:1 on white, so every chart
+     also has visible labels and a table view (the "relief rule"). */
+  --series-auto: #1baf7a;
+  --series-first-help: #2a78d6;
+  --series-waiting: #eda100;
+  --series-handled: #6250d6;
+  --series-single: #a90005; /* one-series charts: BŞEÜ red, 7.8:1 */
 }
 
 .dark {
@@ -150,6 +163,11 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(0.274 0.005 286);
   --sidebar-ring: oklch(0.663 0.193 22.3);
+  --series-auto: #199e70; /* dark steps of the same hues: all checks pass on #131316 */
+  --series-first-help: #3987e5;
+  --series-waiting: #c98500;
+  --series-handled: #9085e9;
+  --series-single: #f2555a;
 }
 
 @layer base {

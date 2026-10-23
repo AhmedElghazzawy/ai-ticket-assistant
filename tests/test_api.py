@@ -473,3 +473,13 @@ def test_lookups_are_rate_limited_per_visitor(monkeypatch: pytest.MonkeyPatch) -
     monkeypatch.setattr(api, "lookup_limiter", api.RateLimiter(((3, 60.0),)))
     answers = [lookup(1, "x" * 22).status_code for _ in range(4)]
     assert answers == [404, 404, 404, 429]  # free to answer, but not unlimited
+
+
+def test_insights_need_a_login_and_follow_the_office(monkeypatch: pytest.MonkeyPatch) -> None:
+    forwarded_ticket(monkeypatch)  # a billing ticket: office "fees"
+    assert client.get("/api/staff/insights").status_code == 401
+    admin = staff_client().get("/api/staff/insights").json()
+    assert admin["total"] == 1 and admin["outcomes"]["waiting"] == 1
+    assert admin["by_category"]["billing"] == 1
+    it_staff = staff_client(role="staff", office="it").get("/api/staff/insights").json()
+    assert it_staff["total"] == 0  # IT staff never count the fees office's tickets

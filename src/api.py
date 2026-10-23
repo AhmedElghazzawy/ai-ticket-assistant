@@ -14,7 +14,7 @@ from collections.abc import Awaitable, Callable, Iterator
 from contextlib import contextmanager
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Annotated, Literal
+from typing import Annotated, Literal, get_args
 from urllib.parse import urlparse
 
 import structlog
@@ -26,6 +26,7 @@ from pydantic import BaseModel, Field, field_validator
 import auth
 from auth import Staff
 from decision import MIN_SCORE, Decision, OfficeId, Reason, show_first_help
+from insights import Insights, summarize
 from logs import configure, get_logger
 from pipeline import process_ticket
 from retrieval import load_index, open_synced_pool
@@ -477,6 +478,19 @@ def staff_list(staff_member: CurrentStaff, status: Status = "open") -> list[Stor
     with database() as db:
         office = None if staff_member.role == "admin" else staff_member.office
         return list_tickets(db, status, office, demo=staff_member.demo)
+
+
+@staff.get("/insights")
+def staff_insights(staff_member: CurrentStaff) -> Insights:
+    """Statistics for the Insights page, with the same scope as the queue (own office; admin all)."""
+    with database() as db:
+        office = None if staff_member.role == "admin" else staff_member.office
+        tickets = [
+            ticket
+            for status in get_args(Status)
+            for ticket in list_tickets(db, status, office, demo=staff_member.demo)
+        ]
+    return summarize(tickets, datetime.now(UTC))
 
 
 @staff.get("/tickets/{ticket_id}")

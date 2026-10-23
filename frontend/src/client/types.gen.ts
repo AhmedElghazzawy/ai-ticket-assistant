@@ -5,6 +5,20 @@ export type ClientOptions = {
 };
 
 /**
+ * DayCount
+ */
+export type DayCount = {
+    /**
+     * Count
+     */
+    count: number;
+    /**
+     * Day
+     */
+    day: string;
+};
+
+/**
  * FeedbackIn
  */
 export type FeedbackIn = {
@@ -26,6 +40,47 @@ export type HttpValidationError = {
      * Detail
      */
     detail?: Array<ValidationError>;
+};
+
+/**
+ * Insights
+ */
+export type Insights = {
+    /**
+     * By Category
+     */
+    by_category: {
+        [key: string]: number;
+    };
+    /**
+     * By Day
+     */
+    by_day: Array<DayCount>;
+    /**
+     * Feedback Helpful
+     */
+    feedback_helpful: number;
+    /**
+     * Feedback N
+     */
+    feedback_n: number;
+    /**
+     * First Help Total
+     */
+    first_help_total: number;
+    /**
+     * Handled N
+     */
+    handled_n: number;
+    /**
+     * Median Reply Minutes
+     */
+    median_reply_minutes: number | null;
+    outcomes: Outcomes;
+    /**
+     * Total
+     */
+    total: number;
 };
 
 /**
@@ -76,6 +131,30 @@ export type OfficeIn = {
      * Office
      */
     office: 'it' | 'student_affairs' | 'fees' | 'sks' | 'duty';
+};
+
+/**
+ * Outcomes
+ *
+ * Every ticket counted exactly once (the stacked bar adds up to the total).
+ */
+export type Outcomes = {
+    /**
+     * Auto Sent
+     */
+    auto_sent: number;
+    /**
+     * First Help Waiting
+     */
+    first_help_waiting: number;
+    /**
+     * Handled
+     */
+    handled: number;
+    /**
+     * Waiting
+     */
+    waiting: number;
 };
 
 /**
@@ -508,6 +587,22 @@ export type HealthResponses = {
 };
 
 export type HealthResponse = HealthResponses[keyof HealthResponses];
+
+export type StaffInsightsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/staff/insights';
+};
+
+export type StaffInsightsResponses = {
+    /**
+     * Successful Response
+     */
+    200: Insights;
+};
+
+export type StaffInsightsResponse = StaffInsightsResponses[keyof StaffInsightsResponses];
 
 export type StaffListData = {
     body?: never;

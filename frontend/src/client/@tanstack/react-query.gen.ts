@@ -3,8 +3,8 @@
 import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { createTicket, demoLogIn, giveFeedback, health, logIn, loginOptions, logOut, lookupTicket, me, type Options, staffGet, staffList, staffReassign, staffReply } from '../sdk.gen';
-import type { CreateTicketData, CreateTicketError, CreateTicketResponse, DemoLogInData, DemoLogInResponse, GiveFeedbackData, GiveFeedbackError, GiveFeedbackResponse, HealthData, HealthResponse, LogInData, LogInError, LoginOptionsData, LoginOptionsResponse, LogInResponse, LogOutData, LogOutResponse, LookupTicketData, LookupTicketError, LookupTicketResponse, MeData, MeResponse, StaffGetData, StaffGetError, StaffGetResponse, StaffListData, StaffListError, StaffListResponse, StaffReassignData, StaffReassignError, StaffReassignResponse, StaffReplyData, StaffReplyError, StaffReplyResponse } from '../types.gen';
+import { createTicket, demoLogIn, giveFeedback, health, logIn, loginOptions, logOut, lookupTicket, me, type Options, staffGet, staffInsights, staffList, staffReassign, staffReply } from '../sdk.gen';
+import type { CreateTicketData, CreateTicketError, CreateTicketResponse, DemoLogInData, DemoLogInResponse, GiveFeedbackData, GiveFeedbackError, GiveFeedbackResponse, HealthData, HealthResponse, LogInData, LogInError, LoginOptionsData, LoginOptionsResponse, LogInResponse, LogOutData, LogOutResponse, LookupTicketData, LookupTicketError, LookupTicketResponse, MeData, MeResponse, StaffGetData, StaffGetError, StaffGetResponse, StaffInsightsData, StaffInsightsResponse, StaffListData, StaffListError, StaffListResponse, StaffReassignData, StaffReassignError, StaffReassignResponse, StaffReplyData, StaffReplyError, StaffReplyResponse } from '../types.gen';
 
 /**
  * Demo Log In
@@ -151,6 +151,26 @@ export const healthOptions = (options?: Options<HealthData>) => queryOptions<Hea
         return data;
     },
     queryKey: healthQueryKey(options)
+});
+
+export const staffInsightsQueryKey = (options?: Options<StaffInsightsData>) => createQueryKey('staffInsights', options);
+
+/**
+ * Staff Insights
+ *
+ * Statistics for the Insights page, with the same scope as the queue (own office; admin all).
+ */
+export const staffInsightsOptions = (options?: Options<StaffInsightsData>) => queryOptions<StaffInsightsResponse, DefaultError, StaffInsightsResponse, ReturnType<typeof staffInsightsQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await staffInsights({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: staffInsightsQueryKey(options)
 });
 
 export const staffListQueryKey = (options?: Options<StaffListData>) => createQueryKey('staffList', options);

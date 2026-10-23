@@ -87,6 +87,12 @@ const queueRoute = createRoute({
   component: lazyRouteComponent(() => import("@/features/staff/queue-page"), "QueuePage"),
 });
 
+const insightsRoute = createRoute({
+  getParentRoute: () => staffRoute,
+  path: "/insights",
+  component: lazyRouteComponent(() => import("@/features/staff/insights-page"), "InsightsPage"),
+});
+
 const ticketRoute = createRoute({
   getParentRoute: () => staffRoute,
   path: "/tickets/$ticketId",
@@ -97,7 +103,7 @@ const routeTree = rootRoute.addChildren([
   chatRoute,
   myTicketsRoute,
   loginRoute,
-  staffRoute.addChildren([queueRoute, ticketRoute]),
+  staffRoute.addChildren([queueRoute, insightsRoute, ticketRoute]),
 ]);
 
 export const router = createRouter({ routeTree, defaultPreload: "intent" });

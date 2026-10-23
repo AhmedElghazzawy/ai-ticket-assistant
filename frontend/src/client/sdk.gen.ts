@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreateTicketData, CreateTicketErrors, CreateTicketResponses, DemoLogInData, DemoLogInResponses, GiveFeedbackData, GiveFeedbackErrors, GiveFeedbackResponses, HealthData, HealthResponses, LogInData, LogInErrors, LoginOptionsData, LoginOptionsResponses, LogInResponses, LogOutData, LogOutResponses, LookupTicketData, LookupTicketErrors, LookupTicketResponses, MeData, MeResponses, StaffGetData, StaffGetErrors, StaffGetResponses, StaffListData, StaffListErrors, StaffListResponses, StaffReassignData, StaffReassignErrors, StaffReassignResponses, StaffReplyData, StaffReplyErrors, StaffReplyResponses } from './types.gen';
+import type { CreateTicketData, CreateTicketErrors, CreateTicketResponses, DemoLogInData, DemoLogInResponses, GiveFeedbackData, GiveFeedbackErrors, GiveFeedbackResponses, HealthData, HealthResponses, LogInData, LogInErrors, LoginOptionsData, LoginOptionsResponses, LogInResponses, LogOutData, LogOutResponses, LookupTicketData, LookupTicketErrors, LookupTicketResponses, MeData, MeResponses, StaffGetData, StaffGetErrors, StaffGetResponses, StaffInsightsData, StaffInsightsResponses, StaffListData, StaffListErrors, StaffListResponses, StaffReassignData, StaffReassignErrors, StaffReassignResponses, StaffReplyData, StaffReplyErrors, StaffReplyResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -63,6 +63,13 @@ export const loginOptions = <ThrowOnError extends boolean = false>(options?: Opt
  * For Docker and hosting services: the app is up and answering.
  */
 export const health = <ThrowOnError extends boolean = false>(options?: Options<HealthData, ThrowOnError>): RequestResult<HealthResponses, unknown, ThrowOnError> => (options?.client ?? client).get<HealthResponses, unknown, ThrowOnError>({ url: '/api/health', ...options });
+
+/**
+ * Staff Insights
+ *
+ * Statistics for the Insights page, with the same scope as the queue (own office; admin all).
+ */
+export const staffInsights = <ThrowOnError extends boolean = false>(options?: Options<StaffInsightsData, ThrowOnError>): RequestResult<StaffInsightsResponses, unknown, ThrowOnError> => (options?.client ?? client).get<StaffInsightsResponses, unknown, ThrowOnError>({ url: '/api/staff/insights', ...options });
 
 /**
  * Staff List
