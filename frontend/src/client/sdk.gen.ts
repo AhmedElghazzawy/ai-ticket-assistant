@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreateTicketData, CreateTicketErrors, CreateTicketResponses, DemoLogInData, DemoLogInResponses, HealthData, HealthResponses, LogInData, LogInErrors, LoginOptionsData, LoginOptionsResponses, LogInResponses, LogOutData, LogOutResponses, MeData, MeResponses, StaffGetData, StaffGetErrors, StaffGetResponses, StaffListData, StaffListErrors, StaffListResponses, StaffReassignData, StaffReassignErrors, StaffReassignResponses, StaffReplyData, StaffReplyErrors, StaffReplyResponses } from './types.gen';
+import type { CreateTicketData, CreateTicketErrors, CreateTicketResponses, DemoLogInData, DemoLogInResponses, GiveFeedbackData, GiveFeedbackErrors, GiveFeedbackResponses, HealthData, HealthResponses, LogInData, LogInErrors, LoginOptionsData, LoginOptionsResponses, LogInResponses, LogOutData, LogOutResponses, LookupTicketData, LookupTicketErrors, LookupTicketResponses, MeData, MeResponses, StaffGetData, StaffGetErrors, StaffGetResponses, StaffListData, StaffListErrors, StaffListResponses, StaffReassignData, StaffReassignErrors, StaffReassignResponses, StaffReplyData, StaffReplyErrors, StaffReplyResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -111,6 +111,34 @@ export const staffReply = <ThrowOnError extends boolean = false>(options: Option
  */
 export const createTicket = <ThrowOnError extends boolean = false>(options: Options<CreateTicketData, ThrowOnError>): RequestResult<CreateTicketResponses, CreateTicketErrors, ThrowOnError> => (options.client ?? client).post<CreateTicketResponses, CreateTicketErrors, ThrowOnError>({
     url: '/api/tickets',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Lookup Ticket
+ *
+ * The student's own view of a ticket: status and the answer they received.
+ */
+export const lookupTicket = <ThrowOnError extends boolean = false>(options: Options<LookupTicketData, ThrowOnError>): RequestResult<LookupTicketResponses, LookupTicketErrors, ThrowOnError> => (options.client ?? client).post<LookupTicketResponses, LookupTicketErrors, ThrowOnError>({
+    url: '/api/tickets/lookup',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Give Feedback
+ *
+ * Thumbs up / down on an answer; the last choice counts.
+ */
+export const giveFeedback = <ThrowOnError extends boolean = false>(options: Options<GiveFeedbackData, ThrowOnError>): RequestResult<GiveFeedbackResponses, GiveFeedbackErrors, ThrowOnError> => (options.client ?? client).post<GiveFeedbackResponses, GiveFeedbackErrors, ThrowOnError>({
+    url: '/api/tickets/{ticket_id}/feedback',
     ...options,
     headers: {
         'Content-Type': 'application/json',

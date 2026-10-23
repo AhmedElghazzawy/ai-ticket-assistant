@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { usePreferences } from "@/app/preferences";
 import { createTicket } from "@/client";
 import { AppHeader } from "@/components/app-header";
+import { rememberTicket } from "@/lib/my-tickets";
 import type { TicketOut } from "@/lib/types";
 import { AnswerCard } from "./answer-card";
 import { Composer } from "./composer";
@@ -36,8 +37,10 @@ export function ChatPage() {
       );
     try {
       const { data, response } = await createTicket({ body: { text: question, language } });
-      if (data) update({ result: data });
-      else update({ error: response?.status === 429 ? t.tooMany : t.error }); // 429: rate limit
+      if (data) {
+        update({ result: data });
+        rememberTicket(data.ticket_id, data.access_code, question); // for "Taleplerim"
+      } else update({ error: response?.status === 429 ? t.tooMany : t.error }); // 429: rate limit
     } catch {
       update({ error: t.error }); // the network itself failed
     }

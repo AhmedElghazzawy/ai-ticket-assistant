@@ -1,6 +1,26 @@
 {
   "components": {
     "schemas": {
+      "FeedbackIn": {
+        "properties": {
+          "code": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Code",
+            "type": "string"
+          },
+          "helpful": {
+            "title": "Helpful",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "code",
+          "helpful"
+        ],
+        "title": "FeedbackIn",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -47,6 +67,27 @@
           "demo"
         ],
         "title": "LoginOptions",
+        "type": "object"
+      },
+      "LookupIn": {
+        "description": "A student checks one of their tickets (sent in the body, so the code is never logged).",
+        "properties": {
+          "code": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Code",
+            "type": "string"
+          },
+          "ticket_id": {
+            "title": "Ticket Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "ticket_id",
+          "code"
+        ],
+        "title": "LookupIn",
         "type": "object"
       },
       "OfficeIn": {
@@ -239,6 +280,21 @@
             "title": "Escalate",
             "type": "boolean"
           },
+          "feedback": {
+            "anyOf": [
+              {
+                "enum": [
+                  "helpful",
+                  "not_helpful"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Feedback"
+          },
           "final_reply": {
             "anyOf": [
               {
@@ -397,6 +453,10 @@
       "TicketOut": {
         "description": "What the student sees. `reply` is filled only for an auto-sent answer or a safe first help.",
         "properties": {
+          "access_code": {
+            "title": "Access Code",
+            "type": "string"
+          },
           "auto_send": {
             "title": "Auto Send",
             "type": "boolean"
@@ -475,9 +535,71 @@
           "first_help",
           "reply",
           "sources",
-          "emergency"
+          "emergency",
+          "access_code"
         ],
         "title": "TicketOut",
+        "type": "object"
+      },
+      "TicketStatusOut": {
+        "description": "What the student sees later: the status and the answer, never the unchecked draft.",
+        "properties": {
+          "handled_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Handled At"
+          },
+          "office": {
+            "enum": [
+              "it",
+              "student_affairs",
+              "fees",
+              "sks",
+              "duty"
+            ],
+            "title": "Office",
+            "type": "string"
+          },
+          "reply": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reply"
+          },
+          "status": {
+            "enum": [
+              "auto_sent",
+              "open",
+              "handled"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "ticket_id": {
+            "title": "Ticket Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "ticket_id",
+          "status",
+          "office",
+          "reply",
+          "handled_at"
+        ],
+        "title": "TicketStatusOut",
         "type": "object"
       },
       "ValidationError": {
@@ -945,6 +1067,88 @@
           }
         },
         "summary": "Create Ticket"
+      }
+    },
+    "/api/tickets/lookup": {
+      "post": {
+        "description": "The student's own view of a ticket: status and the answer they received.",
+        "operationId": "lookup_ticket",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LookupIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketStatusOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Lookup Ticket"
+      }
+    },
+    "/api/tickets/{ticket_id}/feedback": {
+      "post": {
+        "description": "Thumbs up / down on an answer; the last choice counts.",
+        "operationId": "give_feedback",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ticket_id",
+            "required": true,
+            "schema": {
+              "title": "Ticket Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeedbackIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Give Feedback"
       }
     }
   }

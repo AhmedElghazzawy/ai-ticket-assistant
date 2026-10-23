@@ -9,9 +9,48 @@ import {
   ThumbsDown,
   ThumbsUp,
 } from "lucide-react";
+import { useState } from "react";
 import { usePreferences } from "@/app/preferences";
+import { giveFeedback } from "@/client";
 import { Button } from "@/components/ui/button";
 import type { StoredSource, TicketOut } from "@/lib/types";
+import { cn } from "@/lib/utils";
+
+/** Thumbs up / down, saved with the ticket's secret code (the last choice counts). */
+function FeedbackButtons({ result }: { result: TicketOut }) {
+  const { t } = usePreferences();
+  const [choice, setChoice] = useState<boolean | null>(null);
+
+  async function send(helpful: boolean) {
+    setChoice(helpful); // show it at once; a failed save is not worth an error for the student
+    await giveFeedback({
+      path: { ticket_id: result.ticket_id },
+      body: { code: result.access_code, helpful },
+    });
+  }
+
+  return (
+    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+      <span className="mr-1">{choice === null ? t.helpful : t.thanks}</span>
+      {([true, false] as const).map((helpful) => {
+        const Icon = helpful ? ThumbsUp : ThumbsDown;
+        return (
+          <Button
+            key={String(helpful)}
+            variant="ghost"
+            size="icon-sm"
+            aria-label={helpful ? t.feedbackYes : t.feedbackNo}
+            aria-pressed={choice === helpful}
+            onClick={() => send(helpful)}
+            className={cn(choice === helpful && "bg-accent text-accent-foreground")}
+          >
+            <Icon />
+          </Button>
+        );
+      })}
+    </div>
+  );
+}
 
 function SourceCard({ source }: { source: StoredSource }) {
   const body = (
@@ -100,15 +139,7 @@ function AnsweredCard({ result }: { result: TicketOut }) {
       <SourceList sources={result.sources} />
       <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-3">
         <TicketMeta result={result} />
-        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-          <span className="mr-1">{t.helpful}</span>
-          <Button variant="ghost" size="icon-sm" aria-label="👍">
-            <ThumbsUp />
-          </Button>
-          <Button variant="ghost" size="icon-sm" aria-label="👎">
-            <ThumbsDown />
-          </Button>
-        </div>
+        <FeedbackButtons result={result} />
       </div>
     </div>
   );
@@ -130,6 +161,9 @@ function ForwardedCard({ result }: { result: TicketOut }) {
           <p className="text-[0.95rem] leading-relaxed">{result.reply}</p>
           <p className="text-xs text-muted-foreground">{t.firstHelpNote}</p>
           <SourceList sources={result.sources} />
+          <div className="flex justify-end">
+            <FeedbackButtons result={result} />
+          </div>
         </div>
       ) : (
         <p className="text-[0.95rem] leading-relaxed">{t.forwardedText}</p>

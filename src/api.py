@@ -5,6 +5,7 @@ Run: uv run uvicorn api:app --app-dir src     then open http://127.0.0.1:8000
 
 import os
 import re
+import secrets
 import threading
 import time
 import uuid
@@ -34,12 +35,15 @@ from store import (
     StoredSource,
     StoredTicket,
     count_tickets_since,
+    find_for_student,
     get_ticket,
     list_tickets,
     mark_handled,
     reassign,
     reset_demo_tickets,
+    save_feedback,
     save_ticket,
+    token_hash,
 )
 from tickets import Category, Priority
 
@@ -127,6 +131,7 @@ class TicketOut(BaseModel):
     reply: str | None  # None: a human answers, so the unchecked draft never leaves the server
     sources: list[StoredSource]
     emergency: bool  # show the 112 line (urgent and escalated)
+    access_code: str  # shown ONCE: with it, only this student can see the status and give feedback
 
 
 class RateLimiter:
@@ -172,6 +177,17 @@ ticket_limiter = RateLimiter()
 DAILY_TICKET_CAP = int(os.getenv("DAILY_TICKET_CAP", "300"))
 
 
+# Looking up a ticket or giving feedback costs no AI call, so the limit is generous, but a public
+# endpoint is never unlimited (database load, guessing).
+lookup_limiter = RateLimiter(((30, 60.0),))
+
+
+def check_lookup_limits(request: Request) -> None:
+    if not lookup_limiter.allow(client_ip(request)):
+        logger.info("lookup_rate_limited")
+        raise HTTPException(status_code=429, detail="Too many requests. Please wait a minute.")
+
+
 def check_ticket_limits(request: Request) -> None:
     """Runs BEFORE the pipeline, so a refused request never costs a Gemini call."""
     midnight = datetime.now(UTC).replace(hour=0, minute=0, second=0, microsecond=0)
@@ -204,8 +220,11 @@ def create_ticket(ticket: TicketIn) -> TicketOut:
         raise HTTPException(
             status_code=503, detail="The assistant is not available right now."
         ) from error
+    code = secrets.token_urlsafe(16)  # 128 random bits; only its hash is stored
     with database() as db:
-        saved = get_ticket(db, save_ticket(db, ticket.text, ticket.language, r))
+        saved = get_ticket(
+            db, save_ticket(db, ticket.text, ticket.language, r, access_hash=token_hash(code))
+        )
     if saved is None:  # cannot happen right after saving; checked so the type is exact
         raise HTTPException(status_code=500, detail="The ticket could not be saved.")
     logger.info(
@@ -234,7 +253,66 @@ def create_ticket(ticket: TicketIn) -> TicketOut:
         reply=saved.draft if shown else None,
         sources=saved.sources if shown else [],
         emergency=saved.escalate and saved.priority == "urgent",
+        access_code=code,
     )
+
+
+class LookupIn(BaseModel):
+    """A student checks one of their tickets (sent in the body, so the code is never logged)."""
+
+    ticket_id: int
+    code: str = Field(min_length=1, max_length=100)
+
+
+class TicketStatusOut(BaseModel):
+    """What the student sees later: the status and the answer, never the unchecked draft."""
+
+    ticket_id: int
+    status: Status
+    office: OfficeId
+    reply: str | None  # the auto-sent answer or the staff reply; None while staff work on it
+    handled_at: datetime | None
+
+
+class FeedbackIn(BaseModel):
+    code: str = Field(min_length=1, max_length=100)
+    helpful: bool
+
+
+NOT_FOUND = "Ticket not found."  # the same for a wrong code and an unknown number
+
+
+@app.post("/api/tickets/lookup", dependencies=[Depends(check_lookup_limits)])
+def lookup_ticket(body: LookupIn) -> TicketStatusOut:
+    """The student's own view of a ticket: status and the answer they received."""
+    with database() as db:
+        found = find_for_student(db, body.ticket_id, body.code)
+    if found is None:
+        raise HTTPException(status_code=404, detail=NOT_FOUND)
+    reply = {"auto_sent": found.draft, "handled": found.final_reply}.get(found.status)
+    return TicketStatusOut(
+        ticket_id=found.id,
+        status=found.status,
+        office=found.office,
+        reply=reply,
+        handled_at=found.handled_at,
+    )
+
+
+@app.post(
+    "/api/tickets/{ticket_id}/feedback",
+    status_code=204,
+    dependencies=[Depends(check_lookup_limits)],
+)
+def give_feedback(ticket_id: int, body: FeedbackIn) -> None:
+    """Thumbs up / down on an answer; the last choice counts."""
+    with database() as db:
+        saved = save_feedback(
+            db, ticket_id, body.code, "helpful" if body.helpful else "not_helpful"
+        )
+    if not saved:
+        raise HTTPException(status_code=404, detail=NOT_FOUND)
+    logger.info("feedback", ticket_id=ticket_id, helpful=body.helpful)
 
 
 # ---------------------------------------------------------------- staff login

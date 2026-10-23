@@ -4,6 +4,7 @@ Postgres: locally in Docker (compose.yaml), in production Neon (free, EU). The d
 student messages (personal data): its address and password are secrets (DATABASE_URL), never in git.
 """
 
+import hashlib
 import json
 import os
 from collections.abc import Callable
@@ -103,10 +104,25 @@ CREATE TABLE kb_chunks (                          -- the knowledge base, searcha
 );
 -- No vector index (HNSW) on purpose: for ~100 rows an exact scan is fast and never misses.
 """,
+    3: """
+-- The student's own view of a ticket (status, staff reply) and their feedback, both protected by
+-- a secret code shown once to the student. Only its SHA-256 is stored; older rows have none.
+ALTER TABLE tickets ADD COLUMN access_hash TEXT;
+ALTER TABLE tickets ADD COLUMN feedback TEXT CHECK (feedback IN ('helpful', 'not_helpful'));
+ALTER TABLE tickets ADD COLUMN feedback_at TIMESTAMPTZ;
+""",
 }
 SCHEMA_VERSION = max(MIGRATIONS)
 
 Status = Literal["auto_sent", "open", "handled"]
+
+
+Feedback = Literal["helpful", "not_helpful"]
+
+
+def token_hash(token: str) -> str:
+    """SHA-256 of a secret (session token, ticket code): only this is stored, never the secret."""
+    return hashlib.sha256(token.encode()).hexdigest()
 
 
 class StoredSource(BaseModel):
@@ -139,6 +155,7 @@ class StoredTicket(BaseModel):
     final_reply: str | None
     handled_at: datetime | None
     demo: bool  # a sample ticket for the demo: never mixed with real visitors' tickets
+    feedback: Feedback | None = None  # the student's thumbs up / down, if they gave one
 
 
 def migrate(connection: Connection) -> None:
@@ -189,7 +206,11 @@ def open_pool(url: str = DATABASE_URL, schema: str | None = None) -> ConnectionP
 
 
 def save_ticket(
-    connection: Connection, text: str, language: Language, result: "TicketResult"
+    connection: Connection,
+    text: str,
+    language: Language,
+    result: "TicketResult",
+    access_hash: str | None = None,
 ) -> int:
     """Store one processed ticket and return its number. Auto-sent tickets are stored too (for statistics)."""
     c, decision, answer = result.classification, result.decision, result.answer
@@ -207,8 +228,8 @@ def save_ticket(
     ]
     row = connection.execute(
         "INSERT INTO tickets (language, text, category, priority, escalate, ai_reason, office,"
-        " auto_send, reasons, top_score, draft, covered, sources, status)"
-        " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id",
+        " auto_send, reasons, top_score, draft, covered, sources, status, access_hash)"
+        " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id",
         (
             language,
             text,
@@ -224,6 +245,7 @@ def save_ticket(
             answer.covered,
             Jsonb([source.model_dump() for source in sources]),
             "auto_sent" if decision.auto_send else "open",
+            access_hash,
         ),
     ).fetchone()  # %s placeholders: psycopg sends the values separately (no SQL injection)
     if row is None:  # RETURNING always gives the new row; checked so the type is a plain int
@@ -262,6 +284,25 @@ def get_ticket(connection: Connection, ticket_id: int) -> StoredTicket | None:
     """One ticket, or None if the number does not exist."""
     row = connection.execute("SELECT * FROM tickets WHERE id = %s", (ticket_id,)).fetchone()
     return StoredTicket.model_validate(row) if row else None
+
+
+def find_for_student(connection: Connection, ticket_id: int, code: str) -> StoredTicket | None:
+    """The ticket, only with its secret code. A wrong code and an unknown number both give None."""
+    row = connection.execute(
+        "SELECT * FROM tickets WHERE id = %s AND access_hash = %s AND NOT demo",
+        (ticket_id, token_hash(code)),
+    ).fetchone()
+    return StoredTicket.model_validate(row) if row else None
+
+
+def save_feedback(connection: Connection, ticket_id: int, code: str, feedback: Feedback) -> bool:
+    """The student's thumbs up / down (the last choice counts). False if number or code is wrong."""
+    row = connection.execute(
+        "UPDATE tickets SET feedback = %s, feedback_at = now()"
+        " WHERE id = %s AND access_hash = %s AND NOT demo RETURNING id",
+        (feedback, ticket_id, token_hash(code)),
+    ).fetchone()
+    return row is not None
 
 
 def mark_handled(connection: Connection, ticket_id: int, final_reply: str) -> bool:

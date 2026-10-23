@@ -1,5 +1,6 @@
 """Tests for the web API. The real pipeline is replaced by a fake one, so no Gemini calls are made."""
 
+import hashlib
 from pathlib import Path
 from typing import NoReturn
 
@@ -388,3 +389,77 @@ def test_behind_a_trusted_proxy_each_real_visitor_has_its_own_limit(
     assert other.is_success  # same proxy address, different real visitor
     same = client.post("/api/tickets", json=body, headers={"CF-Connecting-IP": "198.51.100.1"})
     assert same.status_code == 429
+
+
+# ---------------------------------------------------------------- student: status and feedback
+
+
+def lookup(ticket_id: int, code: str) -> httpx2.Response:
+    # POST, not a URL: the secret code never appears in server logs
+    return client.post("/api/tickets/lookup", json={"ticket_id": ticket_id, "code": code})
+
+
+def test_new_ticket_gets_a_secret_code_and_only_its_hash_is_stored(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(api, "process_ticket", lambda *args: fake_result(auto_send=False))
+    body = ask().json()
+    code = body["access_code"]
+    assert len(code) >= 20  # 128+ random bits: impossible to guess
+    with api.database() as db:
+        row = db.execute(
+            "SELECT access_hash FROM tickets WHERE id = %s", (body["ticket_id"],)
+        ).fetchone()
+    assert row is not None
+    assert row["access_hash"] == hashlib.sha256(code.encode()).hexdigest()  # never the code itself
+
+
+def test_student_sees_the_status_and_then_the_staff_reply(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(api, "process_ticket", lambda *args: fake_result(auto_send=False))
+    body = ask().json()
+    number, code = body["ticket_id"], body["access_code"]
+    first = lookup(number, code).json()
+    assert first["status"] == "open" and first["reply"] is None
+    assert "SECRET DRAFT" not in lookup(number, code).text  # the unchecked draft stays private
+    staff_client().post(f"/api/staff/tickets/{number}/reply", json={"reply": "Dilekçe verin."})
+    later = lookup(number, code).json()
+    assert later["status"] == "handled" and later["reply"] == "Dilekçe verin."
+
+
+def test_auto_sent_ticket_shows_its_answer(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(api, "process_ticket", lambda *args: fake_result(auto_send=True))
+    body = ask().json()
+    found = lookup(body["ticket_id"], body["access_code"]).json()
+    assert found["status"] == "auto_sent" and found["reply"] == "SECRET DRAFT"
+
+
+def test_wrong_code_and_unknown_ticket_look_exactly_the_same(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(api, "process_ticket", lambda *args: fake_result(auto_send=False))
+    body = ask().json()
+    wrong_code = lookup(body["ticket_id"], "x" * 22)
+    unknown_ticket = lookup(body["ticket_id"] + 1000, body["access_code"])
+    assert wrong_code.status_code == unknown_ticket.status_code == 404
+    assert wrong_code.json() == unknown_ticket.json()  # nobody can probe which numbers exist
+
+
+def test_feedback_needs_the_code_and_the_last_choice_counts(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(api, "process_ticket", lambda *args: fake_result(auto_send=True))
+    body = ask().json()
+    number, code = body["ticket_id"], body["access_code"]
+    url = f"/api/tickets/{number}/feedback"
+    assert client.post(url, json={"code": "x" * 22, "helpful": True}).status_code == 404
+    assert client.post(url, json={"code": code, "helpful": True}).status_code == 204
+    assert client.post(url, json={"code": code, "helpful": False}).status_code == 204
+    with api.database() as db:
+        row = db.execute("SELECT feedback FROM tickets WHERE id = %s", (number,)).fetchone()
+    assert row is not None and row["feedback"] == "not_helpful"
+
+
+def test_lookups_are_rate_limited_per_visitor(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(api, "lookup_limiter", api.RateLimiter(((3, 60.0),)))
+    answers = [lookup(1, "x" * 22).status_code for _ in range(4)]
+    assert answers == [404, 404, 404, 429]  # free to answer, but not unlimited

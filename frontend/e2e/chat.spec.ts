@@ -20,6 +20,7 @@ const BASE: TicketOut = {
   reply: null,
   sources: [],
   emergency: false,
+  access_code: "secret-code-1234567890",
 };
 
 async function askWithAnswer(page: Page, answer: Partial<TicketOut>) {
@@ -64,4 +65,39 @@ test("an urgent escalation shows the 112 line and no AI text", async ({ page }) 
   await askWithAnswer(page, { priority: "urgent", emergency: true, office: "duty" });
   await expect(page.getByRole("link", { name: /112/ })).toHaveAttribute("href", "tel:112");
   await expect(page.getByText("Ön bilgi")).toHaveCount(0);
+});
+
+test("feedback is sent with the ticket's secret code", async ({ page }) => {
+  let sent: unknown = null;
+  await page.route("**/api/tickets/42/feedback", async (route) => {
+    sent = route.request().postDataJSON();
+    await route.fulfill({ status: 204 });
+  });
+  await askWithAnswer(page, {
+    auto_send: true,
+    reply: "Program OBS'de ilan edilir.",
+    sources: [SOURCE],
+  });
+  await page.getByRole("button", { name: "Evet, işime yaradı" }).click();
+  await expect(page.getByText("Teşekkürler")).toBeVisible();
+  expect(sent).toEqual({ code: BASE.access_code, helpful: true });
+});
+
+test("my tickets shows the staff reply for a ticket sent from this browser", async ({ page }) => {
+  await page.route("**/api/tickets/lookup", (route) =>
+    route.fulfill({
+      json: {
+        ticket_id: 42,
+        status: "handled",
+        office: "student_affairs",
+        reply: "Dilekçe verin.",
+        handled_at: null,
+      },
+    }),
+  );
+  await askWithAnswer(page, {});
+  await expect(page.getByText("Talep no #42")).toBeVisible(); // the answer arrived: ticket remembered
+  await page.goto("/my-tickets");
+  await expect(page.getByText("#42")).toBeVisible();
+  await expect(page.getByText("Dilekçe verin.")).toBeVisible();
 });

@@ -5,7 +5,6 @@ Sessions: a random token in an HttpOnly cookie; only its SHA-256 is stored, so a
 database does not contain working sessions. Sessions can be ended at once (logout).
 """
 
-import hashlib
 import secrets
 from datetime import UTC, datetime, timedelta
 from typing import Literal
@@ -16,7 +15,7 @@ from psycopg.errors import UniqueViolation
 from pydantic import BaseModel
 
 from decision import OfficeId
-from store import Connection
+from store import Connection, token_hash
 
 Role = Literal["staff", "admin"]
 
@@ -107,10 +106,6 @@ def authenticate(connection: Connection, email: str, password: str, ip: str) -> 
             )
         return None
     return Staff.model_validate(row)
-
-
-def token_hash(token: str) -> str:
-    return hashlib.sha256(token.encode()).hexdigest()
 
 
 def create_session(connection: Connection, staff_id: int) -> str:

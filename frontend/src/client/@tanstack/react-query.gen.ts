@@ -3,8 +3,8 @@
 import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { createTicket, demoLogIn, health, logIn, loginOptions, logOut, me, type Options, staffGet, staffList, staffReassign, staffReply } from '../sdk.gen';
-import type { CreateTicketData, CreateTicketError, CreateTicketResponse, DemoLogInData, DemoLogInResponse, HealthData, HealthResponse, LogInData, LogInError, LoginOptionsData, LoginOptionsResponse, LogInResponse, LogOutData, LogOutResponse, MeData, MeResponse, StaffGetData, StaffGetError, StaffGetResponse, StaffListData, StaffListError, StaffListResponse, StaffReassignData, StaffReassignError, StaffReassignResponse, StaffReplyData, StaffReplyError, StaffReplyResponse } from '../types.gen';
+import { createTicket, demoLogIn, giveFeedback, health, logIn, loginOptions, logOut, lookupTicket, me, type Options, staffGet, staffList, staffReassign, staffReply } from '../sdk.gen';
+import type { CreateTicketData, CreateTicketError, CreateTicketResponse, DemoLogInData, DemoLogInResponse, GiveFeedbackData, GiveFeedbackError, GiveFeedbackResponse, HealthData, HealthResponse, LogInData, LogInError, LoginOptionsData, LoginOptionsResponse, LogInResponse, LogOutData, LogOutResponse, LookupTicketData, LookupTicketError, LookupTicketResponse, MeData, MeResponse, StaffGetData, StaffGetError, StaffGetResponse, StaffListData, StaffListError, StaffListResponse, StaffReassignData, StaffReassignError, StaffReassignResponse, StaffReplyData, StaffReplyError, StaffReplyResponse } from '../types.gen';
 
 /**
  * Demo Log In
@@ -238,6 +238,44 @@ export const createTicketMutation = (options?: Partial<Options<CreateTicketData>
     const mutationOptions: UseMutationOptions<CreateTicketResponse, CreateTicketError, Options<CreateTicketData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await createTicket({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Lookup Ticket
+ *
+ * The student's own view of a ticket: status and the answer they received.
+ */
+export const lookupTicketMutation = (options?: Partial<Options<LookupTicketData>>): UseMutationOptions<LookupTicketResponse, LookupTicketError, Options<LookupTicketData>> => {
+    const mutationOptions: UseMutationOptions<LookupTicketResponse, LookupTicketError, Options<LookupTicketData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await lookupTicket({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Give Feedback
+ *
+ * Thumbs up / down on an answer; the last choice counts.
+ */
+export const giveFeedbackMutation = (options?: Partial<Options<GiveFeedbackData>>): UseMutationOptions<GiveFeedbackResponse, GiveFeedbackError, Options<GiveFeedbackData>> => {
+    const mutationOptions: UseMutationOptions<GiveFeedbackResponse, GiveFeedbackError, Options<GiveFeedbackData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await giveFeedback({
                 ...options,
                 ...fnOptions,
                 throwOnError: true

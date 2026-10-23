@@ -1,4 +1,5 @@
-import { Monitor, Moon, SquarePen, Sun } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { Inbox, Monitor, Moon, SquarePen, Sun } from "lucide-react";
 import { type Theme, usePreferences } from "@/app/preferences";
 import { Button } from "@/components/ui/button";
 import {
@@ -86,6 +87,23 @@ export function AppHeader({ onNewChat }: { onNewChat: () => void }) {
           <p className="hidden truncate text-xs text-muted-foreground sm:block">{t.university}</p>
         </div>
         <div className="ml-auto flex items-center gap-1.5">
+          <Button
+            variant="ghost"
+            size="icon"
+            render={<Link to="/my-tickets" />}
+            aria-label={t.myTickets}
+            className="sm:hidden"
+          >
+            <Inbox />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            render={<Link to="/my-tickets" />}
+            className="hidden sm:flex"
+          >
+            <Inbox /> {t.myTickets}
+          </Button>
           <Button variant="ghost" size="sm" onClick={onNewChat} className="hidden sm:flex">
             <SquarePen /> {t.newChat}
           </Button>

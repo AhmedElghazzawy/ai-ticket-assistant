@@ -20,6 +20,7 @@ from store import Connection
 def fresh_rate_limits(monkeypatch: pytest.MonkeyPatch) -> None:
     """Every test starts with empty per-visitor counters, so tests never limit each other."""
     monkeypatch.setattr(api, "ticket_limiter", api.RateLimiter())
+    monkeypatch.setattr(api, "lookup_limiter", api.RateLimiter(((30, 60.0),)))
 
 
 @pytest.fixture(autouse=True)

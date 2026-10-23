@@ -12,6 +12,7 @@ import {
 import { queryClient } from "@/app/query-client";
 import { meOptions } from "@/client/@tanstack/react-query.gen";
 import { ChatPage } from "@/features/chat/chat-page";
+import { MyTicketsPage } from "@/features/chat/my-tickets-page";
 import type { OfficeId, Priority } from "@/lib/types";
 
 const PRIORITIES: readonly string[] = ["low", "medium", "high", "urgent"] satisfies Priority[];
@@ -44,6 +45,12 @@ function validateQueueSearch(search: Record<string, unknown>): QueueSearch {
 const rootRoute = createRootRoute({ component: Outlet });
 
 const chatRoute = createRoute({ getParentRoute: () => rootRoute, path: "/", component: ChatPage });
+
+const myTicketsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/my-tickets",
+  component: MyTicketsPage,
+});
 
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -88,6 +95,7 @@ const ticketRoute = createRoute({
 
 const routeTree = rootRoute.addChildren([
   chatRoute,
+  myTicketsRoute,
   loginRoute,
   staffRoute.addChildren([queueRoute, ticketRoute]),
 ]);

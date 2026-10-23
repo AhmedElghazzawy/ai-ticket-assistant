@@ -5,6 +5,20 @@ export type ClientOptions = {
 };
 
 /**
+ * FeedbackIn
+ */
+export type FeedbackIn = {
+    /**
+     * Code
+     */
+    code: string;
+    /**
+     * Helpful
+     */
+    helpful: boolean;
+};
+
+/**
  * HTTPValidationError
  */
 export type HttpValidationError = {
@@ -36,6 +50,22 @@ export type LoginOptions = {
      * Demo
      */
     demo: boolean;
+};
+
+/**
+ * LookupIn
+ *
+ * A student checks one of their tickets (sent in the body, so the code is never logged).
+ */
+export type LookupIn = {
+    /**
+     * Code
+     */
+    code: string;
+    /**
+     * Ticket Id
+     */
+    ticket_id: number;
 };
 
 /**
@@ -165,6 +195,10 @@ export type StoredTicket = {
      */
     escalate: boolean;
     /**
+     * Feedback
+     */
+    feedback?: 'helpful' | 'not_helpful' | null;
+    /**
      * Final Reply
      */
     final_reply: string | null;
@@ -233,6 +267,10 @@ export type TicketIn = {
  */
 export type TicketOut = {
     /**
+     * Access Code
+     */
+    access_code: string;
+    /**
      * Auto Send
      */
     auto_send: boolean;
@@ -264,6 +302,34 @@ export type TicketOut = {
      * Sources
      */
     sources: Array<StoredSource>;
+    /**
+     * Ticket Id
+     */
+    ticket_id: number;
+};
+
+/**
+ * TicketStatusOut
+ *
+ * What the student sees later: the status and the answer, never the unchecked draft.
+ */
+export type TicketStatusOut = {
+    /**
+     * Handled At
+     */
+    handled_at: string | null;
+    /**
+     * Office
+     */
+    office: 'it' | 'student_affairs' | 'fees' | 'sks' | 'duty';
+    /**
+     * Reply
+     */
+    reply: string | null;
+    /**
+     * Status
+     */
+    status: 'auto_sent' | 'open' | 'handled';
     /**
      * Ticket Id
      */
@@ -577,3 +643,58 @@ export type CreateTicketResponses = {
 };
 
 export type CreateTicketResponse = CreateTicketResponses[keyof CreateTicketResponses];
+
+export type LookupTicketData = {
+    body: LookupIn;
+    path?: never;
+    query?: never;
+    url: '/api/tickets/lookup';
+};
+
+export type LookupTicketErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type LookupTicketError = LookupTicketErrors[keyof LookupTicketErrors];
+
+export type LookupTicketResponses = {
+    /**
+     * Successful Response
+     */
+    200: TicketStatusOut;
+};
+
+export type LookupTicketResponse = LookupTicketResponses[keyof LookupTicketResponses];
+
+export type GiveFeedbackData = {
+    body: FeedbackIn;
+    path: {
+        /**
+         * Ticket Id
+         */
+        ticket_id: number;
+    };
+    query?: never;
+    url: '/api/tickets/{ticket_id}/feedback';
+};
+
+export type GiveFeedbackErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GiveFeedbackError = GiveFeedbackErrors[keyof GiveFeedbackErrors];
+
+export type GiveFeedbackResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type GiveFeedbackResponse = GiveFeedbackResponses[keyof GiveFeedbackResponses];
