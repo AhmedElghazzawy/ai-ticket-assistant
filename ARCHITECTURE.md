@@ -29,7 +29,7 @@ next to a Postgres container (ADR 0004, 0005).
 
 ## 2. The pipeline: one ticket, end to end
 
-`src/pipeline.py::process_ticket` is a plain function of four steps. LangGraph was considered and not
+`src/helpdesk/pipeline.py::process_ticket` is a plain function of four steps. LangGraph was considered and not
 used: a straight line of steps needs no graph (PROJECT_BRIEF, "Later phases").
 
 ```mermaid
@@ -159,7 +159,7 @@ wrong with several workers); upgrade Phase E moves them to Postgres.
   coverage gate, OpenAPI drift check; frontend Biome, TypeScript, generated-client drift, build,
   Playwright on desktop and phone; Docker build. **CodeQL** weekly and on every PR; **Dependabot** weekly.
 - **Tests** fake every Gemini call (`tests/fakes.py`); each test gets its own Postgres schema.
-- **Evals** (`src/evaluate*.py`) make real calls and save JSON in `eval/` with Wilson 95% intervals. Two
+- **Evals** (`src/helpdesk/evals/`) make real calls and save JSON in `eval/` with Wilson 95% intervals. Two
   locked sets are never used for tuning (ADR 0003); an agent hook blocks edits to them.
 
 ## 7. Invariants (a change that breaks one needs an ADR)

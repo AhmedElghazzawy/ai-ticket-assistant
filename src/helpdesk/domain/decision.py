@@ -7,45 +7,12 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 
-from answer import Answer
-from classifier import Classification
-from grounding import is_grounded
-from tickets import Category
+from helpdesk.domain.grounding import is_grounded
+from helpdesk.domain.outputs import Answer, Classification
 
 # Retrieval scores of answerable and unanswerable tickets overlap (Phase 3), so the score is only a weak
 # floor; the main check is that the model found the answer in the rules (`covered`) and cited them.
 MIN_SCORE = 0.65
-
-# The real BŞEÜ offices (docs/PROJECT_BRIEF.md). IDs travel through the system; the page shows the name
-# in the reader's language.
-OfficeId = Literal["it", "student_affairs", "fees", "sks", "duty"]
-
-OFFICE_OF: dict[Category, OfficeId] = {
-    "account_access": "it",
-    "it_support": "it",
-    "registration": "student_affairs",
-    "academic_records": "student_affairs",
-    "billing": "fees",
-    "campus_life": "sks",
-    "other": "duty",
-}
-
-OFFICE_NAMES: dict[str, dict[OfficeId, str]] = {
-    "tr": {
-        "it": "Bilgi İşlem Daire Başkanlığı",
-        "student_affairs": "Öğrenci İşleri Daire Başkanlığı",
-        "fees": "Öğrenci İşleri, İstatistik Disiplin ve Harçlar Şube Müdürlüğü",
-        "sks": "Sağlık, Kültür ve Spor (SKS) Daire Başkanlığı",
-        "duty": "Öğrenci İşleri nöbetçi personeli",
-    },
-    "en": {
-        "it": "IT Department (Bilgi İşlem)",
-        "student_affairs": "Student Affairs (Öğrenci İşleri)",
-        "fees": "Student Affairs, Fees Office (Harçlar Şube Müdürlüğü)",
-        "sks": "Health, Culture and Sports Office (SKS)",
-        "duty": "Student Affairs duty staff",
-    },
-}
 
 
 class SimpleReason(BaseModel):

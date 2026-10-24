@@ -13,9 +13,9 @@ from fastapi.testclient import TestClient
 from google.genai import types
 from structlog.testing import capture_logs
 
-import api
-import config
-from llm import estimated_cost
+from helpdesk.ai.gemini import estimated_cost
+from helpdesk.api import app as api
+from helpdesk.core import settings as config
 
 client = TestClient(api.app)
 SECRET = "Benim adım Ayşe Yılmaz, TC 12345678901, harç iade edilir mi?"  # personal data
@@ -85,7 +85,7 @@ def test_loggers_made_before_configure_still_write_json() -> None:
     # calls configure(); a non-lazy logger kept structlog's default (plain text) format.
     # A fresh Python process, so this test does not depend on what other tests configured.
     code = (
-        "import logs; early = logs.get_logger('early'); logs.configure(); "
+        "from helpdesk.core import logs; early = logs.get_logger('early'); logs.configure(); "
         "early.info('gemini_call', ms=1)"
     )
     env = {**os.environ, "LOG_FORMAT": "json", "PYTHONPATH": "src"}

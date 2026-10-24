@@ -7,22 +7,22 @@ from datetime import timedelta
 
 import psycopg
 
-import store
-from answer import Answer
-from classifier import Classification
-from decision import Decision, SimpleReason, WeakMatch
-from knowledge_base import Chunk
-from pipeline import TicketResult
-from store import (
-    Connection,
+from helpdesk.domain.decision import Decision, SimpleReason, WeakMatch
+from helpdesk.domain.outputs import Answer, Classification
+from helpdesk.domain.tickets import Priority
+from helpdesk.pipeline import TicketResult
+from helpdesk.retrieval.knowledge_base import Chunk
+from helpdesk.storage import db as store
+from helpdesk.storage.db import Connection
+from helpdesk.storage.tickets import (
     StoredSource,
     get_ticket,
     list_tickets,
     mark_handled,
     reassign,
+    reset_demo_tickets,
     save_ticket,
 )
-from tickets import Priority
 
 CHUNK = Chunk(
     id="harc_ucretler.tr#5",
@@ -130,13 +130,13 @@ def test_migrations_are_recorded_and_running_them_again_changes_nothing(db: Conn
 def test_database_address_comes_from_the_environment() -> None:
     # Production (Neon) sets DATABASE_URL as a secret; nothing is hard-coded.
     env = {**os.environ, "DATABASE_URL": "postgresql://u:p@neon.example/db", "PYTHONPATH": "src"}
-    code = "import store; print(store.DATABASE_URL)"
+    code = "from helpdesk.storage import db; print(db.DATABASE_URL)"
     result_ = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, env=env)
     assert result_.stdout.strip() == "postgresql://u:p@neon.example/db"
 
 
 def test_inside_a_priority_the_ticket_that_waited_longest_comes_first(db: Connection) -> None:
-    store.reset_demo_tickets(db)  # demo tickets have back-dated arrival times
+    reset_demo_tickets(db)  # demo tickets have back-dated arrival times
     queue = list_tickets(db, "open", demo=True)
     for priority in ("urgent", "high", "medium", "low"):
         times = [t.created_at for t in queue if t.priority == priority]

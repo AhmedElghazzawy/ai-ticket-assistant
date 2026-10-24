@@ -4,7 +4,9 @@ from pathlib import Path
 
 from pydantic import BaseModel
 
-KB_DIR = Path(__file__).resolve().parent.parent / "data" / "knowledge_base"
+from helpdesk.core.paths import DATA_DIR
+
+KB_DIR = DATA_DIR / "knowledge_base"
 
 
 class Chunk(BaseModel):

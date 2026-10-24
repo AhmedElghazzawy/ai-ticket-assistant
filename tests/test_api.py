@@ -9,11 +9,12 @@ import pytest
 from fakes import CHUNK, fake_result
 from fastapi.testclient import TestClient
 
-import api
-import auth
-from auth import Role
-from decision import MIN_SCORE, OfficeId, SimpleReason
-from pipeline import TicketResult
+from helpdesk import auth
+from helpdesk.api import app as api
+from helpdesk.auth import Role
+from helpdesk.domain.decision import MIN_SCORE, SimpleReason
+from helpdesk.domain.offices import OfficeId
+from helpdesk.pipeline import TicketResult
 
 client = TestClient(api.app)
 

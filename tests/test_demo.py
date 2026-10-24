@@ -6,9 +6,9 @@ import pytest
 from fakes import fake_result
 from fastapi.testclient import TestClient
 
-import api
-import auth
-from store import DEMO_PATH
+from helpdesk import auth
+from helpdesk.api import app as api
+from helpdesk.storage.tickets import DEMO_PATH
 
 DEMO_COUNT = len(json.loads(DEMO_PATH.read_text(encoding="utf-8")))
 

@@ -6,6 +6,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
+from helpdesk.core.paths import DATA_DIR
+
 # The only allowed values. Anything else (e.g. a typo like "billng") is an error.
 Category = Literal[
     "account_access",
@@ -19,7 +21,7 @@ Category = Literal[
 Priority = Literal["low", "medium", "high", "urgent"]
 Language = Literal["tr", "en"]
 
-TICKETS_PATH = Path(__file__).resolve().parent.parent / "data" / "tickets" / "tickets.jsonl"
+TICKETS_PATH = DATA_DIR / "tickets" / "tickets.jsonl"
 TEST_PATH = (
     TICKETS_PATH.parent / "test_tickets.jsonl"
 )  # LOCKED test set (Phase 2): measure only, never tune on it

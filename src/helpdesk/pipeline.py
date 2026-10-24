@@ -2,12 +2,13 @@
 
 from pydantic import BaseModel
 
-from answer import Answer, draft_answer
-from classifier import Classification, classify
-from decision import Decision, decide
-from knowledge_base import Chunk
-from retrieval import search
-from store import Database
+from helpdesk.ai.answer import draft_answer
+from helpdesk.ai.classifier import classify
+from helpdesk.domain.decision import Decision, decide
+from helpdesk.domain.outputs import Answer, Classification
+from helpdesk.retrieval.knowledge_base import Chunk
+from helpdesk.retrieval.search import search
+from helpdesk.storage.db import Database
 
 
 class TicketResult(BaseModel):

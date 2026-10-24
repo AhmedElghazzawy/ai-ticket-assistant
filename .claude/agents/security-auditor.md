@@ -12,10 +12,10 @@ session and see tickets of their own office; the public demo runs on Render free
 student text is personal data (KVKK).
 
 Check:
-1. **Prompt injection.** Both prompts fence the ticket (`src/fence.py`); the decision only trusts
-   evidence found word for word in retrieved rules (`src/grounding.py`, ADR 0010). Look for any new path
+1. **Prompt injection.** Both prompts fence the ticket (`src/helpdesk/ai/fence.py`); the decision only trusts
+   evidence found word for word in retrieved rules (`src/helpdesk/domain/grounding.py`, ADR 0010). Look for any new path
    where model output reaches the student or a decision without that check.
-2. **PII.** No student text, e-mail or access code in logs (`src/logs.py`, every `logger.` call); access
+2. **PII.** No student text, e-mail or access code in logs (`src/helpdesk/core/logs.py`, every `logger.` call); access
    codes and session tokens stored as hashes; nothing personal in eval files or fixtures.
 3. **Auth.** Every `/api/staff` route requires a session and checks the office; login rate limit and one
    message for every failure; cookie flags (HttpOnly, Secure, SameSite, path).

@@ -1,19 +1,20 @@
 """Measure retrieval: is the right document in the top 3 for each ticket?
 
-Run: uv run python src/evaluate_retrieval.py
+Run: make eval-retrieval
 """
 
 import json
-from pathlib import Path
 from statistics import mean
 from typing import Any
 
-from retrieval import embed, nearest, open_synced_pool, query_text
-from stats import wilson_interval
-from tickets import DATASETS, TICKETS_PATH, load_tickets
+from helpdesk.core.paths import EVAL_DIR
+from helpdesk.domain.tickets import DATASETS, TICKETS_PATH, load_tickets
+from helpdesk.evals.stats import wilson_interval
+from helpdesk.retrieval.embeddings import embed, query_text
+from helpdesk.retrieval.search import nearest, open_synced_pool
 
 EXPECTED_PATH = TICKETS_PATH.parent / "expected_docs.jsonl"
-RESULTS_PATH = Path(__file__).resolve().parent.parent / "eval" / "retrieval_results.json"
+RESULTS_PATH = EVAL_DIR / "retrieval_results.json"
 K = 3
 
 

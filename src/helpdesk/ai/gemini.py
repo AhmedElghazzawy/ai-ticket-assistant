@@ -6,8 +6,8 @@ from functools import lru_cache
 from google import genai
 from google.genai import types
 
-from config import get_settings
-from logs import get_logger
+from helpdesk.core.logs import get_logger
+from helpdesk.core.settings import get_settings
 
 logger = get_logger(__name__)
 

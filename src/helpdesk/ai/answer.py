@@ -3,31 +3,11 @@
 import re
 
 from google.genai import types
-from pydantic import BaseModel, ConfigDict, Field
 
-from fence import fence_ticket
-from knowledge_base import Chunk
-from llm import generate, response_text
-
-
-class Answer(BaseModel):
-    """The model's grounded answer. `evidence` comes first: quote the rule, then decide, then write."""
-
-    model_config = ConfigDict(extra="forbid", strict=True)
-
-    evidence: str = Field(
-        description="The exact sentence(s) copied from the rules that answer the ticket, or an empty string if none do."
-    )
-    covered: bool = Field(
-        description="True only if the rules really answer the student's question."
-    )
-    reply: str = Field(
-        description="A short, polite reply to the student, using only facts from the rules."
-    )
-    sources: list[str] = Field(
-        description="The ids of the rules used (e.g. 'sinavlar.tr#4'); empty if not covered."
-    )
-
+from helpdesk.ai.fence import fence_ticket
+from helpdesk.ai.gemini import generate, response_text
+from helpdesk.domain.outputs import Answer
+from helpdesk.retrieval.knowledge_base import Chunk
 
 SYSTEM_PROMPT = """You are the student helpdesk of Bilecik Şeyh Edebali Üniversitesi (BŞEÜ).
 Answer the student's ticket using ONLY the official rules given below the ticket.

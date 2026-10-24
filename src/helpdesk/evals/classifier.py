@@ -1,23 +1,24 @@
 """Score the classifier against my labels and save the run to eval/.
 
-Run: uv run python src/evaluate.py high        (dev tickets, thinking level high)
-     uv run python src/evaluate.py high test   (the LOCKED test tickets: measure only, never tune on them)
-     uv run python src/evaluate.py high phase8 (the LOCKED Phase 8 tickets: measure only)
+Run: make eval-classifier                 (dev tickets, thinking level high)
+     make eval-classifier SET=test        (the LOCKED test tickets: measure only, never tune on them)
+     make eval-classifier SET=phase8      (the LOCKED Phase 8 tickets: measure only)
+(or: uv run python -m helpdesk.evals.classifier high [dev|test|phase8])
 """
 
 import json
 import sys
 import time
 from datetime import datetime
-from pathlib import Path
 from typing import Any
 
 from google.genai import errors, types
 
-from classifier import THINKING_LEVEL, classify
-from config import get_settings
-from stats import wilson_interval
-from tickets import DATASETS, Ticket, load_tickets
+from helpdesk.ai.classifier import THINKING_LEVEL, classify
+from helpdesk.core.paths import EVAL_DIR
+from helpdesk.core.settings import get_settings
+from helpdesk.domain.tickets import DATASETS, Ticket, load_tickets
+from helpdesk.evals.stats import wilson_interval
 
 RUNS = 2  # each ticket is classified twice, to measure consistency
 WAIT_SECONDS = 5  # pause between calls to stay under the free-tier requests-per-minute limit
@@ -114,7 +115,7 @@ def consistency(first: Predictions, second: Predictions) -> dict[str, Any]:
     return result
 
 
-RESULTS_DIR = Path(__file__).resolve().parent.parent / "eval"
+RESULTS_DIR = EVAL_DIR
 
 
 def print_report(results: dict[str, Any]) -> None:

@@ -2,7 +2,7 @@
 
 import pytest
 
-from answer import strip_source_note
+from helpdesk.ai.answer import strip_source_note
 
 
 @pytest.mark.parametrize(

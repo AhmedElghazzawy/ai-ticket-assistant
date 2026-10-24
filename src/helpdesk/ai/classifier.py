@@ -1,15 +1,13 @@
 """Label one ticket with Gemini: category, priority, escalate, and the reason."""
 
-from pathlib import Path
-
 from google.genai import types
-from pydantic import BaseModel, ConfigDict, Field
 
-from fence import fence_ticket
-from llm import generate, response_text
-from tickets import Category, Priority
+from helpdesk.ai.fence import fence_ticket
+from helpdesk.ai.gemini import generate, response_text
+from helpdesk.core.paths import ROOT
+from helpdesk.domain.outputs import Classification
 
-LABELS_PATH = Path(__file__).resolve().parent.parent / "docs" / "labels.md"
+LABELS_PATH = ROOT / "docs" / "labels.md"
 
 # The rulebook IS the instructions: change docs/labels.md and the model follows the new rules.
 SYSTEM_PROMPT = f"""You are the ticket classifier of the student helpdesk at Bilecik Şeyh Edebali Üniversitesi (BŞEÜ).
@@ -23,19 +21,6 @@ How to work:
 
 RULEBOOK:
 {LABELS_PATH.read_text(encoding="utf-8")}"""
-
-
-class Classification(BaseModel):
-    """The model's answer for one ticket. `reason` comes first on purpose: think, then decide."""
-
-    model_config = ConfigDict(extra="forbid", strict=True)
-
-    reason: str = Field(
-        description="1-2 short sentences in English: which rules from the rulebook apply and why."
-    )
-    category: Category
-    priority: Priority
-    escalate: bool
 
 
 # Step 5 compared LOW and HIGH on 2 runs each: HIGH was better (all three 84% vs 71%, more consistent).

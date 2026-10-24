@@ -1,11 +1,11 @@
 ---
 name: db-migration
-description: Change the Postgres schema safely by appending a numbered step to MIGRATIONS in src/store.py - never editing a released step - with a test that upgrades an existing database.
+description: Change the Postgres schema safely by appending a numbered step to MIGRATIONS in src/helpdesk/storage/db.py - never editing a released step - with a test that upgrades an existing database.
 ---
 
 # Database migration
 
-`src/store.py` holds `MIGRATIONS: dict[int, str]`. On startup `migrate()` runs every step above the
+`src/helpdesk/storage/db.py` holds `MIGRATIONS: dict[int, str]`. On startup `migrate()` runs every step above the
 stored version, all pending steps in one transaction under an advisory lock (safe when two instances
 start at once). Production (Neon) holds real data: a wrong step loses it.
 

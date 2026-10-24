@@ -2,8 +2,8 @@
 
 from typing import Any
 
-from evaluate_retrieval import summarize
-from stats import wilson_interval
+from helpdesk.evals.retrieval import summarize
+from helpdesk.evals.stats import wilson_interval
 
 
 def row(expected: str, hit1: bool, hit3: bool, score: float = 0.8) -> dict[str, Any]:

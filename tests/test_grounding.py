@@ -1,6 +1,6 @@
 """Tests for the evidence check: no AI calls, only hand-made quotes."""
 
-from grounding import is_grounded
+from helpdesk.domain.grounding import is_grounded
 
 RULES = [
     (

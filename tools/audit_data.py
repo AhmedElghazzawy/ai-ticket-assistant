@@ -4,15 +4,10 @@ Read-only, no AI calls. Run: uv run python tools/audit_data.py
 """
 
 import json
-import sys
 from collections import Counter
 from collections.abc import Callable
-from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT / "src"))
-
-from tickets import DATASETS, TICKETS_PATH, Ticket, load_tickets  # noqa: E402
+from helpdesk.domain.tickets import DATASETS, TICKETS_PATH, Ticket, load_tickets
 
 EXPECTED_PATH = TICKETS_PATH.parent / "expected_docs.jsonl"
 

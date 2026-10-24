@@ -5,12 +5,11 @@ changing them must be a reviewed commit followed by a new evaluation, not a quie
 """
 
 from functools import lru_cache
-from pathlib import Path
 
 from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-ROOT = Path(__file__).resolve().parent.parent
+from helpdesk.core.paths import ROOT
 
 
 class Settings(BaseSettings):

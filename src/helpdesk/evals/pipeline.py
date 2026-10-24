@@ -1,25 +1,25 @@
 """Phase 4 evaluation: run the whole pipeline and count tickets auto-sent that should not have been.
 
-Run: uv run python src/evaluate_pipeline.py        (dev tickets)
-     uv run python src/evaluate_pipeline.py test   (the locked test tickets: measure only)
-     uv run python src/evaluate_pipeline.py phase8 (the locked Phase 8 tickets: measure only)
+Run: make eval-pipeline              (dev tickets)
+     make eval-pipeline SET=test     (the locked test tickets: measure only)
+     make eval-pipeline SET=phase8   (the locked Phase 8 tickets: measure only)
 """
 
 import json
 import sys
 import time
-from pathlib import Path
 from typing import Any
 
-from decision import show_first_help
-from grounding import is_grounded
-from pipeline import process_ticket
-from retrieval import open_synced_pool
-from stats import wilson_interval
-from tickets import DATASETS, TICKETS_PATH, Ticket, load_tickets
+from helpdesk.core.paths import EVAL_DIR
+from helpdesk.domain.decision import show_first_help
+from helpdesk.domain.grounding import is_grounded
+from helpdesk.domain.tickets import DATASETS, TICKETS_PATH, Ticket, load_tickets
+from helpdesk.evals.stats import wilson_interval
+from helpdesk.pipeline import process_ticket
+from helpdesk.retrieval.search import open_synced_pool
 
 EXPECTED_PATH = TICKETS_PATH.parent / "expected_docs.jsonl"
-RESULTS_DIR = Path(__file__).resolve().parent.parent / "eval"
+RESULTS_DIR = EVAL_DIR
 WAIT_SECONDS = 5  # pause between tickets (free-tier limits)
 
 
@@ -28,7 +28,7 @@ def should_auto_send(ticket: Ticket, expected_doc: str) -> bool:
     return (
         not ticket.escalate
         and ticket.category != "other"
-        and ticket.priority != "urgent"  # same rule as src/decision.py
+        and ticket.priority != "urgent"  # same rule as domain/decision.py
         and expected_doc != "none"
     )
 

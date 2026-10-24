@@ -1,11 +1,10 @@
 """Hand-made pipeline results shared by the API and logging tests (no Gemini calls)."""
 
-from answer import Answer
-from classifier import Classification
-from decision import Decision, SimpleReason
-from knowledge_base import Chunk
-from pipeline import TicketResult
-from tickets import Priority
+from helpdesk.domain.decision import Decision, SimpleReason
+from helpdesk.domain.outputs import Answer, Classification
+from helpdesk.domain.tickets import Priority
+from helpdesk.pipeline import TicketResult
+from helpdesk.retrieval.knowledge_base import Chunk
 
 CHUNK = Chunk(
     id="harc_ucretler.tr#5",

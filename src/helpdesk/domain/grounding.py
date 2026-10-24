@@ -2,7 +2,7 @@
 
 The model is asked to COPY the rule sentences into `evidence`. If a ticket smuggles in fake
 "rules" (prompt injection) or the model invents one, the quote is not found in the documents,
-and the decision must not trust the reply (src/decision.py)."""
+and the decision must not trust the reply (domain/decision.py)."""
 
 import re
 import unicodedata

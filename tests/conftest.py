@@ -11,9 +11,9 @@ from collections.abc import Iterator
 import psycopg
 import pytest
 
-import api
-import store
-from store import Connection
+from helpdesk.api import app as api
+from helpdesk.storage import db as store
+from helpdesk.storage.db import Connection
 
 
 @pytest.fixture(autouse=True)

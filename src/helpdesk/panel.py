@@ -1,18 +1,19 @@
-"""Web page for the ticket assistant. Run with: uv run streamlit run src/app.py"""
+"""Web page for the ticket assistant. Run with: make panel"""
 
 import json
-from pathlib import Path
 from typing import Any
 
 import streamlit as st
 from psycopg_pool import ConnectionPool
 
-from config import get_settings
-from decision import OFFICE_NAMES, OFFICE_OF, describe
-from pipeline import process_ticket
-from retrieval import open_synced_pool
-from store import Connection
-from tickets import TEST_PATH, TICKETS_PATH, Ticket, load_tickets
+from helpdesk.core.paths import EVAL_DIR
+from helpdesk.core.settings import get_settings
+from helpdesk.domain.decision import describe
+from helpdesk.domain.offices import OFFICE_NAMES, OFFICE_OF
+from helpdesk.domain.tickets import TEST_PATH, TICKETS_PATH, Ticket, load_tickets
+from helpdesk.pipeline import process_ticket
+from helpdesk.retrieval.search import open_synced_pool
+from helpdesk.storage.db import Connection
 
 # Every text on the page, in both languages. Add new texts to both.
 TEXTS: dict[str, dict[str, Any]] = {
@@ -297,7 +298,7 @@ def student_answer(ticket: str, t: dict[str, Any], language: str) -> str:
     return "\n\n".join(lines)
 
 
-RESULTS_DIR = Path(__file__).resolve().parent.parent / "eval"
+RESULTS_DIR = EVAL_DIR
 
 
 def banner(title: str, tagline: str) -> str:
@@ -588,7 +589,7 @@ with tab_eval:
     all_results = read_results()
     if not all_results:
         st.info(t["no_results"])
-        st.code("uv run python src/evaluate.py high")
+        st.code("make eval-classifier")
     else:
         newest = max(
             all_results, key=lambda name: all_results[name]["date"]
@@ -672,4 +673,4 @@ with tab_eval:
 
         st.warning(t["limits"])
         st.caption(t["rerun"])
-        st.code("uv run python src/evaluate.py high")
+        st.code("make eval-classifier")

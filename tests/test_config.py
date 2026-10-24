@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from config import Settings
+from helpdesk.core.settings import Settings
 
 
 @pytest.fixture(autouse=True)

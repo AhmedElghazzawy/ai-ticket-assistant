@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = "==3.12.*"
 resolution-markers = [
     "sys_platform == 'win32'",
@@ -10,7 +10,8 @@ resolution-markers = [
 [[package]]
 name = "ai-ticket-assistant"
 version = "0.7.0"
-source = { virtual = "." }
+source = { editable = "." }
+default-groups = ["dev", "panel"]
 dependencies = [
     { name = "argon2-cffi" },
     { name = "fastapi" },

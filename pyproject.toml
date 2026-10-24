@@ -15,6 +15,15 @@ dependencies = [
     "uvicorn>=0.54.0",            # the server that runs the FastAPI app
 ]
 
+[build-system]
+# uv's own build backend: the code in src/helpdesk is installed as the package `helpdesk`
+# (editable, so a code change needs no reinstall). Imports are `from helpdesk.domain import ...`.
+requires = ["uv_build>=0.12.23,<0.13"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "helpdesk"
+
 [dependency-groups]
 # The old Streamlit panel (overview, dataset, evaluation): not in the production image.
 panel = [
@@ -33,15 +42,18 @@ dev = [
 default-groups = ["dev", "panel"]  # `uv sync` on a laptop or in CI installs both
 
 [tool.pytest.ini_options]
-# Our code lives in src/, so tests can write "from decision import decide".
-pythonpath = ["src"]
 testpaths = ["tests"]
+# The package is installed (editable), but on macOS a background process can mark the .venv files
+# "hidden", and Python 3.12 then skips the .pth file that points to src/. Naming src/ here keeps
+# the tests independent of that.
+pythonpath = ["src"]
 
 [tool.coverage.run]
-source = ["src"]
+source = ["helpdesk"]
 # Not measured: the old Streamlit panel (to be retired, roadmap 12) and a manual script that calls the
-# real model. Everything else counts, including the eval scripts' main() functions.
-omit = ["src/app.py", "src/try_one_ticket.py"]
+# real model (now tools/try_one_ticket.py, outside the package). Everything else counts, including the
+# eval scripts' main() functions.
+omit = ["*/helpdesk/panel.py"]
 
 [tool.coverage.report]
 fail_under = 80  # a ratchet: raise it when coverage rises, never lower it to get green
@@ -67,7 +79,7 @@ ignore = [
 
 [tool.mypy]
 python_version = "3.12"
-mypy_path = "src"   # our modules live in src/, like pytest's pythonpath
 files = ["src", "tests", "tools", ".claude/hooks"]
+mypy_path = "src"  # same reason as pytest's pythonpath
 strict = true       # every function typed, no silent "Any"
 plugins = ["pydantic.mypy"]  # lets mypy understand pydantic models and settings

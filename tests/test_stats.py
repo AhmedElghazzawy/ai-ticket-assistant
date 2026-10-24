@@ -2,7 +2,7 @@
 
 import pytest
 
-from stats import wilson_interval
+from helpdesk.evals.stats import wilson_interval
 
 
 def test_all_correct_is_not_certain() -> None:

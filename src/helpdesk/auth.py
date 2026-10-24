@@ -14,8 +14,8 @@ from argon2.exceptions import VerifyMismatchError
 from psycopg.errors import UniqueViolation
 from pydantic import BaseModel
 
-from decision import OfficeId
-from store import Connection, token_hash
+from helpdesk.domain.offices import OfficeId
+from helpdesk.storage.db import Connection, token_hash
 
 Role = Literal["staff", "admin"]
 

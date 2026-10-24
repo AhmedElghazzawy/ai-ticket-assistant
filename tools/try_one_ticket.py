@@ -1,7 +1,7 @@
 """Step 1 check: send one ticket to Gemini and print the reply."""
 
-from config import get_settings
-from llm import ask
+from helpdesk.ai.gemini import ask
+from helpdesk.core.settings import get_settings
 
 TICKET = "I forgot my password and the reset email never arrives. I have an exam tomorrow."
 

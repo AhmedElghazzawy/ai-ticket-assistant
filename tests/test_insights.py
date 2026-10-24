@@ -3,9 +3,9 @@
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from decision import SimpleReason, WeakMatch
-from insights import summarize
-from store import StoredTicket
+from helpdesk.domain.decision import SimpleReason, WeakMatch
+from helpdesk.insights import summarize
+from helpdesk.storage.tickets import StoredTicket
 
 NOW = datetime(2026, 10, 23, 12, 0, tzinfo=UTC)
 

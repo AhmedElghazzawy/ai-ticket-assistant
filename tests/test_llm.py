@@ -3,7 +3,7 @@
 import pytest
 from google.genai import types
 
-from llm import response_text
+from helpdesk.ai.gemini import response_text
 
 
 def make_response(text: str | None, reason: types.FinishReason) -> types.GenerateContentResponse:

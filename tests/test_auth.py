@@ -7,9 +7,9 @@ from pathlib import Path
 
 import pytest
 
-import auth
-import store
-from store import Connection
+from helpdesk import auth
+from helpdesk.storage import db as store
+from helpdesk.storage.db import Connection
 
 GOOD_PASSWORD = "correct horse battery"
 
@@ -95,9 +95,8 @@ def test_add_staff_tool_creates_an_account(
     schema = db.execute("SELECT current_schema() AS s").fetchone()
     assert schema is not None
     # the tool gets its own connection to this test's schema (it closes it when done), never real data
-    real_connect = store.connect  # kept before replacing it (the lambda must not call itself)
     monkeypatch.setattr(
-        store, "connect", lambda *args: real_connect(store.DATABASE_URL, schema["s"])
+        add_staff, "connect", lambda *args: store.connect(store.DATABASE_URL, schema["s"])
     )
     monkeypatch.setattr(add_staff, "getpass", lambda prompt: GOOD_PASSWORD)  # the hidden prompt
     monkeypatch.setattr(

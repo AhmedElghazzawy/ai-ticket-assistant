@@ -1,6 +1,6 @@
 """Tests for fencing the student's text: no AI calls."""
 
-from fence import fence_ticket
+from helpdesk.ai.fence import fence_ticket
 
 
 def test_ticket_is_wrapped() -> None:

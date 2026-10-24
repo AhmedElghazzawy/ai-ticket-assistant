@@ -5,13 +5,9 @@ Run after changing the API: uv run python tools/export_openapi.py, then cd front
 """
 
 import json
-import sys
-from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT / "src"))
-
-from api import app  # noqa: E402  (src/ must be on the path first)
+from helpdesk.api.app import app
+from helpdesk.core.paths import ROOT
 
 OUTPUT = ROOT / "frontend" / "openapi.json"
 

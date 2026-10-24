@@ -1,6 +1,6 @@
 """The web API behind the student chat page.
 
-Run: uv run uvicorn api:app --app-dir src     then open http://127.0.0.1:8000
+Run: make serve     then open http://127.0.0.1:8000
 """
 
 import os
@@ -13,7 +13,6 @@ from collections import defaultdict, deque
 from collections.abc import Awaitable, Callable, Iterator
 from contextlib import contextmanager
 from datetime import UTC, datetime
-from pathlib import Path
 from typing import Annotated, Literal, get_args
 from urllib.parse import urlparse
 
@@ -23,15 +22,18 @@ from fastapi.responses import FileResponse, Response
 from psycopg_pool import ConnectionPool
 from pydantic import BaseModel, Field, field_validator
 
-import auth
-from auth import Staff
-from decision import MIN_SCORE, Decision, OfficeId, Reason, show_first_help
-from insights import Insights, summarize
-from logs import configure, get_logger
-from pipeline import process_ticket
-from retrieval import load_index, open_synced_pool
-from store import (
-    Connection,
+from helpdesk import auth
+from helpdesk.auth import Staff
+from helpdesk.core.logs import configure, get_logger
+from helpdesk.core.paths import ROOT
+from helpdesk.domain.decision import MIN_SCORE, Decision, Reason, show_first_help
+from helpdesk.domain.offices import OfficeId
+from helpdesk.domain.tickets import Category, Priority
+from helpdesk.insights import Insights, summarize
+from helpdesk.pipeline import process_ticket
+from helpdesk.retrieval.search import load_index, open_synced_pool
+from helpdesk.storage.db import Connection, token_hash
+from helpdesk.storage.tickets import (
     Status,
     StoredSource,
     StoredTicket,
@@ -44,14 +46,12 @@ from store import (
     reset_demo_tickets,
     save_feedback,
     save_ticket,
-    token_hash,
 )
-from tickets import Category, Priority
 
 configure()
 logger = get_logger(__name__)
 # The built React app (cd frontend && npm run build). FastAPI serves it, so one server runs everything.
-DIST_DIR = Path(__file__).resolve().parent.parent / "frontend" / "dist"
+DIST_DIR = ROOT / "frontend" / "dist"
 load_index()  # fail at startup, not on the first ticket, if the search index is out of date
 pool: ConnectionPool[Connection] | None = None  # opened on first use (tests replace it)
 pool_lock = threading.Lock()
