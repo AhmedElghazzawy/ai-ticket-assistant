@@ -6,6 +6,7 @@ from typing import Any
 import streamlit as st
 from psycopg_pool import ConnectionPool
 
+from helpdesk.ai.gemini import GeminiProvider
 from helpdesk.core.paths import EVAL_DIR
 from helpdesk.core.settings import get_gemini_settings
 from helpdesk.domain.decision import describe
@@ -271,7 +272,7 @@ def get_pool() -> ConnectionPool[Connection]:
 
 def student_answer(ticket: str, t: dict[str, Any], language: str) -> str:
     """Run the whole pipeline and build the chat answer: topic, office, then the cited reply or a hand-off."""
-    r = process_ticket(ticket, language, get_pool().connection)
+    r = process_ticket(ticket, language, get_pool().connection, GeminiProvider())
     c = r.classification
     lines = [
         f"✅ {t['received']}",
@@ -492,7 +493,7 @@ with tab_try:
         elif send:
             try:
                 with st.spinner(t["thinking"]):
-                    r = process_ticket(ticket, language, get_pool().connection)
+                    r = process_ticket(ticket, language, get_pool().connection, GeminiProvider())
                 c = r.classification
                 st.subheader(t["labels"])
                 c1, c2, c3 = st.columns(3)

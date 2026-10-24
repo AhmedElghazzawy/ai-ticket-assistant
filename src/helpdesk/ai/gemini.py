@@ -1,4 +1,4 @@
-"""Shared Gemini setup: one client, created on first use, with timeout and retries."""
+"""Gemini: one client (created on first use, with timeout and retries) and the LLMProvider for it."""
 
 import time
 from functools import lru_cache
@@ -6,6 +6,7 @@ from functools import lru_cache
 from google import genai
 from google.genai import types
 
+from helpdesk.ai.provider import Output, Thinking
 from helpdesk.core.logs import get_logger
 from helpdesk.core.settings import get_gemini_settings
 
@@ -83,3 +84,28 @@ def response_text(response: types.GenerateContentResponse) -> str:
 def ask(prompt: str) -> str:
     """Send one prompt to Gemini and return its text reply."""
     return response_text(generate("ask", prompt, NO_AFC))
+
+
+THINKING_LEVELS = {"low": types.ThinkingLevel.LOW, "high": types.ThinkingLevel.HIGH}
+
+
+class GeminiProvider:
+    """The LLMProvider for Gemini: structured output in the given schema, the thinking level, and
+    no function calling. Temperature is NOT set: Gemini 3 should stay at its default 1.0 (Google's
+    advice); consistency comes from the schema and clear rules, and is measured by running twice."""
+
+    @property
+    def model(self) -> str:
+        return get_gemini_settings().gemini_model
+
+    def generate_json(
+        self, stage: str, system: str, contents: str, schema: type[Output], thinking: Thinking
+    ) -> Output:
+        config = types.GenerateContentConfig(
+            system_instruction=system,
+            response_mime_type="application/json",
+            response_json_schema=schema.model_json_schema(),  # Gemini must answer in this shape
+            thinking_config=types.ThinkingConfig(thinking_level=THINKING_LEVELS[thinking]),
+            automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
+        )
+        return schema.model_validate_json(response_text(generate(stage, contents, config)))

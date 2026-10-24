@@ -12,11 +12,12 @@ import time
 from datetime import datetime
 from typing import Any
 
-from google.genai import errors, types
+from google.genai import errors
 
-from helpdesk.ai.classifier import THINKING_LEVEL, classify
+from helpdesk.ai.classifier import THINKING, classify
+from helpdesk.ai.gemini import GeminiProvider
+from helpdesk.ai.provider import LLMProvider, Thinking
 from helpdesk.core.paths import EVAL_DIR
-from helpdesk.core.settings import get_gemini_settings
 from helpdesk.domain.tickets import DATASETS, Ticket, load_tickets
 from helpdesk.evals.stats import wilson_interval
 
@@ -28,7 +29,7 @@ Predictions = dict[
 ]  # ticket id -> {"reason", "category", "priority", "escalate"}
 
 
-def predict_all(tickets: list[Ticket], thinking_level: types.ThinkingLevel) -> list[Predictions]:
+def predict_all(tickets: list[Ticket], llm: LLMProvider, thinking: Thinking) -> list[Predictions]:
     """Classify every ticket RUNS times. Stops early (keeping what it has) if the quota is used up."""
     runs: list[Predictions] = []
     for run_number in range(1, RUNS + 1):
@@ -37,7 +38,7 @@ def predict_all(tickets: list[Ticket], thinking_level: types.ThinkingLevel) -> l
         for number, ticket in enumerate(tickets, start=1):
             time.sleep(WAIT_SECONDS)
             try:
-                predictions[ticket.id] = classify(ticket.text, thinking_level).model_dump()
+                predictions[ticket.id] = classify(ticket.text, llm, thinking).model_dump()
             except errors.ClientError as error:
                 if error.code == 429:
                     print(
@@ -159,17 +160,21 @@ def print_mistakes(tickets: list[Ticket], predictions: Predictions) -> None:
 
 
 def main() -> None:
-    level = types.ThinkingLevel[sys.argv[1].upper()] if len(sys.argv) > 1 else THINKING_LEVEL
+    arg = sys.argv[1].lower() if len(sys.argv) > 1 else THINKING
+    if arg not in ("low", "high"):
+        sys.exit(f"Unknown thinking level {arg!r}; choose low or high")
+    level: Thinking = "low" if arg == "low" else "high"
     dataset = sys.argv[2] if len(sys.argv) > 2 else "dev"
     if dataset not in DATASETS:
         sys.exit(f"Unknown dataset {dataset!r}; choose one of {list(DATASETS)}")
     tickets = load_tickets(DATASETS[dataset])
-    runs = predict_all(tickets, level)
+    llm = GeminiProvider()
+    runs = predict_all(tickets, llm, level)
     by_language = {lang: [t for t in tickets if t.language == lang] for lang in ("tr", "en")}
     results = {
         "date": datetime.now().isoformat(timespec="seconds"),
-        "model": get_gemini_settings().gemini_model,
-        "thinking_level": level.value,
+        "model": llm.model,
+        "thinking_level": level.upper(),  # "HIGH" / "LOW", as in the saved results
         "dataset": dataset,
         "runs": len(runs),
         "score_run1": score(tickets, runs[0]),
@@ -181,7 +186,7 @@ def main() -> None:
     }
     RESULTS_DIR.mkdir(exist_ok=True)
     suffix = "" if dataset == "dev" else f"_{dataset}"
-    path = RESULTS_DIR / f"results_{level.value.lower()}{suffix}.json"
+    path = RESULTS_DIR / f"results_{level}{suffix}.json"
     path.write_text(json.dumps(results, ensure_ascii=False, indent=2), encoding="utf-8")
     print_report(results)
     print_mistakes(tickets, runs[0])

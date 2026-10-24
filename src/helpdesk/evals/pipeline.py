@@ -10,6 +10,7 @@ import sys
 import time
 from typing import Any
 
+from helpdesk.ai.gemini import GeminiProvider
 from helpdesk.core.paths import EVAL_DIR
 from helpdesk.domain.decision import show_first_help
 from helpdesk.domain.grounding import is_grounded
@@ -66,11 +67,12 @@ def main() -> None:
         for r in map(json.loads, EXPECTED_PATH.read_text(encoding="utf-8").splitlines())
     }
     pool = open_synced_pool()
+    llm = GeminiProvider()
     rows = []
     for number, t in enumerate(tickets, start=1):
         time.sleep(WAIT_SECONDS)
         try:
-            r = process_ticket(t.text, t.language, pool.connection)
+            r = process_ticket(t.text, t.language, pool.connection, llm)
         except Exception as error:  # noqa: BLE001 - skip this ticket, keep the run
             print(f"[{number}/{len(tickets)}] {t.id} ERROR {type(error).__name__}: {error}")
             continue

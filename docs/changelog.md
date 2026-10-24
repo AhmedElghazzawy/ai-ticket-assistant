@@ -1664,3 +1664,10 @@ Staff pages show student messages. Until now they only answered requests from th
 - The API schema (frontend/openapi.json) is byte-identical, so the React app and its generated client are unchanged. A "tickets" tag that the new router would have added was left out for that reason.
 - Checked by hand: Docker image built and run (health ok, web app served, JSON logs); local server against the real Postgres with the demo on: options, one-click demo login, queue of 16 (urgent first), Insights, unknown lookup 404.
 - Checks: ruff, mypy strict (72 files), 184 pytest, coverage 82.5% (gate 80%).
+
+## Step 4: the LLMProvider interface
+- `ai/provider.py`: `LLMProvider` (a Protocol: `model` and `generate_json(stage, system, contents, schema, thinking)`). `ai/gemini.py::GeminiProvider` implements it (structured output, thinking level, function calling off, temperature left at 1.0). The classifier and the answer step now take a provider; `process_ticket(..., llm)`; the app, evals and panel each pass a `GeminiProvider`.
+- Tests first (tests/test_llm_steps.py, 4 tests, `FakeLLM` in tests/fakes.py): the classifier sends the fenced ticket with the rulebook; the answer step sends language, ticket and rules and drops a model-written source note; the pipeline uses the model it is given; GeminiProvider builds the right config.
+- Gate "same behaviour" checked without paid calls: the Gemini requests built by `main` and by this branch (configs, prompts, schemas, contents for classify and answer) are byte-identical (15,572 bytes each). The model sees exactly the same input, so the scores cannot change except for the model's own randomness. No eval was re-run (they cost calls; only when I ask).
+- ADR 0012 (Turkish). Checks: ruff, mypy strict (74 files), 188 pytest, coverage 83%, OpenAPI unchanged.
+- Left for Phase B: ARCHITECTURE.md section 8 still shows the planned layout (update to the real one), open the PR and merge after CI.

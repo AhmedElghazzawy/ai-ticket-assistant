@@ -12,12 +12,14 @@ import time
 import uuid
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
+from functools import partial
 from pathlib import Path
 
 import structlog
 from fastapi import FastAPI, Request, Response
 from psycopg_pool import ConnectionPool
 
+from helpdesk.ai.gemini import GeminiProvider
 from helpdesk.api.deps import LazyPool, Pipeline, Services
 from helpdesk.api.routers import login, staff, tickets, web
 from helpdesk.core.logs import configure, get_logger
@@ -58,16 +60,20 @@ async def log_requests(
 def create_app(
     settings: AppSettings | None = None,
     *,
-    pipeline: Pipeline = process_ticket,
+    pipeline: Pipeline | None = None,
     open_pool: Callable[[], ConnectionPool[Connection]] = open_synced_pool,
     dist_dir: Path = DIST_DIR,
 ) -> FastAPI:
-    """Build the app. Every argument has the production default; tests pass their own."""
+    """Build the app. Every argument has the production default (the pipeline: Gemini); tests
+    pass their own."""
     settings = settings or get_app_settings()  # a bad setting stops the app here, before serving
     configure(settings.log_format)
     load_index()  # fail at startup, not on the first ticket, if the search index is out of date
     services = Services(
-        settings=settings, pipeline=pipeline, pool=LazyPool(open_pool), dist_dir=dist_dir
+        settings=settings,
+        pipeline=pipeline or partial(process_ticket, llm=GeminiProvider()),
+        pool=LazyPool(open_pool),
+        dist_dir=dist_dir,
     )
 
     @asynccontextmanager

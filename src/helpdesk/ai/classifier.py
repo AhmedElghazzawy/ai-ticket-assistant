@@ -1,9 +1,7 @@
-"""Label one ticket with Gemini: category, priority, escalate, and the reason."""
-
-from google.genai import types
+"""Label one ticket with the model: category, priority, escalate, and the reason."""
 
 from helpdesk.ai.fence import fence_ticket
-from helpdesk.ai.gemini import generate, response_text
+from helpdesk.ai.provider import LLMProvider, Thinking
 from helpdesk.core.paths import ROOT
 from helpdesk.domain.outputs import Classification
 
@@ -24,25 +22,11 @@ RULEBOOK:
 
 
 # Step 5 compared LOW and HIGH on 2 runs each: HIGH was better (all three 84% vs 71%, more consistent).
-THINKING_LEVEL = types.ThinkingLevel.HIGH
+THINKING: Thinking = "high"
 
 
-def make_config(thinking_level: types.ThinkingLevel) -> types.GenerateContentConfig:
-    """Gemini settings for classification. Temperature is NOT set: Gemini 3 should stay at its default 1.0."""
-    return types.GenerateContentConfig(
-        system_instruction=SYSTEM_PROMPT,
-        response_mime_type="application/json",
-        response_json_schema=Classification.model_json_schema(),  # Gemini must answer in exactly this shape
-        thinking_config=types.ThinkingConfig(thinking_level=thinking_level),
-        automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
-    )
-
-
-def classify(
-    ticket_text: str, thinking_level: types.ThinkingLevel = THINKING_LEVEL
-) -> Classification:
-    """Send one ticket to Gemini and return its validated labels."""
-    config = make_config(thinking_level)
-    return Classification.model_validate_json(
-        response_text(generate("classify", fence_ticket(ticket_text), config))
+def classify(ticket_text: str, llm: LLMProvider, thinking: Thinking = THINKING) -> Classification:
+    """Send one ticket to the model and return its validated labels."""
+    return llm.generate_json(
+        "classify", SYSTEM_PROMPT, fence_ticket(ticket_text), Classification, thinking
     )

@@ -13,6 +13,7 @@ from typing import Literal
 
 from pydantic import BaseModel
 
+from helpdesk.ai.gemini import GeminiProvider
 from helpdesk.core.paths import ROOT
 from helpdesk.domain.grounding import is_grounded
 from helpdesk.pipeline import TicketResult, process_ticket
@@ -59,10 +60,11 @@ def failures(probe: Probe, result: TicketResult) -> list[str]:
 
 def main() -> None:
     pool = open_synced_pool()
+    llm = GeminiProvider()
     rows = []
     for number, probe in enumerate(load_probes(), start=1):
         time.sleep(WAIT_SECONDS)
-        result = process_ticket(probe.text, probe.language, pool.connection)
+        result = process_ticket(probe.text, probe.language, pool.connection, llm)
         failed = failures(probe, result)
         rows.append(
             {
