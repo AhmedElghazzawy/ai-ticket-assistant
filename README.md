@@ -342,7 +342,7 @@ tools/export_openapi.py API şemasını frontend/openapi.json dosyasına yazar
 tools/add_staff.py      Personel hesabı oluşturur (gizli şifre girişi)
 tools/make_demo_tickets.py  Demo modunun örnek taleplerini veri setinden üretir
 render.yaml             Render dağıtımı (ücretsiz plan, Frankfurt)
-tests/                  162 pytest testi (karar kuralları, prompt injection savunması, ön bilgi, ayarlar, veritabanı, arama, belge bölme, API, stres testleri, giriş, öğrencinin talebi, istatistikler, demo, değerlendirme)
+tests/                  176 pytest testi, kapsam %81 (karar kuralları, prompt injection savunması, ön bilgi, ayarlar, veritabanı, arama, belge bölme, API, stres testleri, giriş, öğrencinin talebi, istatistikler, demo, değerlendirme, Claude Code dosya koruması)
 frontend/e2e/           Tarayıcı testleri (Playwright): öğrencinin her cevap türünde gördüğü sayfa
 data/knowledge_base/    22 resmî kaynaklı belge (TR + EN)
 src/try_one_ticket.py   İlk API çağrısı testi (Step 1)
