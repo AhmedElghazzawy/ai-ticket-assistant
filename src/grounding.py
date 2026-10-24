@@ -9,8 +9,9 @@ import unicodedata
 
 # A rule id the model may put in front of a quote, e.g. "[sinavlar.tr#4]".
 CHUNK_ID = re.compile(r"\[[\w.]+#\d+\]")
-# Where one quoted piece ends and the next begins: a line break, an ellipsis, or a sentence end.
-PIECE_BREAK = re.compile(r"\n+|\.\.\.|…|(?<=[.!?;:])\s+")
+# Where one quoted piece ends and the next begins: a line break, an ellipsis, or a sentence end
+# (which may be followed by a closing quote: `gerekmez." "Kayıt`).
+PIECE_BREAK = re.compile(r"\n+|\.\.\.|…|(?<=[.!?;:])[\"'”’»]?\s+")
 QUOTES = str.maketrans({"“": '"', "”": '"', "„": '"', "‘": "'", "’": "'", "«": '"', "»": '"'})
 MIN_WORDS = 3  # shorter pieces ("Evet.", "Madde 19") prove nothing either way
 

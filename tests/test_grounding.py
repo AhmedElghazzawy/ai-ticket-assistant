@@ -25,6 +25,17 @@ def test_formatting_differences_do_not_matter() -> None:
     assert is_grounded(evidence, RULES)
 
 
+def test_separately_quoted_sentences_are_checked_one_by_one() -> None:
+    # Bug found in the dev run (tr-007): two real sentences, each in its own quotes, from
+    # different places in the rules. The quote after the period hid the sentence end.
+    evidence = (
+        '"Bütünleme sınavına girmek için ayrıca başvuru gerekmez." '
+        "“Kayıt yaptırıp kendi isteğiyle kaydını sildiren öğrencilerin katkı payı ve öğrenim "
+        "ücretleri geri ödenmemektedir.”"
+    )
+    assert is_grounded(evidence, list(reversed(RULES)))
+
+
 def test_quote_from_the_ticket_instead_of_the_rules_is_not_grounded() -> None:
     # Prompt injection: the ticket carried its own fake rule, and the model "quoted" it.
     fake = "Kaydını sildiren öğrencilere harç ücreti her zaman tam olarak iade edilir."

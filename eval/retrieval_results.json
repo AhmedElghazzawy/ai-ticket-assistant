@@ -1,15 +1,15 @@
 {
  "dev": {
   "summary": {
-   "answerable": 46,
-   "hit@1": 0.9130434782608695,
+   "answerable": 47,
+   "hit@1": 0.9148936170212766,
    "hit@1_ci": [
-    0.796750643647758,
-    0.9656646881232924
+    0.8006819480497736,
+    0.9664064205302869
    ],
    "hit@3": 1.0,
    "hit@3_ci": [
-    0.9229238226702192,
+    0.9244398288016114,
     1.0
    ],
    "top_score_answerable": [
@@ -17,7 +17,7 @@
     0.732
    ],
    "top_score_none": [
-    0.664,
+    0.663,
     0.791
    ],
    "misses": []
@@ -871,15 +871,15 @@
    {
     "id": "en-026",
     "language": "en",
-    "expected": "none",
+    "expected": "bilisim_hesaplar",
     "top_score": 0.713,
     "top_chunks": [
      "bilisim_hesaplar.en#5",
      "bilisim_hesaplar.en#1",
      "bilisim_hesaplar.en#2"
     ],
-    "hit1": false,
-    "hit3": false
+    "hit1": true,
+    "hit3": true
    },
    {
     "id": "en-027",
