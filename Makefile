@@ -24,7 +24,7 @@ down: ## Stop the containers (the database volume is kept)
 	docker compose down
 
 serve: ## API with auto-reload at http://127.0.0.1:8000 (frontend dev server: cd frontend && npm run dev)
-	uv run uvicorn helpdesk.api.app:app --reload
+	uv run uvicorn helpdesk.api.app:create_app --factory --reload
 
 panel: ## The old Streamlit panel (dataset and eval results)
 	uv run streamlit run src/helpdesk/panel.py

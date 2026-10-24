@@ -16,6 +16,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from helpdesk.core.paths import ROOT
 
+LogFormat = Literal["console", "json"]
+
 # Read from environment variables first, then from .env (names are not case-sensitive).
 ENV = SettingsConfigDict(env_file=ROOT / ".env", extra="ignore")
 
@@ -28,7 +30,7 @@ class AppSettings(BaseSettings):
     # The default is the local Docker database (compose.yaml); production sets Neon's address.
     # SecretStr: the password inside the URL never appears when settings are printed or logged.
     database_url: SecretStr = SecretStr("postgresql://helpdesk:local-only@127.0.0.1:5433/helpdesk")
-    log_format: Literal["console", "json"] = "console"  # json: one object per line (servers)
+    log_format: LogFormat = "console"  # json: one object per line (servers)
     # Secure cookies are only sent over https; false only for plain-http local development.
     cookie_secure: bool = True
     demo_mode: bool = False  # the public demo: a one-click staff login with sample tickets only

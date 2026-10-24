@@ -259,11 +259,11 @@ docker compose up -d db        # yerel Postgres 18 + pgvector (port 5433); testl
 Geliştirme (iki terminal; sayfa her kayıtta kendini yeniler):
 
 ```sh
-make serve                     # API: http://127.0.0.1:8000 (uv run uvicorn helpdesk.api.app:app --reload)
+make serve                     # API: http://127.0.0.1:8000 (uv run uvicorn helpdesk.api.app:create_app --factory --reload)
 cd frontend && npm run dev     # web arayüzü: http://localhost:5173 (öğrenci) ve /staff (personel)
 ```
 
-Tek sunucu (üretim gibi): `cd frontend && npm run build`, sonra `uv run uvicorn helpdesk.api.app:app` ve http://127.0.0.1:8000 açılır.
+Tek sunucu (üretim gibi): `cd frontend && npm run build`, sonra `uv run uvicorn helpdesk.api.app:create_app --factory` ve http://127.0.0.1:8000 açılır.
 
 **Docker ile tek komut** (Python, Node veya uv kurmadan; yalnızca Docker ve `.env` gerekir):
 

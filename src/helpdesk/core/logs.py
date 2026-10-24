@@ -8,14 +8,18 @@ import sys
 
 import structlog
 
-from helpdesk.core.settings import get_app_settings
+from helpdesk.core.settings import LogFormat
 
 
-def configure() -> None:
-    """Set up logging once. LOG_FORMAT=json gives one JSON object per line (for servers and
-    log tools); otherwise readable, coloured lines for a person at a terminal. The app settings
-    need no API key, so logging works before (and without) one."""
-    json_lines = get_app_settings().log_format == "json"
+def configure(log_format: LogFormat) -> None:
+    """Set up logging once. "json" gives one JSON object per line (for servers and log tools);
+    "console" gives readable, coloured lines for a person at a terminal.
+
+    Once per process: loggers keep the configuration of their first use, so a second call would
+    leave them on the old one (tests build many apps; a bug we hit while adding create_app)."""
+    if structlog.is_configured():
+        return
+    json_lines = log_format == "json"
     renderer = (
         structlog.processors.JSONRenderer()
         if json_lines

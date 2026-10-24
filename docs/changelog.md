@@ -1654,3 +1654,13 @@ Staff pages show student messages. Until now they only answered requests from th
 - tests/test_config.py renamed tests/test_settings.py: 6 new tests (defaults without a key, reading every variable, three bad values fail, the database password is never printed). .env.example lists the three settings it was missing.
 - The guard hook (Phase A) blocked one of Claude's shell commands because the test text mentioned the secrets file in a comment: a false alarm, but the guard did its job; the file was written with the editor tool instead.
 - Checks: ruff, mypy strict, 182 pytest.
+
+## Step 3: an app factory and one router per audience
+- `api/app.py` (551 lines) split into: `app.py` (`create_app()`, the request-log middleware), `deps.py` (the `Services` an app owns: settings, pipeline, a lazily opened connection pool, the two rate limiters; FastAPI dependencies `ServicesDep` and `CurrentStaff`), `security.py` (RateLimiter, visitor address, CSRF check), `routers/tickets.py` (student: send, look up, feedback), `routers/login.py`, `routers/staff.py`, `routers/web.py` (health check and the React app, included last).
+- Why: there are no module globals any more (pool, limiters, DEMO_MODE, DAILY_TICKET_CAP, CLIENT_IP_HEADER, COOKIE_SECURE, DIST_DIR). Each test builds its own app with its own settings, database schema and fake pipeline (`make_api(demo_mode=True)`), instead of patching module variables. Production: `uvicorn helpdesk.api.app:create_app --factory` (Dockerfile, `make serve`).
+- New: the connection pool is closed when the server stops (FastAPI lifespan). Test added.
+- Tests: new `tests/harness.py` (`Api`: `ask`, `use_pipeline`, `staff`, `visitor`, `browser`). A test app's default pipeline fails loudly, so a test can never call the paid model by mistake. test_api, test_demo and test_logs rewritten to it; the checks themselves are unchanged.
+- Bug found while doing it: `create_app` configured logging again for every new app; loggers already in use kept the old configuration, so the log-capture tests saw nothing. Logging is now configured once per process (test added).
+- The API schema (frontend/openapi.json) is byte-identical, so the React app and its generated client are unchanged. A "tickets" tag that the new router would have added was left out for that reason.
+- Checked by hand: Docker image built and run (health ok, web app served, JSON logs); local server against the real Postgres with the demo on: options, one-click demo login, queue of 16 (urgent first), Insights, unknown lookup 404.
+- Checks: ruff, mypy strict (72 files), 184 pytest, coverage 82.5% (gate 80%).
