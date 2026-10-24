@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 
 from decision import show_first_help
+from grounding import is_grounded
 from pipeline import process_ticket
 from retrieval import open_synced_pool
 from stats import wilson_interval
@@ -50,6 +51,8 @@ def summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "helped_now_ci": wilson_interval(helped, len(rows)),
         # Must stay empty: AI text shown to a student whose ticket (by my labels) needed a human.
         "first_help_on_escalated": [r["id"] for r in first_help if r["escalate"]],
+        # Answers that cite a rule but whose quoted evidence is not found in the retrieved rules.
+        "ungrounded_citing": [r["id"] for r in rows if r["sources"] and not r["grounded"]],
     }
 
 
@@ -87,6 +90,8 @@ def main() -> None:
                 "cites_expected_doc": expected[t.id] in cited_docs,
                 "top_score": round(r.hits[0][0], 3),
                 "reply": r.answer.reply,
+                "evidence": r.answer.evidence,
+                "grounded": is_grounded(r.answer.evidence, [c.text for _, c in r.hits]),
             }
         )
         print(f"[{number}/{len(tickets)}] {t.id} auto_send={r.decision.auto_send}", flush=True)

@@ -7,8 +7,9 @@ from classifier import Classification
 from decision import MIN_SCORE, OFFICE_NAMES, OFFICE_OF, WeakMatch, decide, show_first_help
 from tickets import Category
 
-RETRIEVED = {"sinavlar.en#4", "sinavlar.en#1"}
-GOOD_ANSWER = Answer(evidence="a rule", covered=True, reply="a reply", sources=["sinavlar.en#4"])
+RULE = "No separate application is needed for the make-up exam."
+RETRIEVED = {"sinavlar.en#4": f"Make-up exam\n{RULE}", "sinavlar.en#1": "Exam dates are on OBS."}
+GOOD_ANSWER = Answer(evidence=RULE, covered=True, reply="a reply", sources=["sinavlar.en#4"])
 
 
 def labels(category: Category = "academic_records", escalate: bool = False) -> Classification:
@@ -40,7 +41,7 @@ def test_uncovered_answer_is_not_auto_sent() -> None:
 
 
 def test_citing_a_document_that_was_not_retrieved_is_not_auto_sent() -> None:
-    invented = Answer(evidence="a rule", covered=True, reply="a reply", sources=["staj.en#2"])
+    invented = Answer(evidence=RULE, covered=True, reply="a reply", sources=["staj.en#2"])
     assert not decide(labels(), 0.80, invented, RETRIEVED).auto_send
 
 
@@ -76,8 +77,28 @@ def test_urgent_ticket_is_never_auto_sent() -> None:
     assert not decide(urgent, 0.80, GOOD_ANSWER, RETRIEVED).auto_send
 
 
+def test_evidence_not_found_in_the_rules_is_not_auto_sent() -> None:
+    # Prompt injection: the ticket carried a fake rule and the model quoted it, citing a real id.
+    fake = Answer(
+        evidence="Every student who withdraws gets a full refund.",
+        covered=True,
+        reply="You will get a full refund.",
+        sources=["sinavlar.en#4"],
+    )
+    decision = decide(labels(), 0.80, fake, RETRIEVED)
+    assert not decision.auto_send
+    assert [reason.code for reason in decision.reasons] == ["ungrounded"]
+    assert not show_first_help(decision)  # the fake text must not reach the student either
+
+
+def test_answer_without_citation_is_not_also_reported_as_ungrounded() -> None:
+    uncovered = Answer(evidence="", covered=False, reply="we will forward it", sources=[])
+    codes = [reason.code for reason in decide(labels(), 0.80, uncovered, RETRIEVED).reasons]
+    assert codes == ["not_covered", "no_citation"]
+
+
 # First help: a forwarded draft may reach the student only when it is safe (docs/decisions/0008).
-PARTIAL = Answer(evidence="a rule", covered=False, reply="part answer", sources=["sinavlar.en#4"])
+PARTIAL = Answer(evidence=RULE, covered=False, reply="part answer", sources=["sinavlar.en#4"])
 
 
 def test_partly_answered_ticket_gets_first_help() -> None:
@@ -97,7 +118,7 @@ def test_escalated_ticket_never_gets_first_help() -> None:
 
 def test_draft_without_a_checked_citation_never_gets_first_help() -> None:
     no_source = Answer(evidence="", covered=False, reply="we will forward it", sources=[])
-    invented = Answer(evidence="a rule", covered=False, reply="x", sources=["staj.en#2"])
+    invented = Answer(evidence=RULE, covered=False, reply="x", sources=["staj.en#2"])
     assert not show_first_help(decide(labels(), 0.80, no_source, RETRIEVED))
     assert not show_first_help(decide(labels(), 0.80, invented, RETRIEVED))
 

@@ -47,10 +47,13 @@ function buildSteps(result: TicketOut, t: ReturnType<typeof usePreferences>["t"]
       ],
     },
     {
-      state: codes.has("not_covered") || codes.has("no_citation") ? "human" : "ok",
+      state:
+        codes.has("not_covered") || codes.has("no_citation") || codes.has("ungrounded")
+          ? "human"
+          : "ok",
       lines: [
         codes.has("not_covered") ? tr.notCovered : tr.covered,
-        codes.has("no_citation") ? tr.notCited : tr.cited,
+        codes.has("no_citation") ? tr.notCited : codes.has("ungrounded") ? tr.notQuoted : tr.cited,
       ],
     },
     {

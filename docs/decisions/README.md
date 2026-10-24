@@ -13,5 +13,6 @@ Projedeki önemli seçimler, her biri kısa bir dosyada: bağlam, karar, sonuçl
 | [0007](0007-client-ip-header.md) | Rate limit için ziyaretçi adresi: yalnızca güvenilen proxy başlığı | Kabul edildi |
 | [0008](0008-first-help-on-forwarded-tickets.md) | Yönlendirilen taleplerde güvenli "ön bilgi" (escalate edilenlerde asla) | Kabul edildi |
 | [0009](0009-student-ticket-access-code.md) | Öğrencinin kendi talebi: gizli kod ile durum, personel cevabı ve geri bildirim | Kabul edildi |
+| [0010](0010-prompt-injection-defence.md) | Prompt injection savunması: talebi çitle, alıntıyı kodla doğrula | Kabul edildi |
 
 Yeni bir önemli karar alındığında bir sonraki numarayla yeni dosya eklenir. Bir karar değişirse eski dosya silinmez: durumu "Yerini aldı: 00XX" olur.

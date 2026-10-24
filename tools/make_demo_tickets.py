@@ -37,7 +37,7 @@ def reasons(row: dict[str, Any], labels: dict[str, Any]) -> list[dict[str, Any]]
     for reason in row["reasons"]:
         if reason["code"] == "weak_match":
             found.append({"code": "weak_match", "score": row["top_score"], "min": MIN_SCORE})
-        elif reason["code"] in ("not_covered", "no_citation"):
+        elif reason["code"] in ("not_covered", "no_citation", "ungrounded"):
             found.append({"code": reason["code"]})
     return found
 

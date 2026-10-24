@@ -258,7 +258,8 @@
               "escalation",
               "urgent",
               "not_covered",
-              "no_citation"
+              "no_citation",
+              "ungrounded"
             ],
             "title": "Code",
             "type": "string"
@@ -483,6 +484,7 @@
                   "escalation": "#/components/schemas/SimpleReason",
                   "no_citation": "#/components/schemas/SimpleReason",
                   "not_covered": "#/components/schemas/SimpleReason",
+                  "ungrounded": "#/components/schemas/SimpleReason",
                   "urgent": "#/components/schemas/SimpleReason",
                   "weak_match": "#/components/schemas/WeakMatch"
                 },
@@ -639,6 +641,7 @@
                   "escalation": "#/components/schemas/SimpleReason",
                   "no_citation": "#/components/schemas/SimpleReason",
                   "not_covered": "#/components/schemas/SimpleReason",
+                  "ungrounded": "#/components/schemas/SimpleReason",
                   "urgent": "#/components/schemas/SimpleReason",
                   "weak_match": "#/components/schemas/WeakMatch"
                 },

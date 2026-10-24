@@ -9,6 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 
 from answer import Answer
 from classifier import Classification
+from grounding import is_grounded
 from tickets import Category
 
 # Retrieval scores of answerable and unanswerable tickets overlap (Phase 3), so the score is only a weak
@@ -50,7 +51,9 @@ OFFICE_NAMES: dict[str, dict[OfficeId, str]] = {
 class SimpleReason(BaseModel):
     """A failed check that needs no extra data."""
 
-    code: Literal["category_other", "escalation", "urgent", "not_covered", "no_citation"]
+    code: Literal[
+        "category_other", "escalation", "urgent", "not_covered", "no_citation", "ungrounded"
+    ]
 
 
 class WeakMatch(BaseModel):
@@ -74,6 +77,7 @@ ENGLISH: dict[str, str] = {
     "urgent": "urgent: a human answers",
     "not_covered": "the documents do not answer the ticket",
     "no_citation": "the reply does not cite a retrieved document",
+    "ungrounded": "the quoted evidence is not found in the retrieved documents",
 }
 
 
@@ -96,9 +100,10 @@ class Decision(BaseModel):
 
 
 def decide(
-    result: Classification, top_score: float, answer: Answer, retrieved_ids: set[str]
+    result: Classification, top_score: float, answer: Answer, retrieved: dict[str, str]
 ) -> Decision:
-    """Auto-send only if ALL checks pass (CLAUDE.md). Every failed check is recorded as a reason."""
+    """Auto-send only if ALL checks pass (CLAUDE.md). Every failed check is recorded as a reason.
+    `retrieved` maps each retrieved rule id to its text."""
     reasons: list[SimpleReason | WeakMatch] = []
     if result.category == "other":
         reasons.append(SimpleReason(code="category_other"))
@@ -110,13 +115,17 @@ def decide(
         reasons.append(WeakMatch(score=top_score, min=MIN_SCORE))
     if not answer.covered:
         reasons.append(SimpleReason(code="not_covered"))
-    if not answer.sources or not set(answer.sources) <= retrieved_ids:
+    if not answer.sources or not set(answer.sources) <= retrieved.keys():
         reasons.append(SimpleReason(code="no_citation"))
+    elif not is_grounded(
+        answer.evidence, list(retrieved.values())
+    ):  # e.g. a fake rule in the ticket
+        reasons.append(SimpleReason(code="ungrounded"))
     return Decision(auto_send=not reasons, reasons=reasons)
 
 
 # A forwarded draft never reaches the student if any of these checks failed (docs/decisions/0008).
-NO_FIRST_HELP = {"escalation", "no_citation", "weak_match"}
+NO_FIRST_HELP = {"escalation", "no_citation", "ungrounded", "weak_match"}
 
 
 def show_first_help(decision: Decision) -> bool:

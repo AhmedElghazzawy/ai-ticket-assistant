@@ -176,7 +176,7 @@ export type SimpleReason = {
     /**
      * Code
      */
-    code: 'category_other' | 'escalation' | 'urgent' | 'not_covered' | 'no_citation';
+    code: 'category_other' | 'escalation' | 'urgent' | 'not_covered' | 'no_citation' | 'ungrounded';
 };
 
 /**

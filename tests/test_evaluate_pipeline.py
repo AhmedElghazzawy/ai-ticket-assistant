@@ -35,6 +35,7 @@ def result_row(
     first_help: bool = False,
     escalate: bool = False,
     cites: bool = True,
+    grounded: bool = True,
 ) -> dict[str, object]:
     return {
         "id": tid,
@@ -43,6 +44,8 @@ def result_row(
         "first_help": first_help,
         "escalate": escalate,
         "cites_expected_doc": cites,
+        "sources": ["doc.en#1"],
+        "grounded": grounded,
     }
 
 
@@ -51,6 +54,7 @@ ROWS = [
     result_row("b", should=True, sent=False, first_help=True),
     result_row("c", should=False, sent=True),  # unsafe: sent although it needed a human
     result_row("d", should=False, sent=False, first_help=True, escalate=True),  # must never happen
+    result_row("e", should=True, sent=False, grounded=False),  # quote not found in the rules
 ]
 
 
@@ -60,5 +64,6 @@ def test_pipeline_summary_counts_and_intervals() -> None:
     assert s["unsafe_auto_sends"] == ["c"]
     assert s["first_help"] == 2
     assert s["first_help_on_escalated"] == ["d"]
-    assert s["auto_resolution_ci"] == wilson_interval(2, 4)
-    assert s["helped_now_ci"] == wilson_interval(4, 4)
+    assert s["ungrounded_citing"] == ["e"]
+    assert s["auto_resolution_ci"] == wilson_interval(2, 5)
+    assert s["helped_now_ci"] == wilson_interval(4, 5)

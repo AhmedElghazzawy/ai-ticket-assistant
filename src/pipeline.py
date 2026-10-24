@@ -24,5 +24,7 @@ def process_ticket(ticket: str, language: str, database: Database) -> TicketResu
     classification = classify(ticket)
     hits = search(ticket, database, language=language)
     answer = draft_answer(ticket, [chunk for _, chunk in hits], language)
-    decision = decide(classification, hits[0][0], answer, {chunk.id for _, chunk in hits})
+    decision = decide(
+        classification, hits[0][0], answer, {chunk.id: chunk.text for _, chunk in hits}
+    )
     return TicketResult(classification=classification, hits=hits, answer=answer, decision=decision)
