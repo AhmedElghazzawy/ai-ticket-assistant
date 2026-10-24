@@ -18,3 +18,7 @@ claude_context.md
 
 # Student tickets (personal data): never commit
 data/helpdesk.db
+
+# Test coverage data (pytest --cov)
+.coverage
+htmlcov/

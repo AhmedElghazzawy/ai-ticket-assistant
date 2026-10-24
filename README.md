@@ -23,6 +23,7 @@
 | Yeni (23.10.2026): gerçekçi talepler, "ön bilgi", Taleplerim, karar izi, istatistikler | [Phase 8 sonuçları](#gerçekçi-talepler-phase-8) · [Ön bilgi](#ön-bilgi-yönlendirilen-taleplerde-yardım) · [Yeni özellikler](#öğrenci-ve-personel-için-yeni-özellikler-23102026) |
 | Kapsam ve sınırlar | [Kapsam ve sınırlar](#kapsam-ve-sınırlar-v1) |
 | Önemli kararlar ve nedenleri | [`docs/decisions/`](docs/decisions/) (model seçimi, karar kuralları, veritabanı, barındırma, güvenlik) |
+| Mimari, mühendislik yol haritası, katkı kuralları | [`ARCHITECTURE.md`](ARCHITECTURE.md) (İngilizce, diyagramlarla) · [`docs/ROADMAP.md`](docs/ROADMAP.md) · [`CONTRIBUTING.md`](CONTRIBUTING.md) · [`SECURITY.md`](SECURITY.md) |
 | Her değişiklik ve nedeni | [Sürümler (Releases)](https://github.com/AhmedElghazzawy/ai-ticket-assistant/releases) · ayrıntılı çalışma notları: [`docs/changelog.md`](docs/changelog.md) (İngilizce) |
 
 ## Ekran görüntüleri
@@ -381,4 +382,4 @@ Son güncelleme: 23.10.2026. ✅ tamamlandı · 🟡 kısmen · 🔄 devam ediyo
 | 11. Güvenlik ve stres testleri | 🟡 | Rate limit, günlük sınır, giriş sınırı, CSRF, sahte IP koruması (canlıda doğrulandı), loglarda öğrenci metni yok; stres testleri (boş metin ve NUL karakteri artık modele hiç ulaşmıyor, uzunluk sınırı, HTML düz metin kalıyor); prompt injection savunması (çit + alıntının kodla doğrulanması) ve 12 saldırı denemesi (12/12 güvenli, karar kaydı 0010) | Kişisel veri işleme, daha büyük saldırı seti, kilitli testte son çalıştırma |
 | 12. Personel ürünü | 🟡 | Giriş, birime göre kuyruk, düzenleyip gönderme, birim değiştirme, demo modu; güvenli "ön bilgi"; öğrencinin talep durumunu ve personel cevabını görmesi (gizli kod, karar kaydı 0009); çalışan geri bildirim düğmeleri; "Nasıl karar verildi?" izi; istatistik sayfası | E-posta bildirimi, öğrenci girişi (SSO) |
 | 13. Canlıya alma | 🟡 | Canlı demo (Render + Neon, Frankfurt), canlıda test edildi | Maliyet ve hata izleme (monitoring); yalnızca CI geçince deploy |
-| 14. Sunum | 🟡 | Bu README, karar kayıtları ([`docs/decisions/`](docs/decisions/), 10 kayıt), sürüm v0.9, BŞEÜ renkleriyle yeni arayüz (resmî olmadığı uyarısıyla), CI'da çalışan tarayıcı testleri (Playwright, masaüstü + telefon) | Türkçe rapor, 5 dakikalık demo, resmî logo (izin gelirse), v1.0 |
+| 14. Sunum | 🟡 | Bu README, karar kayıtları ([`docs/decisions/`](docs/decisions/), 11 kayıt), mimari belgesi ([`ARCHITECTURE.md`](ARCHITECTURE.md)), kodlama ajanı için kurallar ve korumalar (`CLAUDE.md`, `.claude/`, karar kaydı 0011), sürüm v0.9, BŞEÜ renkleriyle yeni arayüz (resmî olmadığı uyarısıyla), CI'da çalışan tarayıcı testleri (Playwright, masaüstü + telefon) | Türkçe rapor, 5 dakikalık demo, resmî logo (izin gelirse), v1.0 |

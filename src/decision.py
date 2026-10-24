@@ -16,7 +16,7 @@ from tickets import Category
 # floor; the main check is that the model found the answer in the rules (`covered`) and cited them.
 MIN_SCORE = 0.65
 
-# The real BŞEÜ offices (CLAUDE.md). IDs travel through the system; the page shows the name
+# The real BŞEÜ offices (docs/PROJECT_BRIEF.md). IDs travel through the system; the page shows the name
 # in the reader's language.
 OfficeId = Literal["it", "student_affairs", "fees", "sks", "duty"]
 
@@ -102,7 +102,7 @@ class Decision(BaseModel):
 def decide(
     result: Classification, top_score: float, answer: Answer, retrieved: dict[str, str]
 ) -> Decision:
-    """Auto-send only if ALL checks pass (CLAUDE.md). Every failed check is recorded as a reason.
+    """Auto-send only if ALL checks pass (docs/PROJECT_BRIEF.md). Every failed check is recorded as a reason.
     `retrieved` maps each retrieved rule id to its text."""
     reasons: list[SimpleReason | WeakMatch] = []
     if result.category == "other":
