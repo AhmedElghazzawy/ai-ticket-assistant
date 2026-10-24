@@ -1645,3 +1645,12 @@ Staff pages show student messages. Until now they only answered requests from th
 - Docker: the image installs the package (README.md copied for its metadata) and starts `uvicorn helpdesk.api.app:app`. Built and run locally: /api/health ok, the web app served, paths resolve to /app.
 - Tests: imports updated; the add_staff test now replaces the tool's own `connect`. Docs updated: CLAUDE.md code map, README (Turkish: commands and structure), CONTRIBUTING, ARCHITECTURE, .claude skills and agents, ADR 0002 and 0010 links, .env.example.
 - Checks: ruff, mypy strict (64 files), 176 pytest, OpenAPI unchanged.
+
+## Step 2: one settings module, no environment reads anywhere else
+- `core/settings.py` is now the only code that reads the environment. Two typed groups: `AppSettings` (DATABASE_URL, LOG_FORMAT, COOKIE_SECURE, DEMO_MODE, CLIENT_IP_HEADER, DAILY_TICKET_CAP) needs no API key, so logs, the database, tools and tests work without one; `GeminiSettings` (key, model, timeout, retries, prices) is loaded on the first model call, as before. The six `os.getenv` calls in api.py, store.py and logs.py are gone.
+- Behaviour change on purpose: a bad value now stops the app at startup with a clear error. Before, a typo was silently read as the default (`DEMO_MODE=ture` meant "off", `LOG_FORMAT=xml` meant console). Checked by hand: `DEMO_MODE=ture` fails with "demo_mode: Input should be a valid boolean". Booleans also accept 1/0/yes/no now; LOG_FORMAT and the header name ignore case, as before.
+- DATABASE_URL is a SecretStr: its password never appears when settings are printed (new test).
+- Bug found in an old test: the cost-estimate test replaced `config.get_settings`, but llm.py had imported that function by name, so the replacement never reached the code under test; it passed only because the real defaults are the same prices. It now replaces the name the Gemini module uses.
+- tests/test_config.py renamed tests/test_settings.py: 6 new tests (defaults without a key, reading every variable, three bad values fail, the database password is never printed). .env.example lists the three settings it was missing.
+- The guard hook (Phase A) blocked one of Claude's shell commands because the test text mentioned the secrets file in a comment: a false alarm, but the guard did its job; the file was written with the editor tool instead.
+- Checks: ruff, mypy strict, 182 pytest.

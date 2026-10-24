@@ -16,7 +16,7 @@ from google.genai import errors, types
 
 from helpdesk.ai.classifier import THINKING_LEVEL, classify
 from helpdesk.core.paths import EVAL_DIR
-from helpdesk.core.settings import get_settings
+from helpdesk.core.settings import get_gemini_settings
 from helpdesk.domain.tickets import DATASETS, Ticket, load_tickets
 from helpdesk.evals.stats import wilson_interval
 
@@ -168,7 +168,7 @@ def main() -> None:
     by_language = {lang: [t for t in tickets if t.language == lang] for lang in ("tr", "en")}
     results = {
         "date": datetime.now().isoformat(timespec="seconds"),
-        "model": get_settings().gemini_model,
+        "model": get_gemini_settings().gemini_model,
         "thinking_level": level.value,
         "dataset": dataset,
         "runs": len(runs),

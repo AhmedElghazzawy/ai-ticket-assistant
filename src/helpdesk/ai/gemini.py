@@ -7,7 +7,7 @@ from google import genai
 from google.genai import types
 
 from helpdesk.core.logs import get_logger
-from helpdesk.core.settings import get_settings
+from helpdesk.core.settings import get_gemini_settings
 
 logger = get_logger(__name__)
 
@@ -15,7 +15,7 @@ logger = get_logger(__name__)
 @lru_cache
 def get_client() -> genai.Client:
     """The Gemini client, created on first use (so importing this file needs no API key)."""
-    settings = get_settings()
+    settings = get_gemini_settings()
     # If Google answers "too busy" (429) or has a server error (500, 503),
     # wait and try again: 2s, then 4s, 8s, 16s (each wait doubles).
     retry = types.HttpRetryOptions(
@@ -43,7 +43,7 @@ def estimated_cost(usage: types.GenerateContentResponseUsageMetadata | None) -> 
     """What the call would cost on the paid tier, in USD (thinking tokens are billed as output)."""
     if usage is None:
         return 0.0
-    settings = get_settings()
+    settings = get_gemini_settings()
     output = (usage.candidates_token_count or 0) + (usage.thoughts_token_count or 0)
     return (
         (usage.prompt_token_count or 0) * settings.price_input_per_million
@@ -55,7 +55,7 @@ def generate(
     stage: str, contents: str, config: types.GenerateContentConfig
 ) -> types.GenerateContentResponse:
     """One Gemini call, timed and logged (tokens, estimated cost). Never logs the contents."""
-    model = get_settings().gemini_model
+    model = get_gemini_settings().gemini_model
     started = time.perf_counter()
     response = get_client().models.generate_content(model=model, contents=contents, config=config)
     usage = response.usage_metadata

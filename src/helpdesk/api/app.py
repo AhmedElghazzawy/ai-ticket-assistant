@@ -3,7 +3,6 @@
 Run: make serve     then open http://127.0.0.1:8000
 """
 
-import os
 import re
 import secrets
 import threading
@@ -26,6 +25,7 @@ from helpdesk import auth
 from helpdesk.auth import Staff
 from helpdesk.core.logs import configure, get_logger
 from helpdesk.core.paths import ROOT
+from helpdesk.core.settings import get_app_settings
 from helpdesk.domain.decision import MIN_SCORE, Decision, Reason, show_first_help
 from helpdesk.domain.offices import OfficeId
 from helpdesk.domain.tickets import Category, Priority
@@ -48,6 +48,7 @@ from helpdesk.storage.tickets import (
     save_ticket,
 )
 
+settings = get_app_settings()  # checked here: a bad value stops the app before it serves anyone
 configure()
 logger = get_logger(__name__)
 # The built React app (cd frontend && npm run build). FastAPI serves it, so one server runs everything.
@@ -166,7 +167,7 @@ class RateLimiter:
 # header in which the proxy puts the real visitor (Render: "CF-Connecting-IP"). Empty (default): the
 # header is ignored, because a visitor could fake it. NOT X-Forwarded-For with "trust all": its
 # left-most address is written by the visitor, so a bot could invent a new address every time.
-CLIENT_IP_HEADER = os.getenv("CLIENT_IP_HEADER", "").lower()
+CLIENT_IP_HEADER = settings.client_ip_header
 
 
 def client_ip(request: Request) -> str:
@@ -177,9 +178,8 @@ def client_ip(request: Request) -> str:
 
 
 ticket_limiter = RateLimiter()
-# The whole system's ceiling per day (UTC): at ~$0.0074 per ticket, 300 tickets cost at most
-# ~$2.20 a day at paid prices, whatever bots do.
-DAILY_TICKET_CAP = int(os.getenv("DAILY_TICKET_CAP", "300"))
+# The whole system's ceiling per day (UTC), whatever bots do.
+DAILY_TICKET_CAP = settings.daily_ticket_cap
 
 
 # Looking up a ticket or giving feedback costs no AI call, so the limit is generous, but a public
@@ -325,12 +325,12 @@ def give_feedback(ticket_id: int, body: FeedbackIn) -> None:
 
 # ---------------------------------------------------------------- staff login
 
-# Secure cookies are only sent over https. COOKIE_SECURE=false is for plain-http local development
-# (read directly, like LOG_FORMAT); production keeps the default.
-COOKIE_SECURE = os.getenv("COOKIE_SECURE", "true").lower() != "false"
+# Secure cookies are only sent over https. COOKIE_SECURE=false is for plain-http local development;
+# production keeps the default.
+COOKIE_SECURE = settings.cookie_secure
 COOKIE_NAME = "helpdesk_session"
 # DEMO_MODE=true (the public demo site): a one-click demo login with sample tickets only.
-DEMO_MODE = os.getenv("DEMO_MODE", "false").lower() == "true"
+DEMO_MODE = settings.demo_mode
 
 
 def same_origin(request: Request) -> None:

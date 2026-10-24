@@ -4,17 +4,18 @@ Rule: NEVER log what a student wrote (personal data, KVKK). Log its length inste
 """
 
 import logging
-import os
 import sys
 
 import structlog
 
+from helpdesk.core.settings import get_app_settings
+
 
 def configure() -> None:
     """Set up logging once. LOG_FORMAT=json gives one JSON object per line (for servers and
-    log tools); otherwise readable, coloured lines for a person at a terminal."""
-    # Read directly, not through config.Settings: logging must work before (and without) the API key.
-    json_lines = os.getenv("LOG_FORMAT", "console").lower() == "json"
+    log tools); otherwise readable, coloured lines for a person at a terminal. The app settings
+    need no API key, so logging works before (and without) one."""
+    json_lines = get_app_settings().log_format == "json"
     renderer = (
         structlog.processors.JSONRenderer()
         if json_lines

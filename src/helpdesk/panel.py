@@ -7,7 +7,7 @@ import streamlit as st
 from psycopg_pool import ConnectionPool
 
 from helpdesk.core.paths import EVAL_DIR
-from helpdesk.core.settings import get_settings
+from helpdesk.core.settings import get_gemini_settings
 from helpdesk.domain.decision import describe
 from helpdesk.domain.offices import OFFICE_NAMES, OFFICE_OF
 from helpdesk.domain.tickets import TEST_PATH, TICKETS_PATH, Ticket, load_tickets
@@ -365,7 +365,7 @@ with st.sidebar:
         for number, step in enumerate(t["steps"]):
             st.markdown(("✅ " if number < DONE_STEPS else "⏳ ") + step)
         st.caption(t["demo_note"])
-        st.caption(f"{t['model']}: `{get_settings().gemini_model}`")
+        st.caption(f"{t['model']}: `{get_gemini_settings().gemini_model}`")
 
 if view == "student":
     if "messages" not in st.session_state:

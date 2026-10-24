@@ -13,9 +13,10 @@ from fastapi.testclient import TestClient
 from google.genai import types
 from structlog.testing import capture_logs
 
+from helpdesk.ai import gemini
 from helpdesk.ai.gemini import estimated_cost
 from helpdesk.api import app as api
-from helpdesk.core import settings as config
+from helpdesk.core.settings import GeminiSettings
 
 client = TestClient(api.app)
 SECRET = "Benim adım Ayşe Yılmaz, TC 12345678901, harç iade edilir mi?"  # personal data
@@ -72,7 +73,7 @@ def test_a_crash_logs_the_error_type_but_not_its_message(monkeypatch: pytest.Mon
 def test_cost_estimate_uses_the_official_prices(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("GEMINI_API_KEY", "test-key")
     monkeypatch.setenv("GEMINI_MODEL", "test-model")
-    monkeypatch.setattr(config, "get_settings", lambda: config.Settings(_env_file=None))
+    monkeypatch.setattr(gemini, "get_gemini_settings", lambda: GeminiSettings(_env_file=None))
     usage = types.GenerateContentResponseUsageMetadata(
         prompt_token_count=1000, candidates_token_count=200, thoughts_token_count=300
     )

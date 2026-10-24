@@ -27,13 +27,13 @@ def fresh_rate_limits(monkeypatch: pytest.MonkeyPatch) -> None:
 def db(monkeypatch: pytest.MonkeyPatch) -> Iterator[Connection]:
     """A fresh, migrated schema for this test; the API's pool points at it too."""
     schema = f"test_{uuid.uuid4().hex[:12]}"  # our own random name, not user input
-    with psycopg.connect(store.DATABASE_URL, autocommit=True) as admin:
+    with psycopg.connect(store.database_url(), autocommit=True) as admin:
         admin.execute(f'CREATE SCHEMA "{schema}"')
-    connection = store.connect(store.DATABASE_URL, schema)
-    pool = store.open_pool(store.DATABASE_URL, schema)
+    connection = store.connect(store.database_url(), schema)
+    pool = store.open_pool(store.database_url(), schema)
     monkeypatch.setattr(api, "pool", pool)
     yield connection
     pool.close()
     connection.close()
-    with psycopg.connect(store.DATABASE_URL, autocommit=True) as admin:
+    with psycopg.connect(store.database_url(), autocommit=True) as admin:
         admin.execute(f'DROP SCHEMA "{schema}" CASCADE')

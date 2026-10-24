@@ -130,7 +130,7 @@ def test_migrations_are_recorded_and_running_them_again_changes_nothing(db: Conn
 def test_database_address_comes_from_the_environment() -> None:
     # Production (Neon) sets DATABASE_URL as a secret; nothing is hard-coded.
     env = {**os.environ, "DATABASE_URL": "postgresql://u:p@neon.example/db", "PYTHONPATH": "src"}
-    code = "from helpdesk.storage import db; print(db.DATABASE_URL)"
+    code = "from helpdesk.storage import db; print(db.database_url())"
     result_ = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, env=env)
     assert result_.stdout.strip() == "postgresql://u:p@neon.example/db"
 
@@ -152,7 +152,7 @@ def test_pool_replaces_connections_closed_by_the_server() -> None:
         pids = [c.execute("SELECT pg_backend_pid() AS pid").fetchone()["pid"] for c in held]  # type: ignore[index]
         for connection in held:
             pool.putconn(connection)
-        with psycopg.connect(store.DATABASE_URL, autocommit=True) as admin:
+        with psycopg.connect(store.database_url(), autocommit=True) as admin:
             for pid in pids:  # what Neon does when it sleeps; wait until each one is really gone
                 admin.execute("SELECT pg_terminate_backend(%s, 5000)", [pid])
         with pool.connection() as connection:

@@ -5,7 +5,6 @@ student messages (personal data): its address and password are secrets (DATABASE
 """
 
 import hashlib
-import os
 from collections.abc import Callable
 from contextlib import AbstractContextManager
 
@@ -14,13 +13,11 @@ from psycopg.conninfo import make_conninfo
 from psycopg.rows import DictRow, dict_row
 from psycopg_pool import ConnectionPool
 
+from helpdesk.core.settings import get_app_settings
+
 Connection = psycopg.Connection[DictRow]  # rows come back as dictionaries
 # A way to borrow a connection briefly (e.g. pool.connection), so slow AI calls never hold one.
 Database = Callable[[], AbstractContextManager[Connection]]
-
-# Read directly, like LOG_FORMAT, so the store works without the API key. The default is the
-# local Docker database (compose.yaml); production sets DATABASE_URL to Neon's address.
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://helpdesk:local-only@127.0.0.1:5433/helpdesk")
 
 # Each step upgrades the database by one version, in order, each in one transaction. Existing data
 # is kept. Never edit a released step: add a new one. (The SQLite history ended at version 4;
@@ -126,18 +123,25 @@ def conninfo(url: str, schema: str | None) -> str:
     return make_conninfo(url, options=f"-c search_path={schema},public") if schema else url
 
 
-def connect(url: str = DATABASE_URL, schema: str | None = None) -> Connection:
+def database_url() -> str:
+    """DATABASE_URL from the settings: the local Docker database by default, Neon in production."""
+    return get_app_settings().database_url.get_secret_value()
+
+
+def connect(url: str | None = None, schema: str | None = None) -> Connection:
     """One connection, upgraded to the current schema (for tools and tests; the API uses a pool)."""
-    connection = psycopg.connect(conninfo(url, schema), row_factory=dict_row, autocommit=True)
+    connection = psycopg.connect(
+        conninfo(url or database_url(), schema), row_factory=dict_row, autocommit=True
+    )
     migrate(connection)
     return connection
 
 
-def open_pool(url: str = DATABASE_URL, schema: str | None = None) -> ConnectionPool[Connection]:
+def open_pool(url: str | None = None, schema: str | None = None) -> ConnectionPool[Connection]:
     """A few connections kept open and reused: much faster than one new connection per request,
     especially to a cloud database (a new encrypted connection takes a while)."""
     pool: ConnectionPool[Connection] = ConnectionPool(
-        conninfo(url, schema),
+        conninfo(url or database_url(), schema),
         connection_class=psycopg.Connection[DictRow],
         kwargs={"row_factory": dict_row, "autocommit": True},
         min_size=1,
