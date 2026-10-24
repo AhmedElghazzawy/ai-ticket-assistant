@@ -60,8 +60,8 @@ jobs:
       - name: Type check (mypy strict)
         run: uv run mypy
 
-      - name: Tests (pytest)
-        run: uv run pytest
+      - name: Tests (pytest, coverage at least the threshold in pyproject.toml)
+        run: uv run pytest --cov --cov-report=term-missing:skip-covered
 
       - name: API schema is up to date (frontend/openapi.json)
         run: uv run python tools/export_openapi.py && git diff --exit-code frontend/openapi.json
