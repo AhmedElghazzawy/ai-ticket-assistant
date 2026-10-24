@@ -28,7 +28,7 @@ def main() -> None:
     if tool == "Bash":
         command = args.get("command", "")
         if SECRETS.search(command):
-            block("Blocked: commands must never touch .env (it holds the API key). See AGENTS.md.")
+            block("Blocked: commands must never touch .env (it holds the API key). See CLAUDE.md.")
         if any(path in command for path in LOCKED) and WRITES.search(command):
             block("Blocked: the locked test sets are read-only. See ADR 0003.")
         return

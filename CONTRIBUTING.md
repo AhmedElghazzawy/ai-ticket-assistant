@@ -1,7 +1,7 @@
 # Contributing
 
-How to set up, change and ship this project. Coding agents follow the same rules through
-[AGENTS.md](AGENTS.md); the design is in [ARCHITECTURE.md](ARCHITECTURE.md).
+How to set up, change and ship this project. Claude Code follows the same rules through
+[CLAUDE.md](CLAUDE.md); the design is in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Setup
 Needs Python 3.12 with [uv](https://docs.astral.sh/uv/), Node 24, and Docker.

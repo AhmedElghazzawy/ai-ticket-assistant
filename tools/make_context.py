@@ -5,7 +5,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 OUTPUT = ROOT / "claude_context.md"
-FIRST = ["AGENTS.md", "CLAUDE.md", "docs/ROADMAP.md", "docs/changelog.md"]  # shown first
+FIRST = ["CLAUDE.md", "docs/ROADMAP.md", "docs/changelog.md"]  # shown first
 RESTART = "facb85a"  # the "Start over from scratch" commit; history starts after it
 RECENT = 3  # line-by-line changes only for the last commits; older ones as one-line titles (all on GitHub)
 # Generated or machine-written files: listed with a note instead of their content.
@@ -30,7 +30,7 @@ IMAGES = {".png", ".jpg", ".jpeg", ".gif", ".svg", ".ico", ".webp"}  # binary or
 INTRO = """# AI Ticket Assistant: full project context
 
 I am a computer engineering student and a complete beginner in AI engineering.
-Below is my whole project: the instructions (AGENTS.md and CLAUDE.md), the roadmap, the changelog (the story
+Below is my whole project: the instructions (CLAUDE.md), the roadmap, the changelog (the story
 of every change, every command and its result, and why), the full content of every
 file, and at the end the git history: every commit title since the restart, and
 every changed line of the most recent commits.

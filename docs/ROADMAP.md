@@ -24,7 +24,7 @@ project thread.
 
 | Phase | Deliverables | Gate | Roadmap item |
 |---|---|---|---|
-| A. Foundations [IN PROGRESS] | ARCHITECTURE.md, this file, docs/PROJECT_BRIEF.md, lean AGENTS.md + CLAUDE.md, `.claude/` (skills, subagents, hooks, permissions), Makefile, coverage, Dependabot, CodeQL, CONTRIBUTING.md, SECURITY.md | CI green, app behaviour unchanged | 7, 14 |
+| A. Foundations [IN PROGRESS] | ARCHITECTURE.md, this file, docs/PROJECT_BRIEF.md, lean CLAUDE.md, `.claude/` (skills, subagents, hooks, permissions), Makefile, coverage, Dependabot, CodeQL, CONTRIBUTING.md, SECURITY.md | CI green, app behaviour unchanged | 7, 14 |
 | B. Package restructure [TODO] | `src/helpdesk/` package, `create_app()` factory + routers, one typed settings tree (no `os.getenv` in modules), `LLMProvider` protocol | same tests pass, same eval scores | 7 |
 | C. Evaluation platform [TODO] | one `helpdesk eval` command, versioned report (git SHA + prompt hash), manual eval workflow in CI, 3-4 model comparison | every metric has n and a 95% CI | 9 |
 | D. Observability [TODO] | `llm_calls` table (tokens, cost, latency), cost on the Insights page, error tracking, readiness check | cost per 1,000 tickets is known | 13 |

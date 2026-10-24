@@ -27,6 +27,5 @@ tools
 !tools/add_staff.py
 docs/changelog.md
 docs/problem_catalog.md
-AGENTS.md
 CLAUDE.md
 .coverage
