@@ -1671,3 +1671,7 @@ Staff pages show student messages. Until now they only answered requests from th
 - Gate "same behaviour" checked without paid calls: the Gemini requests built by `main` and by this branch (configs, prompts, schemas, contents for classify and answer) are byte-identical (15,572 bytes each). The model sees exactly the same input, so the scores cannot change except for the model's own randomness. No eval was re-run (they cost calls; only when I ask).
 - ADR 0012 (Turkish). Checks: ruff, mypy strict (74 files), 188 pytest, coverage 83%, OpenAPI unchanged.
 - Left for Phase B: ARCHITECTURE.md section 8 still shows the planned layout (update to the real one), open the PR and merge after CI.
+
+## Wrap-up (2026-10-25)
+- ARCHITECTURE.md: section 8 now shows the real package layout (was the plan), the sequence diagram and the security table point to the new files. docs/ROADMAP.md: upgrade phases A and B marked done; status line 188 tests, coverage 83%. README: 188 tests, 12 decision records.
+- Pull request opened for the branch `phase-b-package`; merged only after CI is green (merging deploys the live site).

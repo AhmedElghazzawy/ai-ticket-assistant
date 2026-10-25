@@ -341,7 +341,7 @@ tools/add_staff.py      Personel hesabı oluşturur (gizli şifre girişi)
 tools/make_demo_tickets.py  Demo modunun örnek taleplerini veri setinden üretir
 tools/try_one_ticket.py İlk API çağrısı testi (Step 1)
 render.yaml             Render dağıtımı (ücretsiz plan, Frankfurt)
-tests/                  176 pytest testi, kapsam %81 (karar kuralları, prompt injection savunması, ön bilgi, ayarlar, veritabanı, arama, belge bölme, API, stres testleri, giriş, öğrencinin talebi, istatistikler, demo, değerlendirme, Claude Code dosya koruması)
+tests/                  188 pytest testi, kapsam %83 (karar kuralları, prompt injection savunması, ön bilgi, ayarlar, veritabanı, arama, belge bölme, API, stres testleri, giriş, öğrencinin talebi, istatistikler, demo, değerlendirme, Claude Code dosya koruması)
 frontend/e2e/           Tarayıcı testleri (Playwright): öğrencinin her cevap türünde gördüğü sayfa
 data/knowledge_base/    22 resmî kaynaklı belge (TR + EN)
 data/tickets/           Etiketli ticket'lar
@@ -380,4 +380,4 @@ Son güncelleme: 23.10.2026. ✅ tamamlandı · 🟡 kısmen · 🔄 devam ediyo
 | 11. Güvenlik ve stres testleri | 🟡 | Rate limit, günlük sınır, giriş sınırı, CSRF, sahte IP koruması (canlıda doğrulandı), loglarda öğrenci metni yok; stres testleri (boş metin ve NUL karakteri artık modele hiç ulaşmıyor, uzunluk sınırı, HTML düz metin kalıyor); prompt injection savunması (çit + alıntının kodla doğrulanması) ve 12 saldırı denemesi (12/12 güvenli, karar kaydı 0010) | Kişisel veri işleme, daha büyük saldırı seti, kilitli testte son çalıştırma |
 | 12. Personel ürünü | 🟡 | Giriş, birime göre kuyruk, düzenleyip gönderme, birim değiştirme, demo modu; güvenli "ön bilgi"; öğrencinin talep durumunu ve personel cevabını görmesi (gizli kod, karar kaydı 0009); çalışan geri bildirim düğmeleri; "Nasıl karar verildi?" izi; istatistik sayfası | E-posta bildirimi, öğrenci girişi (SSO) |
 | 13. Canlıya alma | 🟡 | Canlı demo (Render + Neon, Frankfurt), canlıda test edildi | Maliyet ve hata izleme (monitoring); yalnızca CI geçince deploy |
-| 14. Sunum | 🟡 | Bu README, karar kayıtları ([`docs/decisions/`](docs/decisions/), 11 kayıt), mimari belgesi ([`ARCHITECTURE.md`](ARCHITECTURE.md)), kodlama ajanı için kurallar ve korumalar (`CLAUDE.md`, `.claude/`, karar kaydı 0011), sürüm v0.9, BŞEÜ renkleriyle yeni arayüz (resmî olmadığı uyarısıyla), CI'da çalışan tarayıcı testleri (Playwright, masaüstü + telefon) | Türkçe rapor, 5 dakikalık demo, resmî logo (izin gelirse), v1.0 |
+| 14. Sunum | 🟡 | Bu README, karar kayıtları ([`docs/decisions/`](docs/decisions/), 12 kayıt), mimari belgesi ([`ARCHITECTURE.md`](ARCHITECTURE.md)), kodlama ajanı için kurallar ve korumalar (`CLAUDE.md`, `.claude/`, karar kaydı 0011), sürüm v0.9, BŞEÜ renkleriyle yeni arayüz (resmî olmadığı uyarısıyla), CI'da çalışan tarayıcı testleri (Playwright, masaüstü + telefon) | Türkçe rapor, 5 dakikalık demo, resmî logo (izin gelirse), v1.0 |

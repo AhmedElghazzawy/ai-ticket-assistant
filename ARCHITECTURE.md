@@ -36,12 +36,12 @@ used: a straight line of steps needs no graph (PROJECT_BRIEF, "Later phases").
 sequenceDiagram
     autonumber
     participant B as Browser
-    participant A as api.py
-    participant C as classifier.py
+    participant A as api/routers/tickets.py
+    participant C as ai/classifier.py
     participant R as retrieval.py
-    participant W as answer.py
+    participant W as ai/answer.py
     participant D as decision.py
-    participant S as store.py
+    participant S as storage/tickets.py
     B->>A: POST /api/tickets {text, language}
     A->>A: rate limits, daily cap, input checks
     A->>C: classify(text) fenced as <ticket>
@@ -58,9 +58,9 @@ sequenceDiagram
 
 | Step | Module | Model call | Output |
 |---|---|---|---|
-| Classify | `classifier.py` | Gemini, structured output, thinking `high` | `reason` first, then category (7), priority (4), escalate |
+| Classify | `ai/classifier.py` | Gemini, structured output, thinking `high` | `reason` first, then category (7), priority (4), escalate |
 | Retrieve | `retrieval.py`, `knowledge_base.py` | embedding of the ticket | top 3 of 112 chunks from 22 documents (11 topics x TR/EN), exact scan |
-| Draft | `answer.py` | Gemini, structured output | reply, `covered`, cited rule ids, word-for-word `evidence` |
+| Draft | `ai/answer.py` | Gemini, structured output | reply, `covered`, cited rule ids, word-for-word `evidence` |
 | Decide | `decision.py` | none: plain code (ADR 0002) | `auto_send` and the reason codes |
 
 ## 3. The decision is code, not AI
@@ -141,14 +141,14 @@ Migrations are append-only steps in `store.MIGRATIONS`, applied at startup under
 | Threat | Defence | Where |
 |---|---|---|
 | Prompt injection in the ticket | ticket fenced in `<ticket>` tags; evidence must match retrieved text word for word | `fence.py`, `grounding.py`, ADR 0010 |
-| Cost abuse of the paid model | per-visitor limits + a daily cap on new tickets | `api.py` `RateLimiter`, `DAILY_TICKET_CAP` |
+| Cost abuse of the paid model | per-visitor limits + a daily cap on new tickets | `api/security.py` `RateLimiter`, `routers/tickets.py::check_ticket_limits` |
 | Spoofed client IP | only the trusted proxy header (`CF-Connecting-IP`) | ADR 0007 |
 | Staff account takeover | Argon2id, login rate limit, one message for every failure, HttpOnly + Secure + SameSite cookie | `auth.py` |
-| CSRF | same-origin check on every changing route | `api.py::same_origin` |
-| Cross-office access | every staff read checks the office | `api.py::visible` |
-| Personal data in logs | only ids, lengths, codes and error types are logged | `api.py`, `logs.py` |
+| CSRF | same-origin check on every changing route | `api/security.py::same_origin` |
+| Cross-office access | every staff read checks the office | `api/routers/staff.py::visible` |
+| Personal data in logs | only ids, lengths, codes and error types are logged | `api/routers/`, `core/logs.py` |
 | Student ticket lookup | random 128-bit code shown once; only its hash stored | ADR 0009 |
-| Secrets | environment only; `.env` git- and docker-ignored; agent hooks block it | `config.py`, `.claude/` |
+| Secrets | environment only; `.env` git- and docker-ignored; agent hooks block it | `core/settings.py`, `.claude/` |
 
 Known limits: rate-limit counters live in process memory (correct for the single free-tier instance,
 wrong with several workers); upgrade Phase E moves them to Postgres.
@@ -171,26 +171,30 @@ wrong with several workers); upgrade Phase E moves them to Postgres.
 5. Every metric in the README has its sample size and interval, and comes from a saved file in `eval/`.
 6. Database migrations are append-only.
 
-## 8. Target layout (upgrade Phase B)
+## 8. Package layout (upgrade Phase B, ADR 0012)
 
-Today the backend is flat modules in `src/` imported by name (`pythonpath = ["src"]`). Phase B turns it
-into an installable package with layers that only depend inward:
+The backend is the installable package `src/helpdesk/`. Layers only depend inward:
+core <- domain <- ai, retrieval, storage <- pipeline, auth, insights <- api, evals.
 
 ```text
 src/helpdesk/
-  core/        settings.py (one typed tree, no os.getenv elsewhere), logging.py
-  domain/      tickets.py (labels), offices.py, decision.py        <- pure, no I/O
-  ai/          provider.py (LLMProvider protocol), gemini.py, classifier.py,
-               answer.py, fence.py, grounding.py, prompts/ (versioned text)
+  core/        settings.py (AppSettings, GeminiSettings: the only environment reads),
+               paths.py, logs.py
+  domain/      tickets.py (labels, dataset), offices.py, decision.py, grounding.py,
+               outputs.py (the model's output schemas)            <- pure, no I/O to model or DB
+  ai/          provider.py (LLMProvider protocol), gemini.py (GeminiProvider), classifier.py,
+               answer.py, fence.py
   retrieval/   knowledge_base.py, embeddings.py, search.py
-  storage/     db.py (pool), migrations.py, tickets_repo.py, staff_repo.py
-  api/         app.py (create_app factory), deps.py, security.py, routers/
-  evals/       stats.py, classifier.py, retrieval.py, pipeline.py, security.py, report.py
-  pipeline.py  one ticket end to end
-  cli.py       helpdesk eval | index | add-staff
+  storage/     db.py (connections, pool, migrations), tickets.py (the ticket table)
+  api/         app.py (create_app factory), deps.py (Services, dependencies), security.py,
+               routers/ (tickets, login, staff, web)
+  evals/       stats.py, classifier.py, retrieval.py, pipeline.py, security.py
+  auth.py, insights.py, pipeline.py, panel.py (old Streamlit page)
 ```
 
-Why: an app factory and dependency injection remove the module globals that tests now monkeypatch; one
-settings tree makes a bad value fail at startup; an `LLMProvider` protocol lets the roadmap's model
-comparison (item 9) swap models without code edits. The move keeps behaviour identical: the gate is the
-same tests passing and the same eval scores.
+Why: the app factory and dependency injection removed the module globals that tests used to
+monkeypatch (each test builds its own app); one settings module makes a bad value fail at startup;
+the `LLMProvider` protocol lets the model comparison (roadmap item 9) swap models without touching
+prompts or steps. Behaviour was kept identical: the API schema and the Gemini requests are
+byte-identical to the flat version. Not done (yet): a `helpdesk` CLI and versioned prompt files
+(Phase C), separate staff repository module.
