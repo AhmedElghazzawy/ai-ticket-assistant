@@ -1675,3 +1675,4 @@ Staff pages show student messages. Until now they only answered requests from th
 ## Wrap-up (2026-10-25)
 - ARCHITECTURE.md: section 8 now shows the real package layout (was the plan), the sequence diagram and the security table point to the new files. docs/ROADMAP.md: upgrade phases A and B marked done; status line 188 tests, coverage 83%. README: 188 tests, 12 decision records.
 - Pull request opened for the branch `phase-b-package`; merged only after CI is green (merging deploys the live site).
+- PR #7 merged (`5147dac`) after every check passed (Python, frontend + browser tests, Docker build, CodeQL); CI green on main. Live site checked 5 minutes later: health ok, one-click demo login, queue of 16, Insights. From outside it cannot be told which build Render is serving (both behave the same); Render's dashboard (Events) shows the deploy.
