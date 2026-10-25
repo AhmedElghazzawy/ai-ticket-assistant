@@ -20,15 +20,15 @@ run shows a problem, write it down; fixing it needs NEW tickets to measure the f
 ## Commands
 | Eval | Command | Calls |
 |---|---|---|
-| Classifier | `uv run python src/evaluate.py high [test\|phase8]` | 2 runs per ticket |
-| Retrieval (hit@3) | `uv run python src/evaluate_retrieval.py` | embeddings only, every set |
-| Pipeline (unsafe auto-sends) | `uv run python src/evaluate_pipeline.py [test\|phase8]` | 2 per ticket |
-| Prompt injection | `uv run python src/evaluate_security.py` | 12 probes |
+| Classifier | `make eval-classifier [SET=test\|phase8]` | 2 runs per ticket |
+| Retrieval (hit@3) | `make eval-retrieval` | embeddings only, every set |
+| Pipeline (unsafe auto-sends) | `make eval-pipeline [SET=test\|phase8]` | 2 per ticket |
+| Prompt injection | `make eval-security` | 12 probes |
 
 The scripts already wait between calls and retry on 429; never wrap them in a faster loop.
 
 ## Reporting
-- Every number with its sample size and the Wilson 95% interval (`src/stats.py`), e.g.
+- Every number with its sample size and the Wilson 95% interval (`src/helpdesk/evals/stats.py`), e.g.
   "72.5% (57-84%, n=40)".
 - Missed escalations first: they are the most dangerous error.
 - Compare with the previous saved result in `eval/` and say whether the difference is larger than the

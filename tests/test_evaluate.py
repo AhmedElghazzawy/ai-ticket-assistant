@@ -4,9 +4,9 @@ from typing import Any
 
 import pytest
 
-from evaluate import score
-from stats import wilson_interval
-from tickets import Ticket
+from helpdesk.domain.tickets import Ticket
+from helpdesk.evals.classifier import score
+from helpdesk.evals.stats import wilson_interval
 
 
 def ticket(tid: str, escalate: bool = False) -> Ticket:

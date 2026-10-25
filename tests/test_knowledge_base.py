@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from knowledge_base import Chunk, split_document
+from helpdesk.retrieval.knowledge_base import Chunk, split_document
 
 DOCUMENT = """# Campus Life
 

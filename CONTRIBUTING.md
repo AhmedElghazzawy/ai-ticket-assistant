@@ -20,9 +20,9 @@ Tests never call Gemini, so `make check` works without a key. Evals do call it; 
 ## Making a change
 1. Branch from `main`.
 2. Write the failing test first: every rule and every bug fix gets one.
-3. Keep modules small and typed; settings come from `src/config.py`.
+3. Keep modules small and typed; settings come from `src/helpdesk/core/settings.py`.
 4. API change: `make api-client` regenerates `frontend/openapi.json` and the TypeScript client.
-5. Schema change: append a step to `MIGRATIONS` in `src/store.py`; never edit a released one.
+5. Schema change: append a step to `MIGRATIONS` in `src/helpdesk/storage/db.py`; never edit a released one.
 6. A significant choice gets a decision record in `docs/decisions/` (Turkish, next number).
 7. Add an entry to `docs/changelog.md`: what changed, why, the commands run and their results.
 8. `make check` is green, then open a pull request. CI must pass before merge; `main` is always green.

@@ -2,10 +2,10 @@
 
 from typing import get_args
 
-from answer import Answer
-from classifier import Classification
-from decision import MIN_SCORE, OFFICE_NAMES, OFFICE_OF, WeakMatch, decide, show_first_help
-from tickets import Category
+from helpdesk.domain.decision import MIN_SCORE, WeakMatch, decide, show_first_help
+from helpdesk.domain.offices import OFFICE_NAMES, OFFICE_OF
+from helpdesk.domain.outputs import Answer, Classification
+from helpdesk.domain.tickets import Category
 
 RULE = "No separate application is needed for the make-up exam."
 RETRIEVED = {"sinavlar.en#4": f"Make-up exam\n{RULE}", "sinavlar.en#1": "Exam dates are on OBS."}

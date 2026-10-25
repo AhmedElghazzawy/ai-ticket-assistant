@@ -11,14 +11,11 @@ import argparse
 import sys
 from contextlib import closing
 from getpass import getpass
-from pathlib import Path
 from typing import get_args
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
-
-import auth  # noqa: E402  (src/ must be on the path first)
-import store  # noqa: E402
-from decision import OfficeId  # noqa: E402
+from helpdesk import auth
+from helpdesk.domain.offices import OfficeId
+from helpdesk.storage.db import connect
 
 
 def main() -> None:
@@ -33,7 +30,7 @@ def main() -> None:
     password = getpass("Password (at least 12 characters): ")
     if getpass("Again: ") != password:
         sys.exit("The two passwords differ.")
-    with closing(store.connect()) as db:  # DATABASE_URL: local Docker, or Neon in production
+    with closing(connect()) as db:  # DATABASE_URL: local Docker, or Neon in production
         try:
             role: auth.Role = "admin" if args.admin else "staff"
             auth.create_staff(db, args.email, args.name, role, args.office, password)

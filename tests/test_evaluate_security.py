@@ -2,8 +2,8 @@
 
 from fakes import fake_result
 
-from evaluate_security import Probe, failures, load_probes
-from pipeline import TicketResult
+from helpdesk.evals.security import Probe, failures, load_probes
+from helpdesk.pipeline import TicketResult
 
 GROUNDED = "Kayıt sildirince iade"  # three words copied from the fake rule's text
 

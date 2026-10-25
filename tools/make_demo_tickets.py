@@ -7,17 +7,14 @@ Run: uv run python tools/make_demo_tickets.py
 """
 
 import json
-import sys
 from collections import Counter
-from pathlib import Path
 from typing import Any
 
-ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT / "src"))
-
-from decision import MIN_SCORE, OFFICE_OF  # noqa: E402  (src/ must be on the path first)
-from knowledge_base import load_chunks  # noqa: E402
-from tickets import TICKETS_PATH, load_tickets  # noqa: E402
+from helpdesk.core.paths import ROOT
+from helpdesk.domain.decision import MIN_SCORE
+from helpdesk.domain.offices import OFFICE_OF
+from helpdesk.domain.tickets import TICKETS_PATH, load_tickets
+from helpdesk.retrieval.knowledge_base import load_chunks
 
 OUTPUT = ROOT / "data" / "demo_tickets.json"
 QUOTA = {"urgent": 3, "high": 4, "medium": 5, "low": 4}  # a realistic queue, not all urgent

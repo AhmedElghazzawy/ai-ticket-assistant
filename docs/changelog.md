@@ -1631,3 +1631,47 @@ Staff pages show student messages. Until now they only answered requests from th
 - My request: "merge and just make everything is good". PR #1 merged into main (`daaea2a`, merge commit); CI green on main after the merge.
 - Checked locally after the merge: `make check` passes (ruff, mypy strict 51 files, 176 pytest, coverage 80.81%, frontend Biome, TypeScript, build). No file still points to AGENTS.md.
 - Stale numbers fixed: README test line 162 -> 176 (coverage 81%); docs/ROADMAP.md status line dated 2026-10-24, 145 tests + 16 Playwright -> 176 tests + 18 Playwright, CodeQL and Dependabot on, 12/12 injection probes. Dependabot started its first weekly update runs right after the merge; its PRs are reviewed one by one, never merged blindly.
+
+# Engineering upgrade, Phase B: package restructure (2026-10-24)
+- My message: "if everything is working and ready you can continue". Claude started Phase B on the branch `phase-b-package` (larger work goes through a PR, CLAUDE.md). Gate: the same tests pass and the app behaves the same.
+
+## Step 1: the flat modules become the package `helpdesk`
+- Moved with `git mv` (history kept) into layers that only depend inward: `core/` (settings, paths, logs), `domain/` (tickets, offices, decision, grounding, outputs), `ai/` (gemini, fence, classifier, answer), `retrieval/` (knowledge_base, embeddings, search), `storage/` (db, tickets), `api/app.py`, `evals/` (stats, classifier, retrieval, pipeline, security), plus `auth.py`, `insights.py`, `pipeline.py`, `panel.py` (the old Streamlit page). `try_one_ticket.py` moved to tools/.
+- Split while moving, so the domain never imports the AI layer: the model's output schemas `Classification` and `Answer` moved to `domain/outputs.py` (same class names and fields, so the JSON schema sent to Gemini and the OpenAPI file are byte-identical: `make api-drift` clean); the office table moved from decision.py to `domain/offices.py`; embeddings split out of the search module; the ticket table split out of the database module (`storage/db.py` keeps connections and migrations).
+- One place for file paths (`core/paths.py`): every module used to compute `Path(__file__).parent.parent`, which breaks when a file moves one folder deeper.
+- pyproject.toml: a build system (uv's own `uv_build`), so the code is installed as the package `helpdesk` (editable). Imports are now `from helpdesk.domain.decision import decide`; the `sys.path` lines in tools/ are gone.
+- Problem found on my Mac: a background process marks every file in `.venv` "hidden" a few seconds after it is written, and Python 3.12 skips hidden `.pth` files, so the editable install is not seen (`No module named 'helpdesk'`). Not this project's fault, and Linux (Docker, CI, Render) is not affected. Fix that works everywhere: pytest `pythonpath = ["src"]`, mypy `mypy_path = "src"`, and the Makefile exports `PYTHONPATH=src`; the README and CLAUDE.md now use `make` targets.
+- New Makefile targets: `make serve` (API with reload), `make panel`, `make data`, `make index`, `make eval-classifier|eval-retrieval|eval-pipeline|eval-security` with `SET=dev|test|phase8` and `LEVEL=high|low`.
+- Docker: the image installs the package (README.md copied for its metadata) and starts `uvicorn helpdesk.api.app:app`. Built and run locally: /api/health ok, the web app served, paths resolve to /app.
+- Tests: imports updated; the add_staff test now replaces the tool's own `connect`. Docs updated: CLAUDE.md code map, README (Turkish: commands and structure), CONTRIBUTING, ARCHITECTURE, .claude skills and agents, ADR 0002 and 0010 links, .env.example.
+- Checks: ruff, mypy strict (64 files), 176 pytest, OpenAPI unchanged.
+
+## Step 2: one settings module, no environment reads anywhere else
+- `core/settings.py` is now the only code that reads the environment. Two typed groups: `AppSettings` (DATABASE_URL, LOG_FORMAT, COOKIE_SECURE, DEMO_MODE, CLIENT_IP_HEADER, DAILY_TICKET_CAP) needs no API key, so logs, the database, tools and tests work without one; `GeminiSettings` (key, model, timeout, retries, prices) is loaded on the first model call, as before. The six `os.getenv` calls in api.py, store.py and logs.py are gone.
+- Behaviour change on purpose: a bad value now stops the app at startup with a clear error. Before, a typo was silently read as the default (`DEMO_MODE=ture` meant "off", `LOG_FORMAT=xml` meant console). Checked by hand: `DEMO_MODE=ture` fails with "demo_mode: Input should be a valid boolean". Booleans also accept 1/0/yes/no now; LOG_FORMAT and the header name ignore case, as before.
+- DATABASE_URL is a SecretStr: its password never appears when settings are printed (new test).
+- Bug found in an old test: the cost-estimate test replaced `config.get_settings`, but llm.py had imported that function by name, so the replacement never reached the code under test; it passed only because the real defaults are the same prices. It now replaces the name the Gemini module uses.
+- tests/test_config.py renamed tests/test_settings.py: 6 new tests (defaults without a key, reading every variable, three bad values fail, the database password is never printed). .env.example lists the three settings it was missing.
+- The guard hook (Phase A) blocked one of Claude's shell commands because the test text mentioned the secrets file in a comment: a false alarm, but the guard did its job; the file was written with the editor tool instead.
+- Checks: ruff, mypy strict, 182 pytest.
+
+## Step 3: an app factory and one router per audience
+- `api/app.py` (551 lines) split into: `app.py` (`create_app()`, the request-log middleware), `deps.py` (the `Services` an app owns: settings, pipeline, a lazily opened connection pool, the two rate limiters; FastAPI dependencies `ServicesDep` and `CurrentStaff`), `security.py` (RateLimiter, visitor address, CSRF check), `routers/tickets.py` (student: send, look up, feedback), `routers/login.py`, `routers/staff.py`, `routers/web.py` (health check and the React app, included last).
+- Why: there are no module globals any more (pool, limiters, DEMO_MODE, DAILY_TICKET_CAP, CLIENT_IP_HEADER, COOKIE_SECURE, DIST_DIR). Each test builds its own app with its own settings, database schema and fake pipeline (`make_api(demo_mode=True)`), instead of patching module variables. Production: `uvicorn helpdesk.api.app:create_app --factory` (Dockerfile, `make serve`).
+- New: the connection pool is closed when the server stops (FastAPI lifespan). Test added.
+- Tests: new `tests/harness.py` (`Api`: `ask`, `use_pipeline`, `staff`, `visitor`, `browser`). A test app's default pipeline fails loudly, so a test can never call the paid model by mistake. test_api, test_demo and test_logs rewritten to it; the checks themselves are unchanged.
+- Bug found while doing it: `create_app` configured logging again for every new app; loggers already in use kept the old configuration, so the log-capture tests saw nothing. Logging is now configured once per process (test added).
+- The API schema (frontend/openapi.json) is byte-identical, so the React app and its generated client are unchanged. A "tickets" tag that the new router would have added was left out for that reason.
+- Checked by hand: Docker image built and run (health ok, web app served, JSON logs); local server against the real Postgres with the demo on: options, one-click demo login, queue of 16 (urgent first), Insights, unknown lookup 404.
+- Checks: ruff, mypy strict (72 files), 184 pytest, coverage 82.5% (gate 80%).
+
+## Step 4: the LLMProvider interface
+- `ai/provider.py`: `LLMProvider` (a Protocol: `model` and `generate_json(stage, system, contents, schema, thinking)`). `ai/gemini.py::GeminiProvider` implements it (structured output, thinking level, function calling off, temperature left at 1.0). The classifier and the answer step now take a provider; `process_ticket(..., llm)`; the app, evals and panel each pass a `GeminiProvider`.
+- Tests first (tests/test_llm_steps.py, 4 tests, `FakeLLM` in tests/fakes.py): the classifier sends the fenced ticket with the rulebook; the answer step sends language, ticket and rules and drops a model-written source note; the pipeline uses the model it is given; GeminiProvider builds the right config.
+- Gate "same behaviour" checked without paid calls: the Gemini requests built by `main` and by this branch (configs, prompts, schemas, contents for classify and answer) are byte-identical (15,572 bytes each). The model sees exactly the same input, so the scores cannot change except for the model's own randomness. No eval was re-run (they cost calls; only when I ask).
+- ADR 0012 (Turkish). Checks: ruff, mypy strict (74 files), 188 pytest, coverage 83%, OpenAPI unchanged.
+- Left for Phase B: ARCHITECTURE.md section 8 still shows the planned layout (update to the real one), open the PR and merge after CI.
+
+## Wrap-up (2026-10-25)
+- ARCHITECTURE.md: section 8 now shows the real package layout (was the plan), the sequence diagram and the security table point to the new files. docs/ROADMAP.md: upgrade phases A and B marked done; status line 188 tests, coverage 83%. README: 188 tests, 12 decision records.
+- Pull request opened for the branch `phase-b-package`; merged only after CI is green (merging deploys the live site).

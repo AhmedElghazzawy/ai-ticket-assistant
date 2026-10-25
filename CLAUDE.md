@@ -84,19 +84,26 @@ Run from the repository root. `make help` lists them all.
 | Python only | `make lint`, `make typecheck`, `make test` |
 | Frontend only | `make web-check` |
 | Run the whole app | `make up` (docker compose up --build), then http://127.0.0.1:8000 |
+| API with auto-reload | `make serve` (and `cd frontend && npm run dev` for the page) |
 | API schema + client after an API change | `make api-client` |
 | Refresh the teaching bundle | `uv run python tools/make_context.py` |
 
-Evals call the paid model: run them only when asked, one suite at a time (see the `run-evals` skill).
+Evals call the paid model: run them only when asked, one suite at a time (`make eval-*`, see the
+`run-evals` skill). Use `make` or `uv run python -m helpdesk...`: never `python src/...` paths.
 
 ## Code map
-- `src/pipeline.py` one ticket end to end: classify, retrieve, draft, decide.
-- `src/classifier.py`, `src/answer.py` the two LLM steps; `src/llm.py` the shared Gemini client.
-- `src/fence.py`, `src/grounding.py` prompt-injection defence (ADR 0010).
-- `src/knowledge_base.py`, `src/retrieval.py` chunks, embeddings, pgvector search.
-- `src/decision.py` the auto-send rules: pure code, the most important file to keep tested.
-- `src/store.py` Postgres, migrations; `src/auth.py` staff login; `src/api.py` FastAPI app.
-- `src/evaluate*.py`, `src/stats.py` evals and Wilson intervals; results in `eval/`.
+The backend is the package `src/helpdesk/`; layers only depend inward (core <- domain <- the rest).
+- `core/` settings (`settings.py`, the only place that reads the environment), `paths.py`, `logs.py`.
+- `domain/` pure rules, no I/O to the model or database: `decision.py` (the auto-send rules, the most
+  important file to keep tested), `offices.py`, `tickets.py` (labels, dataset loader), `outputs.py`
+  (the model's output schemas), `grounding.py` (evidence must be in the rules, ADR 0010).
+- `ai/` the two LLM steps `classifier.py`, `answer.py`; `fence.py` (prompt-injection fence);
+  `gemini.py` the shared Gemini client.
+- `retrieval/` `knowledge_base.py` chunks, `embeddings.py`, `search.py` index sync and pgvector search.
+- `storage/` `db.py` connections and migrations, `tickets.py` the ticket table.
+- `auth.py` staff login; `insights.py` staff statistics; `pipeline.py` one ticket end to end.
+- `api/app.py` the FastAPI app; `evals/` evals and Wilson intervals (results in `eval/`);
+  `panel.py` the old Streamlit panel.
 - `frontend/` React app (student chat, Taleplerim, staff console); its API client is generated.
 - `tests/` pytest against a real Postgres; `tests/fakes.py` fakes every AI call.
 
@@ -119,7 +126,7 @@ can explain the change.
 - Label IDs, code and comments in English (ASCII); user-facing text bilingual (TR and EN).
 - Settings come from `config.py`; rules that change results (MIN_SCORE, prompts) stay in code on purpose,
   so changing them is a reviewed commit followed by a new eval.
-- Database changes: append a new step to `MIGRATIONS` in `src/store.py`; never edit a released step.
+- Database changes: append a new step to `MIGRATIONS` in `src/helpdesk/storage/db.py`; never edit a released step.
 - API changes: regenerate `frontend/openapi.json` and the client (`make api-client`); CI fails otherwise.
 - Commits: one topic each, imperative summary line, the reason in the body.
 

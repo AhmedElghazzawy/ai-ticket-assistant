@@ -6,7 +6,7 @@
 En tehlikeli hata, bir insanın görmesi gereken bir talebe otomatik cevap gitmesidir. LLM hata yapabilir ve kararını tam açıklayamaz. Benzerlik puanları tek başına yeterli değildir: cevabı olmayan bir talep 0,730, cevaplanabilir bir talep 0,635 alabildi.
 
 ## Karar
-Karar [`src/decision.py`](../../src/decision.py) içinde sade Python kodudur. Cevap yalnızca şu 6 kontrolün **hepsi** geçerse otomatik gönderilir:
+Karar [`src/helpdesk/domain/decision.py`](../../src/helpdesk/domain/decision.py) içinde sade Python kodudur. Cevap yalnızca şu 6 kontrolün **hepsi** geçerse otomatik gönderilir:
 1. kategori `other` değil,
 2. model escalation istemedi,
 3. öncelik `urgent` değil (acil bir durumda bir insan bugün harekete geçebilir),

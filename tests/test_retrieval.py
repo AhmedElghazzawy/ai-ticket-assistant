@@ -7,9 +7,10 @@ from pathlib import Path
 
 import pytest
 
-import retrieval
-from knowledge_base import load_chunks
-from store import Connection, Database
+from helpdesk.retrieval import search as retrieval
+from helpdesk.retrieval.embeddings import DIMENSIONS
+from helpdesk.retrieval.knowledge_base import load_chunks
+from helpdesk.storage.db import Connection, Database
 
 REAL_INDEX = retrieval.INDEX_PATH  # read before any test points INDEX_PATH elsewhere
 
@@ -42,7 +43,7 @@ def test_sync_copies_every_chunk_with_its_vector(db: Connection) -> None:
     row = db.execute(
         "SELECT count(*) AS n, min(vector_dims(embedding)) AS dims FROM kb_chunks"
     ).fetchone()
-    assert row == {"n": len(load_chunks()), "dims": retrieval.DIMENSIONS}
+    assert row == {"n": len(load_chunks()), "dims": DIMENSIONS}
 
 
 def test_sync_again_changes_nothing_and_removes_deleted_chunks(db: Connection) -> None:
@@ -114,7 +115,7 @@ def test_search_on_an_empty_knowledge_base_fails_loudly(
     db: Connection, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     database, _ = borrow_counter(db)  # never synced: kb_chunks is empty
-    monkeypatch.setattr(retrieval, "embed", lambda texts: [[0.0] * retrieval.DIMENSIONS])
+    monkeypatch.setattr(retrieval, "embed", lambda texts: [[0.0] * DIMENSIONS])
     with pytest.raises(RuntimeError, match="knowledge base is empty"):
         retrieval.search("ticket", database)
 

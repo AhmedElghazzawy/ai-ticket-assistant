@@ -28,7 +28,10 @@ COPY pyproject.toml uv.lock ./
 RUN uv sync --locked --no-default-groups --no-install-project
 
 # The app: code, the documents and search index, the label rulebook, the built web app.
+# Then install the `helpdesk` package itself (README.md is part of its metadata).
+COPY README.md ./
 COPY src/ src/
+RUN uv sync --locked --no-default-groups
 COPY docs/labels.md docs/labels.md
 COPY data/knowledge_base/ data/knowledge_base/
 COPY data/kb_index.json data/kb_index.json
@@ -44,4 +47,4 @@ USER app
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=20s \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=2)"
-CMD ["uvicorn", "api:app", "--app-dir", "src", "--host", "0.0.0.0", "--port", "8000", "--no-access-log"]
+CMD ["uvicorn", "helpdesk.api.app:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000", "--no-access-log"]
