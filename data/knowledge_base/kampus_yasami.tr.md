@@ -28,3 +28,18 @@ Kütüphane ve Dokümantasyon Daire Başkanlığı 5.000 m² kapalı alana sahip
 - Kaynak: Resmî olmayan kaynak: kariyer.net Bilecik KYK yurt rehberi
 - Bağlantı: https://www.kariyer.net/kyk-yurt-rehberi/bilecik
 Bilecik'teki öğrenci yurtları Üniversiteye değil, devlete (Kredi ve Yurtlar Kurumu, KYK) aittir; örneğin Halime Hatun, Pazaryeri ve Bilecik KYK kız yurtları ile Ertuğrulgazi ve Şeyh Edebali KYK erkek yurtları. Yurt başvurusu, oda değişikliği, yurt ücreti ve yurttaki arızalar için KYK'ya başvurulmalıdır; Üniversite bu işlemleri yürütmez. (Bu bölüm resmî olmayan bir kaynağa dayanır.)
+
+## Kampüse ulaşım (Oryantasyon 2025-2026)
+- Kaynak: BŞEÜ Sağlık Bilimleri Fakültesi 2025-2026 Oryantasyon Sunumu
+- Bağlantı: https://www.bilecik.edu.tr/dosya/33945_479a_oryantasyon sunumu.pdf
+"H1 den H7 ye ve H9 no’lu toplu taşıma hatları mevcuttur. H6 Hariç tüm hatlarla okula ulaşmak mümkündür." "Bilecik Belediyesi Otobüs Terminali, Bilecik Merkez Otogarı ve Yüksek Hızlı Tren bulunmaktadır." Hafta sonu sefer saatleri bu kaynakta yer almaz.
+
+## Kütüphane salonları ve grup çalışma odaları (Oryantasyon 2025-2026)
+- Kaynak: BŞEÜ Sağlık Bilimleri Fakültesi 2025-2026 Oryantasyon Sunumu
+- Bağlantı: https://www.bilecik.edu.tr/dosya/33945_479a_oryantasyon sunumu.pdf
+Kampüste Prof. Dr. Azmi Özcan Kütüphanesi bulunur. Merkezde Uluğbey, Biruni, Aşıkpaşazade ve Dursun Fakih adlı dört büyük salonun yanı sıra 7/24 Salonu, 1 konferans salonu, 6 adet 8'er kişilik proje ve grup çalışma odası ve 1 görme engelli çalışma odası vardır. "Proje ve grup odaları iki saat olmak üzere hizmete sunulmaktadır."
+
+## Burslar (Oryantasyon 2025-2026)
+- Kaynak: BŞEÜ Sağlık Bilimleri Fakültesi 2025-2026 Oryantasyon Sunumu
+- Bağlantı: https://www.bilecik.edu.tr/dosya/33945_479a_oryantasyon sunumu.pdf
+"Üniversitemizde her eğitim öğretim yılında başvuruları değerlendirilen ve uygun görülen öğrencilere Kısmi Zamanlı Öğrenci ve Yemek Bursu verilmektedir." Başvuru ve duyurular Sağlık, Kültür ve Spor Daire Başkanlığının sayfasındadır: https://www.bilecik.edu.tr/sks/

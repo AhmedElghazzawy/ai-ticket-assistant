@@ -46,5 +46,5 @@ export const RESULTS = {
   missedEscalations: { missed: 0, of: 11 }, // locked realistic set, both runs
   rightDocumentTop3: { hits: 30, of: 30 }, // Phase 8 retrieval, hit@3
   unsafeAutoSends: { unsafe: 0, of: 40 }, // Phase 8 pipeline
-  documents: 22, // data/knowledge_base: 11 topics x TR + EN
+  documents: 24, // data/knowledge_base: 12 topics x TR + EN
 };

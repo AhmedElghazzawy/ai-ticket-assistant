@@ -19,3 +19,18 @@
 
 ## Kablosuz internet (eduroam)
 Kablosuz internetten yararlanmak için, e-posta hesabı açıldıktan sonra portal.bilecik.edu.tr adresinden kullanıcı adı ve parola ile giriş yapılır ve açılan sayfada "Yeni Kullanıcı Bilgilerimi Oluştur" düğmesine tıklanır. "Öğrenci Bilgi Sistemi (OBS) kullanıcı adı ve şifrenizle kablosuz internet ağımız “eduroam”a doğrudan bağlanabilmektesiniz."
+
+## UZEM'e giriş yapılamıyorsa
+- Kaynak: BŞEÜ Açık ve Uzaktan Öğrenme Uygulama ve Araştırma Merkezi (UZEM), Sıkça Sorulan Sorular
+- Bağlantı: https://bilecik.edu.tr/ue/Icerik/Sıkça_Sorulan_Sorular_(SSS)_952bf
+Giriş için ders kaydının yapılmış olması gerekir: "Ders kaydınızın yapıldıktan sonra ertesi gün dersleriniz ve kullanıcı hesaplarınız https://ders.bilecik.edu.tr/ adresinden aktif olacaktır." ‘Kullanıcı bu sitede bulunmuyor’ uyarısı alınıyorsa: "Obs sistemine giriş yaptıktan bir gün sonra https://ders.bilecik.edu.tr/ adresinden kullanıcı özellikleriniz ile giriş yapınız." Sayfanın listelediği giriş yapamama nedenleri: ders kaydının yapılmamış olması (danışmanla iletişime geçilir), e-posta adresinin yanlış olması ve kablosuz ağ (eduroam) hesabının aktif olmaması (sofra.bilecik.edu.tr adresinde kablosuz internet menüsünden öğrenci numarası ve OBS şifresiyle kontrol edilir).
+
+## UZEM şifresi ve telefon doğrulaması
+- Kaynak: BŞEÜ Açık ve Uzaktan Öğrenme Uygulama ve Araştırma Merkezi (UZEM), Sıkça Sorulan Sorular
+- Bağlantı: https://bilecik.edu.tr/ue/Icerik/Sıkça_Sorulan_Sorular_(SSS)_952bf
+‘Şifreniz hatalı’ uyarısı alınırsa https://sofra.bilecik.edu.tr/YeniParolaOlustur adresinden yeni şifre alınır: "Parolanız en az bir küçük harf, bir büyük harf ve bir de rakam içermelidir. En az 8 karakter, en çok 14 karakter olmalıdır". Onay kodu SMS ile gelir. "https://ders.bilecik.edu.tr/ adresinden şifre günceleme işlemi yapmayınız, bu şifre güncelleme işlemi geçersizdir." Telefon numarası veya e-posta değiştiyse: "giris.bilecik.edu.tr adresine gelerek hesabım menüsünden iletişim telefon numarası ve güncel eposta adresini girmelisiniz ve doğrulama yapmalısınız." Kayıtlı e-posta adresinin değiştirilmesi için bağlı olunan akademik birimle iletişime geçilir.
+
+## UZEM canlı dersler, kayıtlı dersler ve teknik destek
+- Kaynak: BŞEÜ Açık ve Uzaktan Öğrenme Uygulama ve Araştırma Merkezi (UZEM), Sıkça Sorulan Sorular
+- Bağlantı: https://bilecik.edu.tr/ue/Icerik/Sıkça_Sorulan_Sorular_(SSS)_952bf
+Canlı ders programları OBS'de görülür. "Canlı ders sistemi bilgisayarınızda bulunan tarayıcı üzerinde açılmakta, ek bir programın bilgisayarınıza kurulmasına gerek bulunmamaktadır." Derslere internet bağlantısı olan dizüstü veya masaüstü bilgisayar, cep telefonu ya da tabletle katılınabilir. Kaçırılan canlı ders sonradan izlenebilir: ilgili derse ve haftadaki ders etkinliğine tıklanıp ‘Kayıtlı Dersi İzle’ bağlantısı seçilir. Dersin konusu ve işlenişiyle ilgili sorular için dersin öğretim elemanına yazılır. "Sistem üzerinde aldığınız teknik hataları bildirmek için varsa ekran görüntüleriniz ile birlikte http://uedestek.bilecik.edu.tr/ web adresinden teknik destek talebi oluşturabilirsiniz."

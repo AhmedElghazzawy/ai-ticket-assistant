@@ -1680,3 +1680,22 @@ Staff pages show student messages. Until now they only answered requests from th
 ## Session handover (2026-10-26)
 - docs/ROADMAP.md "Current status" now starts with where the next session begins: review Dependabot PRs #2-#6 one by one (#2 Python 3.15 image to be closed, the project is pinned to 3.12), or start upgrade Phase C. Reason: a new Claude Code session starts without this conversation, so the next step must be written in the repository, not only remembered.
 - Claude Code's own memory (outside the repo) got a "status and next step" note and a note on the Mac tooling traps (hidden .pth files, the guard hook), so a new session picks up from the same point.
+
+## Knowledge base expansion: the AI answers more, without inventing facts (2026-10-27)
+Branch `kb-expansion`. The goal (my request): the assistant should really answer students instead of sending almost everything to a person.
+- **Diagnosis, no paid calls.** In the last dev-set pipeline run, 17 of 80 tickets were auto-answered. The biggest reason for forwarding was `not_covered` (56 tickets): the model correctly said the documents do not contain the answer (fee amounts, installments, diploma, prerequisites, UZEM problems...). The decision rules were not the problem; the knowledge base was too small. Letting the model answer anyway would mean invented fees and deadlines, so the fix is more official content.
+- **Gap list:** `docs/knowledge_gaps.md` (Turkish): each unanswered dev ticket, the missing fact, the official source found for it, and the topics with no official source (they keep going to a person). Only the dev set was looked at; the locked sets were not opened.
+- **New official content (TR + EN, appended at the end of each document so existing chunk ids stay the same):**
+  - `harc_ucretler`: 2026-2027 contribution and fee amounts by faculty (yearly + fall installment), payment dates 14-18 September 2026 and installments, fees for international students, disability discount, no fee during academic leave, the payment receipt (dekont).
+  - `belgeler_hesaplar`: graduation date, collecting the diploma (in person or by notarized proxy, never by post), the diploma supplement.
+  - `ders_kaydi`: advisor and advisor approval (Article 6), prerequisite courses (Articles 4, 14, 15), timetable clashes (Article 15), language of instruction (Article 14).
+  - `bilisim_hesaplar`: UZEM login problems, password rules and phone verification, live and recorded classes, technical support (uedestek).
+  - `kampus_yasami`: getting to campus (bus lines), library halls and group rooms, scholarships.
+  - New document `engelli_ogrenciler`: the Disabled Students Unit, exam arrangements (time, place, materials, reader; Article 8), the unit representative.
+- **Checked against the sources:** a script compared every new quoted sentence with the downloaded official texts: 35/35 word for word (two fixes were needed: "Obs" capital letters, and short quoted labels that confused the check). Every one of the 35 fee amounts was compared with the official PDF tables. Four sentences I had written myself (e.g. "apply to the head of department") were removed because no source says them.
+- **Labels:** `expected_docs.jsonl` changed for three dev tickets only (tr-006 -> bilisim_hesaplar, tr-010 -> engelli_ogrenciler, en-025 -> harc_ucretler), because a new section now answers them. Locked-set tickets were not relabeled: before the next locked run they must be relabeled without looking at model outputs, otherwise a correct new answer could be counted as an "unsafe" auto-send.
+- **Search index rebuilt:** `make index`, 156 chunks (was 112) from 24 documents (12 topics x TR/EN); 4 embedding calls, under one cent.
+- **New test:** every Turkish section has an English twin (search runs in the ticket's language, so a missing twin could never answer); shown to fail when an English file is removed. 189 tests, coverage 83%, `make check` green.
+- **Docs:** README, ARCHITECTURE and the landing-page number (24 official documents) updated.
+- **Honest note:** the new sections were chosen by reading dev-set questions, so the next dev-set score will be somewhat optimistic. The fair measure is new tickets or the locked sets (only when asked). Fee tables change every year and must be updated by hand.
+- **Not done yet (needs my OK):** the paid dev-set pipeline eval to measure the change; the urgent-ticket rule change (step 3 of the plan).

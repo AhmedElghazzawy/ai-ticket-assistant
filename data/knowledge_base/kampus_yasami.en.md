@@ -28,3 +28,18 @@ Students who want to eat in the university cafeterias must load money onto their
 - Source: Non-official source: kariyer.net Bilecik KYK dormitory guide
 - Link: https://www.kariyer.net/kyk-yurt-rehberi/bilecik
 Student dormitories in Bilecik belong to the state (Kredi ve Yurtlar Kurumu, KYK), not to the university; for example the Halime Hatun, Pazaryeri and Bilecik KYK dormitories for women and the Ertuğrulgazi and Şeyh Edebali KYK dormitories for men. For dormitory applications, room changes, dormitory fees and repairs, contact KYK; the university does not handle these. (This section is based on a non-official source.)
+
+## Getting to campus (Orientation 2025-2026)
+- Source: BŞEÜ Faculty of Health Sciences 2025-2026 Orientation Presentation
+- Link: https://www.bilecik.edu.tr/dosya/33945_479a_oryantasyon sunumu.pdf
+Public transport lines H1 to H7 and H9 exist; all lines except H6 reach the campus. Bilecik has the municipal bus terminal, the central intercity bus station (otogar) and a high-speed train station. Weekend timetables are not in this source.
+
+## Library halls and group study rooms (Orientation 2025-2026)
+- Source: BŞEÜ Faculty of Health Sciences 2025-2026 Orientation Presentation
+- Link: https://www.bilecik.edu.tr/dosya/33945_479a_oryantasyon sunumu.pdf
+The Prof. Dr. Azmi Özcan Library is on campus. Besides four large halls (Uluğbey, Biruni, Aşıkpaşazade and Dursun Fakih), it has the 24/7 Hall, 1 conference hall, 6 project and group study rooms for 8 people each, and 1 study room for visually impaired students. Project and group rooms are available for two hours at a time.
+
+## Scholarships (Orientation 2025-2026)
+- Source: BŞEÜ Faculty of Health Sciences 2025-2026 Orientation Presentation
+- Link: https://www.bilecik.edu.tr/dosya/33945_479a_oryantasyon sunumu.pdf
+Every academic year the university gives Part-Time Student (Kısmi Zamanlı Öğrenci) and Meal Scholarships to students whose applications are evaluated and accepted. Applications and announcements are on the Health, Culture and Sports Department (SKS) page: https://www.bilecik.edu.tr/sks/

@@ -111,7 +111,7 @@ Phase 8, öğrencilerin çoğunun hiç yardım almadan beklediğini gösterdi: b
 - **Geri bildirim:** "Bu cevap işinize yaradı mı?" düğmeleri artık gerçekten kaydediliyor (önceden görünüyor ama hiçbir şey kaydetmiyordu).
 - **"Nasıl karar verildi?":** her cevabın altında açılabilen bir iz: sınıflandırma, belge eşleşmesi ve eşik, belgelerin soruyu karşılayıp karşılamadığı, kaynağın doğrulanması ve karar. Öğrenciye yalnızca kontrol sonuçları gösterilir; taslak ve modelin kendi metni personelde kalır.
 - **İstatistikler (personel):** toplam talep, otomatik cevap, hemen yardım alan, bekleyen, medyan cevap süresi ve faydalı bulunma oranı; her sayının yanında örnek sayısı (n). Talep sonuçları, kategori ve son 14 gün grafikleri; her grafik tablo olarak da görülebilir. Grafik renkleri renk körlüğüne karşı bir doğrulama betiğiyle kontrol edildi.
-- **Canlı örnek ve ölçülen sonuçlar (başlangıç ekranı):** soru yazılmadan önce, gerçek bir test sorusunun dört kontrolden gerçek skorlarıyla geçişi ve gerçek cevabı oynatılır ("Bu soruyu sor" ile gerçekten sorulabilir); yanında ölçülen sonuçlar: 0/11 kaçırılan escalation, 30/30 doğru belge ilk 3'te, 0/40 hatalı otomatik gönderim, 22 resmî belge. Hareketi azaltma ayarı açık olanlar için animasyon durur.
+- **Canlı örnek ve ölçülen sonuçlar (başlangıç ekranı):** soru yazılmadan önce, gerçek bir test sorusunun dört kontrolden gerçek skorlarıyla geçişi ve gerçek cevabı oynatılır ("Bu soruyu sor" ile gerçekten sorulabilir); yanında ölçülen sonuçlar: 0/11 kaçırılan escalation, 30/30 doğru belge ilk 3'te, 0/40 hatalı otomatik gönderim, 24 resmî belge. Hareketi azaltma ayarı açık olanlar için animasyon durur.
 - **Dürüst bekleme göstergesi:** eski gösterge, adımlar bitmeden zamanlayıcıyla "✓" koyuyordu. Yeni gösterge yalnızca talebin izlediği yolu ve gerçek geçen süreyi gösterir.
 
 ## Prompt injection savunması (24.10.2026)
@@ -213,8 +213,8 @@ Dev skoru yaklaşık 10 puan iyimserdi. Kaçırılan escalation testte de 0: kur
 
 ## Bilgi tabanı ve belge arama (Phase 3)
 
-- 11 konu × 2 dil = 22 belge, yalnızca resmî BŞEÜ kaynaklarından: Ön Lisans ve Lisans Eğitim-Öğretim Yönetmeliği (Resmî Gazete 07.07.2019), Muafiyet ve İntibak Yönergesi, Yaz Okulu Yönetmeliği, Mühendislik Fakültesi Staj Yönergesi, Öğrenci Kulüpleri Yönergesi, Öğrenci İşleri SSS, 2025-2026 Oryantasyon Sunumu (SOFRA, e-posta, OBS, UZEM, eduroam, kütüphane, yemekhane kartı). Tırnak içindeki 59 cümlenin 59'u resmî metinle birebir kontrol edildi.
-- Her `##` bölümü bir parça (chunk): 112 parça. Embedding: `gemini-embedding-2` (768 boyut, çok dilli). Ticket hangi dildeyse o dilde aranır.
+- 12 konu × 2 dil = 24 belge, yalnızca resmî BŞEÜ kaynaklarından: Ön Lisans ve Lisans Eğitim-Öğretim Yönetmeliği (Resmî Gazete 07.07.2019), Muafiyet ve İntibak Yönergesi, Yaz Okulu Yönetmeliği, Mühendislik Fakültesi Staj Yönergesi, Öğrenci Kulüpleri Yönergesi, Engelli Öğrenciler Birim Koordinatörlüğü Yönergesi, Öğrenci İşleri SSS, 2026-2027 Katkı Payı ve Öğrenim Ücreti tabloları, Tahsilat Rehberi, UZEM SSS, 2025-2026 Oryantasyon Sunumları (SOFRA, e-posta, OBS, UZEM, eduroam, kütüphane, yemekhane kartı, ulaşım, burslar). Tırnak içindeki 94 cümlenin 94'ü resmî metinle birebir kontrol edildi (59 ilk sürümde, 35 Ekim 2026 genişletmesinde); ücret tutarlarının hepsi resmî tablolarla karşılaştırıldı. Hangi boşluğun neden eklendiği: [docs/knowledge_gaps.md](docs/knowledge_gaps.md).
+- Her `##` bölümü bir parça (chunk): 156 parça. Embedding: `gemini-embedding-2` (768 boyut, çok dilli). Ticket hangi dildeyse o dilde aranır.
 - Arama Postgres içinde, pgvector ile yapılır (`kb_chunks` tablosu, cosine distance `<=>`). Vektörler bir kez hesaplanıp `data/kb_index.json` dosyasında saklanır (git'te sürümlü); uygulama başlarken tabloya kopyalanır, böylece boş bir veritabanı (ör. Neon) API çağrısı yapmadan dolar. Vektör index'i (HNSW) bilerek yok: ~100 parça için her satırı tam kontrol etmek hızlıdır ve hiçbir sonucu kaçırmaz. Python'daki eski aramayla birebir aynı sonuçlar verdiği ölçüldü (120 ticket, aynı ilk 3 parça ve skorlar).
 - Sonuç (doğru belge ilk 3 sonuçta, cevaplanabilir ticket'lar): **dev %100 (46), test %100 (17)**; ilk sırada: dev %91, test %94.
 - Ticket'ların yalnızca yaklaşık yarısı belgelerle cevaplanabiliyor (dev 46/80, test 17/40).
@@ -240,7 +240,7 @@ Dev skoru yaklaşık 10 puan iyimserdi. Kaçırılan escalation testte de 0: kur
 
 - Personelin cevabı öğrenciye "Taleplerim" sayfasında ulaşır, ama yalnızca talebin gönderildiği tarayıcıda (gizli kod orada saklanır). E-posta bildirimi ve öğrenci girişi (SSO) yoktur.
 - Her ticket **tek bir kategori** alır; iki farklı birimi ilgilendiren bir ticket'ın bir kısmı yanlış birime gidebilir.
-- Bilgi tabanı 11 konuyla sınırlı; tarihler ve ücret tutarları belgelerde yok, bu yüzden bu sorular insana yönlendirilir.
+- Bilgi tabanı 12 konuyla sınırlı. 2026-2027 ücret tutarları ve güz ödeme tarihleri eklendi, ama her yıl değişir: tablo her yıl elle güncellenmelidir (otomatik güncelleme yok). Yemekhane saatleri, kütüphane kapanış saati, spor salonu gibi resmî kaynağı bulunamayan konular insana yönlendirilir.
 - Staj kuralları yalnızca Mühendislik Fakültesi içindir; KYK bölümü resmî olmayan bir kaynağa dayanır.
 - KYK yurtları ve KYK burs/kredi devlete aittir; sistem bu konularda sadece yönlendirme yapar.
 - Ücretsiz katmanın sınırları var (bir model için günde 20 istek görüldü; embedding için dakikada 100 metin); bu yüzden Flash-Lite kullanılıyor ve çağrılar arasında bekleniyor.
@@ -341,9 +341,9 @@ tools/add_staff.py      Personel hesabı oluşturur (gizli şifre girişi)
 tools/make_demo_tickets.py  Demo modunun örnek taleplerini veri setinden üretir
 tools/try_one_ticket.py İlk API çağrısı testi (Step 1)
 render.yaml             Render dağıtımı (ücretsiz plan, Frankfurt)
-tests/                  188 pytest testi, kapsam %83 (karar kuralları, prompt injection savunması, ön bilgi, ayarlar, veritabanı, arama, belge bölme, API, stres testleri, giriş, öğrencinin talebi, istatistikler, demo, değerlendirme, Claude Code dosya koruması)
+tests/                  189 pytest testi, kapsam %83 (karar kuralları, prompt injection savunması, ön bilgi, ayarlar, veritabanı, arama, belge bölme, API, stres testleri, giriş, öğrencinin talebi, istatistikler, demo, değerlendirme, Claude Code dosya koruması)
 frontend/e2e/           Tarayıcı testleri (Playwright): öğrencinin her cevap türünde gördüğü sayfa
-data/knowledge_base/    22 resmî kaynaklı belge (TR + EN)
+data/knowledge_base/    24 resmî kaynaklı belge (TR + EN)
 data/tickets/           Etiketli ticket'lar
 eval/                   Kaydedilen değerlendirme sonuçları
 docs/labels.md          Etiket kural kitabı
@@ -364,7 +364,7 @@ Son güncelleme: 23.10.2026. ✅ tamamlandı · 🟡 kısmen · 🔄 devam ediyo
 |---|---|---|
 | 1. Sınıflandırma ve değerlendirme | ✅ | 7 kategori, 4 öncelik, escalation; `low` / `high` thinking karşılaştırması |
 | 2. Güvenilir skor: kilitli test seti | ✅ | 40 talep; dev ile test arasındaki fark ölçüldü |
-| 3. Bilgi tabanı ve belge arama (RAG) | ✅ | 11 konu × 2 dil, resmî kaynaklar; hit@3 %100 |
+| 3. Bilgi tabanı ve belge arama (RAG) | ✅ | 12 konu × 2 dil, resmî kaynaklar; hit@3 %100 (genişletmeden önce ölçüldü) |
 | 4. Kaynaklı cevap, karar ve birime yönlendirme | ✅ | 6 kontrollü karar; hatalı otomatik gönderim ölçüldü |
 | 5. API (FastAPI) ve otomatik testler | ✅ | |
 | 6. İnsan inceleme kuyruğu | ✅ | Kuyruk yapıldı. Planlanan LangGraph'a geçiş yapılmadı: akış düz bir adım dizisi olduğu için sade bir Python fonksiyonu yeterli |
