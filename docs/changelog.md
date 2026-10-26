@@ -1676,3 +1676,7 @@ Staff pages show student messages. Until now they only answered requests from th
 - ARCHITECTURE.md: section 8 now shows the real package layout (was the plan), the sequence diagram and the security table point to the new files. docs/ROADMAP.md: upgrade phases A and B marked done; status line 188 tests, coverage 83%. README: 188 tests, 12 decision records.
 - Pull request opened for the branch `phase-b-package`; merged only after CI is green (merging deploys the live site).
 - PR #7 merged (`5147dac`) after every check passed (Python, frontend + browser tests, Docker build, CodeQL); CI green on main. Live site checked 5 minutes later: health ok, one-click demo login, queue of 16, Insights. From outside it cannot be told which build Render is serving (both behave the same); Render's dashboard (Events) shows the deploy.
+
+## Session handover (2026-10-26)
+- docs/ROADMAP.md "Current status" now starts with where the next session begins: review Dependabot PRs #2-#6 one by one (#2 Python 3.15 image to be closed, the project is pinned to 3.12), or start upgrade Phase C. Reason: a new Claude Code session starts without this conversation, so the next step must be written in the repository, not only remembered.
+- Claude Code's own memory (outside the repo) got a "status and next step" note and a note on the Mac tooling traps (hidden .pth files, the guard hook), so a new session picks up from the same point.
