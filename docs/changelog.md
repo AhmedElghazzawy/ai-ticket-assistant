@@ -1699,3 +1699,6 @@ Branch `kb-expansion`. The goal (my request): the assistant should really answer
 - **Docs:** README, ARCHITECTURE and the landing-page number (24 official documents) updated.
 - **Honest note:** the new sections were chosen by reading dev-set questions, so the next dev-set score will be somewhat optimistic. The fair measure is new tickets or the locked sets (only when asked). Fee tables change every year and must be updated by hand.
 - **Not done yet (needs my OK):** the paid dev-set pipeline eval to measure the change; the urgent-ticket rule change (step 3 of the plan).
+- PR #8 opened; every CI check passed (Python, frontend + browser tests, Docker build, CodeQL). Claude Code's permission check blocks Claude from merging without a human review, so I merge it myself.
+- Step 3 of the plan (urgent tickets should get their answer right away) needs no change: when an urgent ticket has a cited, grounded answer, the student already sees it at once as "first help" and a person still handles the ticket (ADR 0008, `tests/test_decision.py::test_category_other_and_urgent_can_get_first_help`). Auto-closing urgent tickets would remove the human check, so the rule stays.
+- No eval was run: I asked to keep everything free. The effect of the new content is not measured yet.
