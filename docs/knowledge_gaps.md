@@ -27,11 +27,17 @@ Escalation gerektirmeyen ve `not_covered` olan 39 dev ticket'tan, resmî bir kay
 | tr-006, en-028, tr-016 | UZEM girişi, teknik destek, şifre ve telefon doğrulama | UZEM Sıkça Sorulan Sorular | bilisim_hesaplar |
 | en-009 | Kampüse ulaşım (otobüs hatları) | 2025-2026 Oryantasyon Sunumu | kampus_yasami |
 | tr-010 | Engelli öğrencilere sınav düzenlemeleri | Engelli Öğrenciler Birim Koordinatörlüğü Yönergesi Madde 8 | engelli_ogrenciler (yeni) |
+| tr-015 | Kütüphane salonlarının çalışma saatleri | Kütüphane, Çalışma Saatlerimiz | kampus_yasami |
+| en-032 | Yemekhane saatleri | SKS, Beslenme Hizmetleri SSS | sks_hizmetleri (yeni) |
+| tr-029 | Glutensiz / diyet yemek | SKS, Beslenme Hizmetleri SSS | sks_hizmetleri |
+| tr-030 | Spor salonu ücreti ve saatleri | SKS, Spor Hizmetleri SSS, Tesisler, Fiyatlar | sks_hizmetleri |
+| tr-019 | Konferans salonu talebi | SKS, Kültür Hizmetleri SSS ve Konferans Salonları | sks_hizmetleri |
+| tr-038 | Mezun olunca öğrenci e-postası | Bilgi İşlem, E-posta Ayarları (Öğrenci) | bilisim_hesaplar |
+| en-029 | E-posta kotası ve sınırları (olası neden) | Bilgi İşlem, E-posta Ayarları (Öğrenci) | bilisim_hesaplar |
 
 ## Resmî kaynağı bulunamayanlar (insana gitmeye devam eder)
-Kütüphane kapanış saati (yalnızca 7/24 salonu belli), yemekhane saatleri ve glutensiz menü, spor
-salonu, kayıp eşya, konferans salonu rezervasyonu, Office 365 lisansı, UZEM dosya boyutu sınırı,
-burs ödemesinin gecikmesi, mezun e-postası. Ayrıca bilgi tabanının hiçbir zaman cevaplayamayacağı
+Kayıp eşya, Office 365 lisansı, UZEM dosya boyutu sınırı, burs ödemesinin gecikmesi, hafta sonu
+servis saatleri, İngilizce transkriptin hazırlanma süresi. Ayrıca bilgi tabanının hiçbir zaman cevaplayamayacağı
 ticket'lar vardır: arıza bildirimi (yazıcı, projektör, Wi-Fi kopması), belirsiz ticket ("help",
 "obs calismiyor") ve konu dışı sorular (hava durumu).
 
