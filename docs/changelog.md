@@ -1712,3 +1712,7 @@ Same branch and PR (#8, not merged yet). Goal: close more of the gaps in `docs/k
 - **Index rebuilt:** 180 chunks from 26 documents (13 topics x TR/EN). Embedding calls are needed, otherwise the app refuses an outdated index; on the free tier they cost nothing.
 - **Checks:** `make check` green, 189 tests, coverage 83%. README, ARCHITECTURE, the landing-page number (26) and the gap list updated.
 - **Still forwarded (no official source):** lost and found, Office 365 licence, UZEM upload size, late scholarship payments, weekend bus times, how long an English transcript takes; plus fault reports, unclear tickets and off-topic questions.
+
+## Session handover (2026-10-29)
+- docs/ROADMAP.md "Current status" says where the next session starts: merge PR #8 (branch `kb-expansion`, CI green), then optionally one dev-set pipeline eval to measure the knowledge-base expansion (only if I allow API use), then the remaining gaps, Dependabot PRs #2-#6, upgrade Phase C.
+- Noted that untracked `.agents/` and `.codex/` folders come from another AI tool and are left untouched (an `AGENTS.md` file from the same tool appeared and was later removed, not by Claude Code).
