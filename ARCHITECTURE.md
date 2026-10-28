@@ -59,7 +59,7 @@ sequenceDiagram
 | Step | Module | Model call | Output |
 |---|---|---|---|
 | Classify | `ai/classifier.py` | Gemini, structured output, thinking `high` | `reason` first, then category (7), priority (4), escalate |
-| Retrieve | `retrieval.py`, `knowledge_base.py` | embedding of the ticket | top 3 of 112 chunks from 22 documents (11 topics x TR/EN), exact scan |
+| Retrieve | `retrieval.py`, `knowledge_base.py` | embedding of the ticket | top 3 of 180 chunks from 26 documents (13 topics x TR/EN), exact scan |
 | Draft | `ai/answer.py` | Gemini, structured output | reply, `covered`, cited rule ids, word-for-word `evidence` |
 | Decide | `decision.py` | none: plain code (ADR 0002) | `auto_send` and the reason codes |
 
