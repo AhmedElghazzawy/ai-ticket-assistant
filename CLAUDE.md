@@ -90,7 +90,7 @@ Run from the repository root. `make help` lists them all.
 | API schema + client after an API change | `make api-client` |
 | Refresh the teaching bundle | `uv run python tools/make_context.py` |
 
-Evals call the paid model: run them only when asked, one suite at a time (`make eval-*`, see the
+Evals call the paid model: run them only when asked, one suite at a time (`make eval SUITE=...`, see the
 `run-evals` skill). Use `make` or `uv run python -m helpdesk...`: never `python src/...` paths.
 
 ## Code map

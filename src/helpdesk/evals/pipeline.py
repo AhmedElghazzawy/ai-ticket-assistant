@@ -1,12 +1,11 @@
 """Phase 4 evaluation: run the whole pipeline and count tickets auto-sent that should not have been.
 
-Run: make eval-pipeline              (dev tickets)
-     make eval-pipeline SET=test     (the locked test tickets: measure only)
-     make eval-pipeline SET=phase8   (the locked Phase 8 tickets: measure only)
+Run: make eval SUITE=pipeline              (dev tickets)
+     make eval SUITE=pipeline SET=test     (the locked test tickets: measure only)
+     make eval SUITE=pipeline SET=phase8   (the locked Phase 8 tickets: measure only)
 """
 
 import json
-import sys
 import time
 from typing import Any
 
@@ -15,6 +14,7 @@ from helpdesk.core.paths import EVAL_DIR
 from helpdesk.domain.decision import show_first_help
 from helpdesk.domain.grounding import is_grounded
 from helpdesk.domain.tickets import DATASETS, TICKETS_PATH, Ticket, load_tickets
+from helpdesk.evals.report import run_metadata
 from helpdesk.evals.stats import wilson_interval
 from helpdesk.pipeline import process_ticket
 from helpdesk.retrieval.search import open_synced_pool
@@ -57,10 +57,7 @@ def summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
-def main() -> None:
-    dataset = sys.argv[1] if len(sys.argv) > 1 else "dev"
-    if dataset not in DATASETS:
-        sys.exit(f"Unknown dataset {dataset!r}; choose one of {list(DATASETS)}")
+def run(dataset: str) -> None:
     tickets = load_tickets(DATASETS[dataset])
     expected = {
         r["id"]: r["doc"]
@@ -100,13 +97,11 @@ def main() -> None:
 
     summary = summarize(rows)
     print(json.dumps(summary, ensure_ascii=False, indent=1))
+    datasets = {dataset: DATASETS[dataset], "expected_docs": EXPECTED_PATH}
+    saved = {"run": run_metadata("pipeline", llm.model, datasets), "summary": summary, "rows": rows}
     path = RESULTS_DIR / f"pipeline_results_{dataset}.json"
     path.write_text(
-        json.dumps({"summary": summary, "rows": rows}, ensure_ascii=False, indent=1),
+        json.dumps(saved, ensure_ascii=False, indent=1),
         encoding="utf-8",
     )
     print(f"Saved to {path.relative_to(RESULTS_DIR.parent)}")
-
-
-if __name__ == "__main__":
-    main()

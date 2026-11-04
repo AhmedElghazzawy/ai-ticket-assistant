@@ -20,10 +20,10 @@ run shows a problem, write it down; fixing it needs NEW tickets to measure the f
 ## Commands
 | Eval | Command | Calls |
 |---|---|---|
-| Classifier | `make eval-classifier [SET=test\|phase8]` | 2 runs per ticket |
-| Retrieval (hit@3) | `make eval-retrieval` | embeddings only, every set |
-| Pipeline (unsafe auto-sends) | `make eval-pipeline [SET=test\|phase8]` | 2 per ticket |
-| Prompt injection | `make eval-security` | 12 probes |
+| Classifier | `make eval SUITE=classifier [SET=test\|phase8] [LEVEL=low]` | 2 runs per ticket |
+| Retrieval (hit@3) | `make eval SUITE=retrieval` | embeddings only, every set |
+| Pipeline (unsafe auto-sends) | `make eval SUITE=pipeline [SET=test\|phase8]` | 2 per ticket |
+| Prompt injection | `make eval SUITE=security` | 12 probes |
 
 The scripts already wait between calls and retry on 429; never wrap them in a faster loop.
 
@@ -33,8 +33,9 @@ The scripts already wait between calls and retry on 429; never wrap them in a fa
 - Missed escalations first: they are the most dangerous error.
 - Compare with the previous saved result in `eval/` and say whether the difference is larger than the
   interval. Two runs that differ inside the interval are noise (temperature is 1.0).
-- Say which prompt version produced the result. Results are files in `eval/`, committed with the change
-  that produced them.
+- Say which prompt version produced the result: every saved file has a `run` block (git commit, dirty
+  flag, prompt hashes, dataset and knowledge-base hashes, model; `src/helpdesk/evals/report.py`).
+  Results are files in `eval/`, committed with the change that produced them.
 - For a deeper reading, the `eval-analyst` subagent can review the saved JSON.
 
 ## Record

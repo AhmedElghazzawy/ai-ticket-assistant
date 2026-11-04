@@ -1,6 +1,6 @@
 """Measure retrieval: is the right document in the top 3 for each ticket?
 
-Run: make eval-retrieval
+Run: make eval SUITE=retrieval   (every dataset; embedding calls only)
 """
 
 import json
@@ -9,8 +9,9 @@ from typing import Any
 
 from helpdesk.core.paths import EVAL_DIR
 from helpdesk.domain.tickets import DATASETS, TICKETS_PATH, load_tickets
+from helpdesk.evals.report import run_metadata
 from helpdesk.evals.stats import wilson_interval
-from helpdesk.retrieval.embeddings import embed, query_text
+from helpdesk.retrieval.embeddings import EMBED_MODEL, embed, query_text
 from helpdesk.retrieval.search import nearest, open_synced_pool
 
 EXPECTED_PATH = TICKETS_PATH.parent / "expected_docs.jsonl"
@@ -41,7 +42,7 @@ def summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
-def main() -> None:
+def run() -> None:
     expected = {
         row["id"]: row["doc"]
         for row in map(json.loads, EXPECTED_PATH.read_text(encoding="utf-8").splitlines())
@@ -57,7 +58,8 @@ def main() -> None:
         )
     )
 
-    results = {}
+    datasets = {**DATASETS, "expected_docs": EXPECTED_PATH}
+    results: dict[str, Any] = {"run": run_metadata("retrieval", EMBED_MODEL, datasets)}
     for name, tickets in sets.items():
         rows = []
         for t in tickets:
@@ -91,7 +93,3 @@ def main() -> None:
         print(f"   not in top {K}: {summary['misses'] or 'none'}")
     RESULTS_PATH.write_text(json.dumps(results, ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"\nSaved to {RESULTS_PATH.relative_to(RESULTS_PATH.parent.parent)}")
-
-
-if __name__ == "__main__":
-    main()

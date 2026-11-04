@@ -1,24 +1,23 @@
 """Score the classifier against my labels and save the run to eval/.
 
-Run: make eval-classifier                 (dev tickets, thinking level high)
-     make eval-classifier SET=test        (the LOCKED test tickets: measure only, never tune on them)
-     make eval-classifier SET=phase8      (the LOCKED Phase 8 tickets: measure only)
-(or: uv run python -m helpdesk.evals.classifier high [dev|test|phase8])
+Run: make eval SUITE=classifier                 (dev tickets, thinking level high)
+     make eval SUITE=classifier SET=test        (the LOCKED test tickets: measure only, never tune on them)
+     make eval SUITE=classifier SET=phase8      (the LOCKED Phase 8 tickets: measure only)
 """
 
 import json
-import sys
 import time
 from datetime import datetime
 from typing import Any
 
 from google.genai import errors
 
-from helpdesk.ai.classifier import THINKING, classify
+from helpdesk.ai.classifier import classify
 from helpdesk.ai.gemini import GeminiProvider
 from helpdesk.ai.provider import LLMProvider, Thinking
 from helpdesk.core.paths import EVAL_DIR
 from helpdesk.domain.tickets import DATASETS, Ticket, load_tickets
+from helpdesk.evals.report import run_metadata
 from helpdesk.evals.stats import wilson_interval
 
 RUNS = 2  # each ticket is classified twice, to measure consistency
@@ -159,19 +158,13 @@ def print_mistakes(tickets: list[Ticket], predictions: Predictions) -> None:
             print(f"- {t.id} | {diffs}\n    {t.text}\n    reason: {p['reason']}")
 
 
-def main() -> None:
-    arg = sys.argv[1].lower() if len(sys.argv) > 1 else THINKING
-    if arg not in ("low", "high"):
-        sys.exit(f"Unknown thinking level {arg!r}; choose low or high")
-    level: Thinking = "low" if arg == "low" else "high"
-    dataset = sys.argv[2] if len(sys.argv) > 2 else "dev"
-    if dataset not in DATASETS:
-        sys.exit(f"Unknown dataset {dataset!r}; choose one of {list(DATASETS)}")
+def run(level: Thinking, dataset: str) -> None:
     tickets = load_tickets(DATASETS[dataset])
     llm = GeminiProvider()
     runs = predict_all(tickets, llm, level)
     by_language = {lang: [t for t in tickets if t.language == lang] for lang in ("tr", "en")}
     results = {
+        "run": run_metadata("classifier", llm.model, {dataset: DATASETS[dataset]}),
         "date": datetime.now().isoformat(timespec="seconds"),
         "model": llm.model,
         "thinking_level": level.upper(),  # "HIGH" / "LOW", as in the saved results
@@ -191,7 +184,3 @@ def main() -> None:
     print_report(results)
     print_mistakes(tickets, runs[0])
     print(f"\nSaved to {path.relative_to(RESULTS_DIR.parent)}")
-
-
-if __name__ == "__main__":
-    main()

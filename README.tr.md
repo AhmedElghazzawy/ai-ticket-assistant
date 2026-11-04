@@ -35,7 +35,7 @@ olmazsa ilk açılış yaklaşık 1 dakika sürer).
   hemen "ön bilgi" olarak gösterilir; hassas taleplerde asla.
 - **Dürüst değerlendirme:** ayar için hiç kullanılmayan iki kilitli test seti; her ölçüt örnek sayısı ve
   %95 Wilson güven aralığıyla.
-- **Üretim alışkanlıkları:** tipli ayarlar, mypy strict, gerçek Postgres üzerinde 189 test, tarayıcı
+- **Üretim alışkanlıkları:** tipli ayarlar, mypy strict, gerçek Postgres üzerinde 201 test, tarayıcı
   testleri, CodeQL, Dependabot, Docker, öğrenci metni içermeyen yapılandırılmış loglar, 12 karar kaydı (ADR).
 
 ## Nasıl çalışır
@@ -200,9 +200,10 @@ uv run python tools/add_staff.py ad@bilecik.edu.tr "Ad Soyad" --office it   # it
 **Kontroller** (API çağrısı yok): `make check`, CI'daki her şeyi çalıştırır: ruff, mypy, Postgres
 üzerinde pytest, OpenAPI uyumu ve frontend kontrolleri. `make help` tüm komutları listeler.
 
-**Değerlendirmeler** modeli çağırır: `make eval-classifier`, `make eval-retrieval`, `make eval-pipeline`,
-`make eval-security`; `SET=dev` (varsayılan), `SET=test` veya `SET=phase8` ile. Kilitli setlerde
-yalnızca ölçülür, asla ayar yapılmaz.
+**Değerlendirmeler** modeli çağırır: `make eval SUITE=classifier|pipeline|retrieval|security`; `SET=dev`
+(varsayılan), `SET=test` veya `SET=phase8` ile. Kayıtlı her sonuç, onu üreten git commit'ini, prompt
+hash'lerini, veri seti ve bilgi tabanı hash'lerini ve modeli içerir. Kilitli setlerde yalnızca ölçülür,
+asla ayar yapılmaz.
 
 ## Proje yapısı
 
@@ -221,7 +222,7 @@ data/knowledge_base/ Resmî kaynaklı 26 belge (TR + EN)
 data/tickets/        Etiketli talepler: dev (80), kilitli test (40), kilitli gerçekçi set (40)
 eval/                Kayıtlı değerlendirme sonuçları
 docs/                Etiket kural kitabı, karar kayıtları, yol haritası, sorun kataloğu, değişiklik günlüğü
-tests/               Gerçek Postgres üzerinde 189 pytest testi; her AI çağrısı taklit edilir
+tests/               Gerçek Postgres üzerinde 201 pytest testi; her AI çağrısı taklit edilir
 tools/               Personel hesapları, demo verisi, OpenAPI dışa aktarma, veri seti denetimi
 ```
 

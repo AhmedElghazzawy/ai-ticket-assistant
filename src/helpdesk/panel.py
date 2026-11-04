@@ -590,7 +590,7 @@ with tab_eval:
     all_results = read_results()
     if not all_results:
         st.info(t["no_results"])
-        st.code("make eval-classifier")
+        st.code("make eval SUITE=classifier")
     else:
         newest = max(
             all_results, key=lambda name: all_results[name]["date"]
@@ -674,4 +674,4 @@ with tab_eval:
 
         st.warning(t["limits"])
         st.caption(t["rerun"])
-        st.code("make eval-classifier")
+        st.code("make eval SUITE=classifier")

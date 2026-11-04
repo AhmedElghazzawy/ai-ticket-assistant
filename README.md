@@ -35,7 +35,7 @@ a quiet period takes about a minute).
   the student right away ("first help"), but never on sensitive tickets.
 - **Honest evaluation:** two locked test sets that were never used for tuning, and every metric
   reported with its sample size and a 95% Wilson confidence interval.
-- **Production habits:** typed settings, mypy strict, 189 tests on a real Postgres, browser tests,
+- **Production habits:** typed settings, mypy strict, 201 tests on a real Postgres, browser tests,
   CodeQL, Dependabot, Docker, structured logs with no student text, 12 architecture decision records.
 
 ## How it works
@@ -198,9 +198,10 @@ uv run python tools/add_staff.py name@bilecik.edu.tr "Full Name" --office it   #
 **Checks** (no API calls): `make check` runs everything CI runs: ruff, mypy, pytest on Postgres, the
 OpenAPI drift check and the frontend checks. `make help` lists every command.
 
-**Evaluations** call the model: `make eval-classifier`, `make eval-retrieval`, `make eval-pipeline`,
-`make eval-security`, with `SET=dev` (default), `SET=test` or `SET=phase8`. The locked sets are only
-ever measured, never tuned on.
+**Evaluations** call the model: `make eval SUITE=classifier|pipeline|retrieval|security`, with `SET=dev`
+(default), `SET=test` or `SET=phase8`. Every saved result records the git commit, prompt hashes, dataset
+and knowledge-base hashes and the model that produced it. The locked sets are only ever measured, never
+tuned on.
 
 ## Project structure
 
@@ -219,7 +220,7 @@ data/knowledge_base/ The 26 official-source documents (TR + EN)
 data/tickets/        Labelled tickets: dev (80), locked test (40), locked realistic (40)
 eval/                Saved evaluation results
 docs/                Label rulebook, decision records, roadmap, problem catalogue, changelog
-tests/               189 pytest tests against a real Postgres; every AI call is faked
+tests/               201 pytest tests against a real Postgres; every AI call is faked
 tools/               Staff accounts, demo data, OpenAPI export, dataset audit
 ```
 

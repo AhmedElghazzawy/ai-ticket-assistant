@@ -5,7 +5,7 @@
 # that points there can get the "hidden" flag, which Python 3.12 skips; naming src/ is the fix.
 export PYTHONPATH := src
 .PHONY: help install db up down serve panel lint format typecheck test api-drift web-check check api-client context \
-	data index eval-classifier eval-retrieval eval-pipeline eval-security
+	data index eval
 
 help: ## List the targets
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-12s %s\n", $$1, $$2}'
@@ -65,17 +65,9 @@ data: ## Check the dev tickets and print a summary (no AI calls)
 index: ## Rebuild data/kb_index.json after a knowledge-base change (paid embedding calls)
 	uv run python -m helpdesk.retrieval.search
 
-# Evals call the paid model. SET=dev (default), test or phase8 (locked: measure only, never tune).
-SET ?= dev
-LEVEL ?= high
-eval-classifier: ## Classifier eval: make eval-classifier LEVEL=high SET=dev
-	uv run python -m helpdesk.evals.classifier $(LEVEL) $(SET)
-
-eval-retrieval: ## Retrieval eval (hit@1, hit@3) on every set (embedding calls only)
-	uv run python -m helpdesk.evals.retrieval
-
-eval-pipeline: ## Whole pipeline: unsafe auto-sends, first help (make eval-pipeline SET=dev)
-	uv run python -m helpdesk.evals.pipeline $(SET)
-
-eval-security: ## Prompt-injection probes
-	uv run python -m helpdesk.evals.security
+# Evals call the paid model. SET: dev (default), test or phase8 (locked: measure only, never tune).
+SUITE ?=
+SET ?=
+LEVEL ?=
+eval: ## One eval, versioned in eval/: make eval SUITE=classifier|pipeline|retrieval|security [SET=..] [LEVEL=..]
+	uv run python -m helpdesk.evals $(SUITE) $(if $(SET),--set $(SET)) $(if $(LEVEL),--level $(LEVEL))
