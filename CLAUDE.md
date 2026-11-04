@@ -16,7 +16,7 @@ automatically, or route it to the right office with the draft. Live demo: https:
 | [docs/ROADMAP.md](docs/ROADMAP.md) | What is done, what is next, current status and scores |
 | [docs/decisions/](docs/decisions/) | Why a choice was made (ADRs, in Turkish) |
 | [docs/labels.md](docs/labels.md) | The label rulebook (Turkish) |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | Setup, commands, commit and PR conventions |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Setup, commands, commit conventions |
 
 ## Who I am and how we communicate
 - Computer engineering student, beginner in AI engineering. Mac, VS Code, Claude Code in the terminal.
@@ -55,8 +55,9 @@ automatically, or route it to the right office with the draft. Live demo: https:
   name lives in `.env` as GEMINI_MODEL.
 - The free tier has per-minute limits: short waits and automatic retries between calls, never a loop
   over many tickets without them.
-- Never commit without asking me. When I approve a commit, push it right away. Larger work goes on a
-  branch with a pull request, so CI checks it before it reaches main.
+- Never commit without asking me. When I approve a commit, push it straight to main: I am the only
+  contributor, so no branches and no pull requests. `make check` must pass before the push; CI runs again
+  on main, and Render deploys only after it passes.
 - Deploy commands (render, neonctl) are mine to run.
 
 ## Production standard
@@ -117,7 +118,7 @@ The backend is the package `src/helpdesk/`; layers only depend inward (core <- d
    needs an eval on the dev set, never on a locked set.
 6. **Record.** docs/changelog.md entry with the reason, an ADR if a choice was made, docs/ROADMAP.md
    status if an item moved, then `tools/make_context.py`.
-7. **Ship.** Suggest a commit message, commit after my OK, push the branch, open a PR.
+7. **Ship.** Suggest a commit message, commit after my OK, push to main, then confirm CI on main is green.
 
 Definition of done: checks green, tests for the new behaviour, changelog written, docs updated, and I
 can explain the change.

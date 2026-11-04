@@ -157,7 +157,7 @@ wrong with several workers); upgrade Phase E moves them to Postgres.
 
 - **CI** (`.github/workflows/ci.yml`): ruff, mypy strict, pytest on a real pgvector Postgres with a
   coverage gate, OpenAPI drift check; frontend Biome, TypeScript, generated-client drift, build,
-  Playwright on desktop and phone; Docker build. **CodeQL** weekly and on every PR; **Dependabot** weekly.
+  Playwright on desktop and phone; Docker build. **CodeQL** weekly, on every push to main and on Dependabot PRs; **Dependabot** weekly.
 - **Tests** fake every Gemini call (`tests/fakes.py`); each test gets its own Postgres schema.
 - **Evals** (`src/helpdesk/evals/`) make real calls and save JSON in `eval/` with Wilson 95% intervals. Two
   locked sets are never used for tuning (ADR 0003); an agent hook blocks edits to them.

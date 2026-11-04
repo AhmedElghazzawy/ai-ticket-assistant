@@ -18,18 +18,18 @@ Tests never call Gemini, so `make check` works without a key. Evals do call it; 
 `.claude/skills/run-evals/SKILL.md` before running one.
 
 ## Making a change
-1. Branch from `main`.
+1. Work on `main`: the project has a single maintainer, so there are no feature branches or pull requests.
 2. Write the failing test first: every rule and every bug fix gets one.
 3. Keep modules small and typed; settings come from `src/helpdesk/core/settings.py`.
 4. API change: `make api-client` regenerates `frontend/openapi.json` and the TypeScript client.
 5. Schema change: append a step to `MIGRATIONS` in `src/helpdesk/storage/db.py`; never edit a released one.
 6. A significant choice gets a decision record in `docs/decisions/` (Turkish, next number).
 7. Add an entry to `docs/changelog.md`: what changed, why, the commands run and their results.
-8. `make check` is green, then open a pull request. CI must pass before merge; `main` is always green.
+8. `make check` is green, then commit and push to `main`. CI runs again on every push and Render deploys
+   only after it passes; if `main` turns red, fixing it comes before anything else.
 
-## Commits and pull requests
+## Commits
 - One topic per commit; the summary line says what changed, the body says why.
-- A PR description says what changed, why, how it was verified, and what it does not do.
 - Eval results are committed together with the change that produced them, with sample sizes and
   intervals. Never tune a prompt on `data/tickets/test_tickets.jsonl` or `phase8_tickets.jsonl`.
 
