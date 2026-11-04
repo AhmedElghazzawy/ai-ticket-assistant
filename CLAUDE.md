@@ -4,7 +4,7 @@ Instructions for Claude Code, the coding agent this project is built with (in th
 file short: details live in the files linked below, which Claude reads when a task needs them.
 
 ## What this is
-My personal CV project (BŞEÜ Computer Engineering student), which I also present to my professor. The system
+My personal side project for my CV (I am a BŞEÜ Computer Engineering student). The system
 reads a student's support ticket, labels it (category, priority, escalate), finds the answer in official
 university documents (RAG), drafts a reply that cites its source, and decides in plain code: send it
 automatically, or route it to the right office with the draft. Live demo: https://bseu-helpdesk.onrender.com
@@ -21,11 +21,10 @@ automatically, or route it to the right office with the draft. Live demo: https:
 ## Who I am and how we communicate
 - Computer engineering student, beginner in AI engineering. Mac, VS Code, Claude Code in the terminal.
 - Chat with me in English, in simple words.
-- The public repo reads as a professional personal project: README.md in English, README.tr.md in Turkish.
-  Anything for my professor or the university (reports, emails, ADRs, README.tr.md) is in Turkish,
-  with English technical terms kept as they are (RAG, API, embedding, classification...).
-- I must be able to explain every line of this project myself (to my professor and in job interviews).
-- Private notes (presentations, e-mail drafts) go in the git-ignored `notes/` folder, never in the repo.
+- The repo is public and must read as a professional personal project, written for any engineer or
+  recruiter. README.md is in English; README.tr.md (the same content) and the ADRs are in Turkish, with
+  English technical terms kept as they are (RAG, API, embedding, classification...).
+- I must be able to explain every line of this project myself, for example in a job interview.
 
 ## Teaching mode (always on)
 - Auto mode stays OFF. Never run edits or commands without telling me first.

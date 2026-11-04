@@ -22,6 +22,3 @@ data/helpdesk.db
 # Test coverage data (pytest --cov)
 .coverage
 htmlcov/
-
-# Personal notes (presentations, e-mail drafts): kept on my Mac, never public
-notes/

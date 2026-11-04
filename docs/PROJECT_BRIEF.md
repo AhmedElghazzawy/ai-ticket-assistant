@@ -1,19 +1,19 @@
 # Project brief
 
-The project context, the design decisions and the data rules of the project. Moved here from CLAUDE.md (2026-10-24) so the agent instructions stay short; the text is unchanged. Agents read this file when a task touches labels, data, routing or the professor's requirements.
+The project context, the design decisions and the data rules of the project. Moved here from CLAUDE.md (2026-10-24) so the agent instructions stay short; the text is unchanged. Agents read this file when a task touches labels, data, routing or the original requirements.
 
 ## What this is
-A personal project by a BŞEÜ Computer Engineering student, also presented as coursework. The system reads a student's support ticket, labels it (category, priority, escalate), finds the answer in official university documents (RAG), drafts a reply that cites its source, and decides: send it automatically, or hand it to a human together with the draft and the right office.
+A personal side project by a BŞEÜ Computer Engineering student. The system reads a student's support ticket, labels it (category, priority, escalate), finds the answer in official university documents (RAG), drafts a reply that cites its source, and decides: send it automatically, or hand it to a human together with the draft and the right office.
 It is also my FIRST AI engineering project. The goal is for me to learn and truly understand it, not just to have working code.
 
-## Original requirements (feedback on the first idea)
-He said the idea is feasible but too general. Before building, I must define clearly:
+## Original requirements
+The first idea was feasible but too general. Before building, these had to be defined clearly:
 - which kinds of tickets, which units handle them, and what the results are
 - how many ticket categories, and which ones
 - which data and which documents the retrieval (RAG) part uses
 - how the system will be evaluated
 - the scope and limits
-He also said these parts can be explained separately: classification, RAG retrieval, answer generation, and the forward / do-not-forward decision. His suggested flow: user submits ticket, system classifies it, RAG retrieves information from the knowledge base, a draft answer is created, the system decides on automatic reply, and unresolved or special cases go to the relevant unit or person.
+The system splits into parts that can be explained separately: classification, RAG retrieval, answer generation, and the forward / do-not-forward decision. The flow: user submits ticket, system classifies it, RAG retrieves information from the knowledge base, a draft answer is created, the system decides on automatic reply, and unresolved or special cases go to the relevant unit or person.
 
 ## Project design (decided)
 Categories (7): account_access, registration, billing, it_support, academic_records, campus_life, other
@@ -47,7 +47,7 @@ Everything was deleted on purpose so I can rebuild it slowly. Do NOT recreate th
 - Step 4: The classifier. src/classifier.py: the system prompt built from our definitions, structured output (response schema), temperature left at the default 1.0 (Google's official Gemini 3 advice: below 1.0 can cause looping or degraded performance; consistency comes from structured output and clear rules, and is measured in Step 5 by running twice), thinking level "low" (compare with "high" in Step 5), and the "reason" field first. Explain why each choice matters. Run it on the tickets and read every mistake together.
 - Step 5: The evaluation. src/evaluate.py: score per label and overall, and missed escalations (the most dangerous error: a ticket that needed a human but was not escalated). Save the run to eval/results_<thinking level>.json (results_low.json, results_high.json; the locked test set: results_high_test.json). Explain what the score does and does not prove.
 - Step 6: A small web page. src/app.py with Streamlit: try one ticket, browse the dataset, run the evaluation. Keep it small and explain it block by block.
-- Step 7: Review and package. I explain the whole flow back in my own words, we write a short README, and prepare what I show my professor (in Turkish): the categories and units table, the dataset description, the evaluation method and the first score.
+- Step 7: Review and package. I explain the whole flow back in my own words and we write a short README: the categories and units table, the dataset description, the evaluation method and the first score.
 
 Phase 1 is done when:
 - I can explain every file in my own words.

@@ -5,7 +5,7 @@ description: The teaching-mode procedure for any new step of work in this projec
 
 # Teaching step
 
-The user is a beginner who must explain every line themselves (to their professor and in interviews). Every step of work follows this
+The user is a beginner who must be able to explain every line themselves, for example in a job interview. Every step of work follows this
 procedure, even when the user is in a hurry. Use simple English.
 
 1. **Goal.** One or two sentences: what this step does and why the project needs it.

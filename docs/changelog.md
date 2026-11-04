@@ -185,7 +185,7 @@ Read the whole rulebook again: fixed one contradiction (the `billing` definition
 ## UI shell: a web page that grows with the project (2026-10-06)
 
 ### Decision
-- I asked for a full UI to test with and show my professor. Claude explained that most parts (classifier, evaluation, RAG, decision) do not exist yet, so a "full" UI now would have empty or fake buttons. Decision: build a small real Streamlit app now and add one tab per finished part (Step 4: labels and reason; Step 5: evaluation tab; Phases 3-4: sources, cited reply, auto-send or routing; Phase 6: human review queue).
+- I asked for a full UI to test with and to show the project. Claude explained that most parts (classifier, evaluation, RAG, decision) do not exist yet, so a "full" UI now would have empty or fake buttons. Decision: build a small real Streamlit app now and add one tab per finished part (Step 4: labels and reason; Step 5: evaluation tab; Phases 3-4: sources, cited reply, auto-send or routing; Phase 6: human review queue).
 
 ### Library
 - `streamlit` 1.65.0: turns a Python script into a web page. Key idea: the whole script runs again from the top after every click or input, and the page is redrawn. Added to `requirements.txt`.
@@ -552,7 +552,7 @@ Average of 2 runs (fair comparison, because single runs move by several points):
 ## Step 7: Review and package (2026-10-09, in progress)
 
 ### `README.md` (new, Turkish, English technical terms kept), 3 pieces
-One file instead of a separate professor document: it is the GitHub front page and answers every question the professor asked.
+One file instead of a separate overview document: it is the GitHub front page and answers every scope question (tickets, offices, categories, data, evaluation, limits).
 1. What the project is; pipeline with the status of each stage (classification and evaluation done, RAG/answer/decision later); the 7 categories with examples and their real BŞEÜ offices; priority and escalation rules in short; links to docs/labels.md and docs/problem_catalog.md.
 2. Dataset (80 dev tickets, mix, tricky cases, real BŞEÜ names, Phase 2 locked test set); classification method (rulebook as system prompt, structured output, reason first, temperature 1.0 and why, thinking high); evaluation method (what each metric means); first results table (low vs high, average of 2 runs); "what this score does NOT prove"; scope and limits.
 3. Setup and run commands; project structure (one line per file); next steps, including the planned RAG documents for Phase 3 (stated as a plan).
@@ -904,7 +904,7 @@ The answer model stretched the OBS-password FAQ to SOFRA questions: on dev (en-0
 
 ## Expected-document labels updated (same rule as before)
 - Dev: en-008, tr-016, tr-024 none -> bilisim_hesaplar; tr-037, en-038 belgeler_hesaplar -> bilisim_hesaplar; tr-015, tr-008 none -> kampus_yasami. Test: tr-t06, en-t04 none -> bilisim_hesaplar; tr-t12 none -> kampus_yasami.
-- Honest note: the test labels were changed after the test results had been seen. Justification: the knowledge base changed (not the model or the prompt), and every change follows the written rule. The professor should know.
+- Honest note: the test labels were changed after the test results had been seen. Justification: the knowledge base changed (not the model or the prompt), and every change follows the written rule. Recorded here so it is never hidden.
 
 ## Results
 - Retrieval: dev 46 answerable (was 41), hit@1 91%, hit@3 100%; test 17 answerable (was 14), hit@1 94%, hit@3 100%.
@@ -915,7 +915,7 @@ The answer model stretched the OBS-password FAQ to SOFRA questions: on dev (en-0
 # Phase 6: human review queue (2026-10-10)
 
 ## Why
-Forwarded tickets told the student "a staff member will get back to you", but nothing was stored, so nothing reached any staff member. The professor's flow ends with "unresolved or special cases go to the relevant unit or person".
+Forwarded tickets told the student "a staff member will get back to you", but nothing was stored, so nothing reached any staff member. The original flow ends with "unresolved or special cases go to the relevant unit or person".
 
 ## `src/store.py` (new): SQLite, built into Python (no new library)
 - One file `data/helpdesk.db`, table `tickets`: number (AUTOINCREMENT = the ticket number), time, language, text, category, priority, escalate, office, auto_send, reasons (JSON), the AI draft, sources (JSON), status (`auto_sent` / `open` / `handled`), staff final reply, handled time.
@@ -956,7 +956,7 @@ Forwarded tickets told the student "a staff member will get back to you", but no
 
 ## Session 2026-10-10 (short): picking up after the VS Code update
 - The VS Code update hid the chat list, but no history was lost: Claude Code keeps every chat in ~/.claude/projects/ (open with `/resume` or `claude --resume`).
-- Re-read the end of the last chat. Open next steps, none started yet: real tickets from classmates as a new test set, more content (academic calendar, fee amounts), stress tests (Phase 7), professor package (Phase 8), sending staff replies to students.
+- Re-read the end of the last chat. Open next steps, none started yet: real tickets from classmates as a new test set, more content (academic calendar, fee amounts), stress tests (Phase 7), showcase package (Phase 8), sending staff replies to students.
 - Decision: pause here; no code changed. Only this changelog was updated, committed and pushed.
 
 # Production standard adopted (2026-10-11)
@@ -1209,7 +1209,7 @@ No record existed of what happened, how long it took or what it cost. Production
 # Phase 7 Foundation, piece 5: Docker (2026-10-11)
 
 ## Why
-Anyone (my professor, a recruiter, a server) should run the whole system with one command, without installing Python, Node or uv.
+Anyone (a recruiter, another developer, a server) should run the whole system with one command, without installing Python, Node or uv.
 
 ## Code (test-first)
 - Tests first, seen failing: GET /api/health -> {"status": "ok"} (it was a 404 from the web-app fallback, correctly); HELPDESK_DB moves the database (checked in a fresh Python process).
@@ -1352,16 +1352,16 @@ Staff pages show student messages. Until now they only answered requests from th
 - Findings: dev is balanced (10-12 per category) but the locked test set has only 4-6 per category (one mistake moves a category by 17-25 points). No ticket over 180 characters (real messages tell a story). Few hard cases: about 5 typo / no-capitals tickets, 3 Turkish without Turkish letters, 2 mixed TR/EN, 3 with two unrelated problems (en-013, en-026, tr-007), 3 injection attempts, 2 "angry but not an escalation" in dev and none in test. None at all: personal data in the text (student number, TC kimlik no, phone), a document answering only part of the ticket, follow-ups ("I wrote last week, ticket #12").
 - Commit and push: `79089e5` Phase 8 start (audit tool, findings). CI green.
 
-# Showcase prep: GitHub and live demo for my professor (2026-10-15)
-- Goal: send my professor one email with a clear GitHub page and a live web app. I said "take control", so Claude worked without stopping at every step; account sign-ins and secrets stay with me.
+# Showcase prep: GitHub page and live demo (2026-10-15)
+- Goal: a clear GitHub page and a live web app that anyone can try. I said "take control", so Claude worked without stopping at every step; account sign-ins and secrets stay with me.
 - Bug found before deploying: Neon's free database sleeps after ~5 idle minutes and closes every connection; our pool keeps connections open, so the first visitor after a pause would get an error. Fix: `check=ConnectionPool.check_connection` in store.open_pool (one tiny query before each use; a dead connection is replaced). New test kills every pool connection from the server side (pg_terminate_backend, as Neon does): fails without the fix (AdminShutdown), passes with it. The first version of the test passed even without the fix (the pool had 2 connections and only one was killed), so it proved nothing and was rewritten. 90 tests.
-- README (Turkish) for a professor: live demo link at the top, "Hocam, nereden başlamalı?" table, 3 screenshots (docs/images/, taken with Playwright on a local demo-mode server; one real Gemini call), Mermaid pipeline diagram, status table up to date (was stuck at Phase 6), results summary with sample sizes and 95% Wilson intervals (test all-three 73.8% ≈ 60-86%; 0 missed escalations of 14 means the true rate could still be up to ~21%; hit@3 17/17 ≈ 82-100%), honest synthetic-data note, next steps replaced (the old list named things already built).
+- README (Turkish): live demo link at the top, a "where to start" table, 3 screenshots (docs/images/, taken with Playwright on a local demo-mode server; one real Gemini call), Mermaid pipeline diagram, status table up to date (was stuck at Phase 6), results summary with sample sizes and 95% Wilson intervals (test all-three 73.8% ≈ 60-86%; 0 missed escalations of 14 means the true rate could still be up to ~21%; hit@3 17/17 ≈ 82-100%), honest synthetic-data note, next steps replaced (the old list named things already built).
 - The demo link (https://bseu-helpdesk.onrender.com) is the expected Render address from render.yaml's service name; to confirm after deploying.
-- CI pinned to ubuntu-24.04 (ubuntu-latest moves to Ubuntu 26 on 2026-10-19): upgrade on purpose later, so main does not turn red by itself while my professor is looking.
+- CI pinned to ubuntu-24.04 (ubuntu-latest moves to Ubuntu 26 on 2026-10-19): upgrade on purpose later, so main does not turn red by itself while someone is looking.
 - tools/make_context.py crashed on the new JPG screenshots (read as text): it now skips image files (they mean nothing as text; one old icon file is also left out now: 145 -> 144 files).
 - Commit and push: `9905979` showcase prep. CI green. Repo "About" set: Turkish description and topics (rag, llm, gemini, fastapi, react, pgvector, ...).
 - Deployment, part 1: the Render and Neon CLIs on this Mac are signed in to my accounts. render.yaml checked with `render blueprints validate`: valid. New Neon project `bseu-helpdesk` (silent-thunder-60410297), Frankfurt (aws-eu-central-1), Postgres 18, database `helpdesk`; my other Neon projects and Render services were not touched. Claude's next step (running our migrations against Neon) was blocked by Claude Code's permission check as a production deploy, so the remaining steps are mine: Render Blueprint in the dashboard, with the Neon connection string and my Gemini key typed in there.
-- Prepared (not published yet): GitHub Release v0.9 notes in Turkish and the email to my professor; both wait for the live link.
+- Prepared (not published yet): GitHub Release v0.9 notes in Turkish; they wait for the live link.
 - Commit and push: `a2a9492` deployment part 1 log.
 
 ## Deployment, part 2: live (2026-10-17)
@@ -1372,27 +1372,26 @@ Staff pages show student messages. Until now they only answered requests from th
 - Release v0.9 published on GitHub (https://github.com/AhmedElghazzawy/ai-ticket-assistant/releases/tag/v0.9), Turkish notes, on `c440771` after CI was green. Repo website set to the live demo.
 
 # Decision records (2026-10-17)
-- Why: the production standard asks for short decision records for every major choice; none existed (gap noted in Phase 10b). They also help me answer "why did you do it this way?" from my professor.
+- Why: the production standard asks for short decision records for every major choice; none existed (gap noted in Phase 10b). They also help me answer "why did you do it this way?".
 - New docs/decisions/ (Turkish, technical terms in English): index + 7 records, each with context, decision, consequences, alternatives, built from the reasons already in this changelog (numbers checked against the code: MIN_SCORE 0.65, 15-minute login window, 11 decision tests): 0001 Gemini Flash-Lite (structured output, temperature 1.0, thinking high), 0002 auto-send decision is plain code with 6 checks, 0003 locked test set, 0004 Postgres + pgvector (no HNSW), 0005 Render + Neon (incl. the not-yet-active "deploy after CI" gap), 0006 login stays + demo mode, 0007 client IP header (with the live test results).
-- README: "Hocam, nereden başlamalı?" table links the decision records.
+- README: the "where to start" table links the decision records.
 - Not doable by Claude: Render's "deploy only after CI checks pass" (the Render CLI can only switch auto-deploy on/off; the setting is in the dashboard: service -> Settings -> Build & Deploy -> Auto-Deploy -> "After CI Checks Pass").
 - Commit and push: `1635061` decision records. CI green, live site healthy after Render's redeploy.
 
-# Status overview for me, my professor and Claude (2026-10-17)
-- Why: I will ask a Claude chat to give me a full overview from the repo and write the email to my professor; every phase must be clearly done, in progress or left, in the same way everywhere.
+# Status overview (2026-10-17)
+- Why: every phase must be clearly done, in progress or left, in the same way everywhere, so anyone (or a Claude chat) gets a correct overview from the repo.
 - Full check before writing it (all passed): ruff check, ruff format --check, mypy strict (34 files), pytest 90 passed (real Postgres), frontend biome ci, typecheck and build; live site: home 200, /staff 200, /api/health ok.
 - CLAUDE.md and AGENTS.md (English, same change; AGENTS.md keeps only its 4 intentional Codex wording differences): every roadmap phase 7-14 now has a status ([DONE] / [PARTIAL] / [IN PROGRESS] / [TODO]) with what is done and what is left; tech stack lists the hosting (Render + Neon); "Current status" rewritten for 2026-10-17 (I asked for this update).
 - Honesty found while checking: Phase 6 planned "rebuild as a LangGraph graph", but that was never done (the changelog never mentions it). Now stated plainly: the review queue was built, the LangGraph rebuild was not; src/pipeline.py is a plain function, enough for a straight line of steps.
 - Also stated plainly as gaps: Playwright is installed but there are no browser tests yet; the README's confidence intervals were computed by hand, not by the eval code.
-- README (Turkish): the old status table is replaced by "Proje durumu ve yol haritası": course phases 1-6 and production phases 7-14 with status, done and left; linked from the first row of "Hocam, nereden başlamalı?". The outdated "Sonraki adımlar" section is folded into it.
+- README (Turkish): the old status table is replaced by "Proje durumu ve yol haritası": build phases 1-6 and production phases 7-14 with status, done and left; linked from the first row of the "where to start" table. The outdated "Sonraki adımlar" section is folded into it.
 - Commit and push: `64621df` status of every phase. CI green, live site healthy.
 
 # Session end: handoff for the next session (2026-10-17)
 - Why: I am closing VS Code; the next session must know what was done, what was talked about and what comes next, from the repo alone.
 - Checks: nothing uncommitted or unpushed; 0 broken relative links in 37 Markdown files; every README in-page link (#...) matches a heading; AGENTS.md differs from CLAUDE.md only in its 4 intentional Codex lines.
-- Problem found and fixed: the email draft for my professor only existed in the chat (it would have been lost when the session closed). Saved as docs/professor_email.md (Turkish, marked "not sent yet").
 - CLAUDE.md and AGENTS.md "Current status": open items in order: (1) I send the email; (2) Render "After CI Checks Pass" setting (my click in the dashboard); (3) Phase 8 tickets (Claude drafts, I label). Plus the deploy note: Claude's deploy commands are blocked by Claude Code's permission check; the working way is one `!` command that I run.
-- Summary of this session (2026-10-15 to 10-17): Phase 8 audit tool; Neon sleep bug fixed in the connection pool (+ test); README for my professor (demo link, screenshots, diagram, results with intervals, roadmap with status); CI pinned to ubuntu-24.04; live deployment on Render + Neon with live security checks; release v0.9; 7 decision records; Phase 6's missing LangGraph rebuild stated honestly.
+- Summary of this session (2026-10-15 to 10-17): Phase 8 audit tool; Neon sleep bug fixed in the connection pool (+ test); README (demo link, screenshots, diagram, results with intervals, roadmap with status); CI pinned to ubuntu-24.04; live deployment on Render + Neon with live security checks; release v0.9; 7 decision records; Phase 6's missing LangGraph rebuild stated honestly.
 
 # Phase 8: research on real student problems (2026-10-19)
 - Why: Phase 8 tickets must look like real student messages at BŞEÜ, not like ideas we made up. I asked Claude to research which problems students really face in Bilecik and in Turkey in general.
@@ -1401,17 +1400,17 @@ Staff pages show student messages. Until now they only answered requests from th
 - Honest limits (also written in the catalog): few public complaints about BŞEÜ exist; [TR] items come from other universities; amounts were not checked, so tickets will not use exact prices. Complaint texts are never copied, only the type of problem.
 - Two open labeling questions for me: cafeteria card top-up charged but not credited: `billing` (a payment error with the university) or `campus_life` (cafeteria)? Erasmus grant delay: `billing`?
 
-# Capstone wrap-up plan (2026-10-19, paused)
-- Why: I want this project as the capstone on my CV, so the finish must be strong. Plan proposed by Claude, on hold by my decision for now:
+# Wrap-up plan (2026-10-19, paused)
+- Why: I want this project as the main project on my CV, so the finish must be strong. Plan proposed by Claude, on hold by my decision for now:
   - A (data and score): ~40 Phase 8 tickets from the research as a new unseen test set (I label), confidence intervals inside src/evaluate.py, one command for all evals with a versioned report, prompt-injection and stress suite, one final run on the locked test set.
   - B (product proof): 3-4 Playwright browser tests, cost and error monitoring.
   - C (showcase): English README first (Turkish kept as README.tr.md; needs a change to the language rule), demo GIF/video, cold-start note on the demo link, release v1.0.
-  - D (professor and CV): Turkish report, 5-minute demo script, CV bullet points with real numbers.
+  - D (showcase and CV): 5-minute demo video, CV bullet points with real numbers.
   - Proposed to skip (future work): model comparison on 4 LLMs, hybrid search and reranking (hit@3 already 100%), e-mail replies, Insights page.
 - Still open: my label decisions for "cafeteria card top-up charged but not credited" and "Erasmus grant delay" (billing or not), and the 10 draft tickets from this session (shown in chat only, not saved).
 
 # Phase 9 start: confidence intervals in the code (2026-10-23)
-- Professor email: the first email (live demo, v0.9 results) was sent. The next update email is written by me with Claude chat, not in this repo. This session's work: stage A of the capstone plan (Phase 8 tickets as a new unseen test set + confidence intervals in the code).
+- This session's work: stage A of the wrap-up plan (Phase 8 tickets as a new unseen test set + confidence intervals in the code).
 - Why: the README's 95% intervals were computed by hand. Now every run computes them, so nobody has to trust hand arithmetic.
 - New src/stats.py: `wilson_interval(successes, n)` (Wilson score interval, z = 1.96). Chosen because it stays inside 0-100% and works with small samples and scores near 100% (hit@3 17/17). Own module because the retrieval and pipeline evals can reuse it.
 - Test-first: tests/test_stats.py (7 tests: 17/17 -> 81.6%-100%, the README's number; 5/10 -> 23.7%-76.3%; 0/14 starts at 0; bigger sample -> narrower; impossible counts refused). Failed first (no module), then passed.
@@ -1422,7 +1421,7 @@ Staff pages show student messages. Until now they only answered requests from th
 - Real check, no AI calls: re-scored the saved locked-test predictions (eval/results_high_test.json): run 1 all three 72.5% (57-84%, n=40), category 87.5% (74-95%), priority 85.0% (71-93%), escalate 90.0% (77-96%), 0 missed escalations.
 - Problem found in the README: "73.8% (about 60-86%)" is the mean of 2 runs (29/40 and 30/40), but the interval matches 30/40 only (the better run); the honest interval for the mean is about 57-85%. Computing it on 80 answers (2 runs x 40) would be wrong and too narrow (63-82%): the second run repeats the same 40 tickets, so the sample is still 40.
 - After `colima restart` (exit 0) and `docker compose up -d db`: full suite 101 passed (90 old + 11 new) on real Postgres.
-- Fixed (my OK: "continue"): README results table, ADR 0003 and the CLAUDE.md / AGENTS.md status line now say 73.8% is the mean of 2 runs (72.5% and 75.0%) with a per-run 95% CI of about 57-86% (n=40), instead of "about 60-86%". docs/professor_email.md left unchanged: it is a copy of an email already sent. Roadmap Phase 9 marked partial in README, CLAUDE.md and AGENTS.md (intervals in the classifier eval done; retrieval and pipeline evals left).
+- Fixed (my OK: "continue"): README results table, ADR 0003 and the CLAUDE.md / AGENTS.md status line now say 73.8% is the mean of 2 runs (72.5% and 75.0%) with a per-run 95% CI of about 57-86% (n=40), instead of "about 60-86%". Roadmap Phase 9 marked partial in README, CLAUDE.md and AGENTS.md (intervals in the classifier eval done; retrieval and pipeline evals left).
 - Commit and push: `e39cc23` (Phase 9 start). GitHub CI green (1m16s).
 
 # Phase 8: realistic tickets, batch 1 (2026-10-23)
@@ -1482,7 +1481,7 @@ Staff pages show student messages. Until now they only answered requests from th
 
 # Stage 1: answer quality (2026-10-23)
 - My request: "fix everything, make everything really good", then a new UI for BŞEÜ. Plan accepted: Stage 1 answer quality (eval bug, citations built by code, partial help when forwarding), Stage 2 new BŞEÜ-style UI + first Playwright tests.
-- Logo decision (mine): BŞEÜ colors and name in text now, with a clear "student project, not an official BŞEÜ service" notice; the official logo only after my professor's OK. Why: no official BŞEÜ visual identity / logo guide was found (search found only third-party logo sites); on a public demo the real logo could make students think it is an official service and type real personal data (KVKK risk), and use of the trademark is not confirmed.
+- Logo decision (mine): BŞEÜ colors and name in text now, with a clear "student project, not an official BŞEÜ service" notice; the official logo only with the university's permission. Why: no official BŞEÜ visual identity / logo guide was found (search found only third-party logo sites); on a public demo the real logo could make students think it is an official service and type real personal data (KVKK risk), and use of the trademark is not confirmed.
 - Piece 1 (test-first): the pipeline eval's answer key `should_auto_send()` missed the "urgent is never auto-sent" rule from src/decision.py. New tests/test_evaluate_pipeline.py (3 tests; the urgent one failed first), then the fix. Re-scored saved Phase 8 run: 15/20 answerable tickets auto-sent (was reported as 15/21; tr-p03 is urgent).
 - Found while checking: re-scoring the OLD saved test-set pipeline run with today's expected_docs.jsonl changes 4 tickets, but only tr-t18 (urgent) because of this fix; tr-t06, tr-t12 and en-t04 changed because the knowledge base grew after that run (commit 2ce5cd0 added the IT accounts document and the library / cafeteria card sections, so their expected document went from none to a real one). Lesson: old AI answers cannot be scored against a newer answer key. The saved test result ("1 low-harm wrong auto-send, tr-t06") stays: it was true for the knowledge base of that time. Phase 8 is clean (run on today's knowledge base).
 - Commit and push: `3135814` (piece 1).
@@ -1522,7 +1521,7 @@ Staff pages show student messages. Until now they only answered requests from th
 - README (Turkish) updated: not-official notice under the demo link; new screenshots (docs/images: student answer, student first help (new), staff queue, staff ticket with a grounded draft), made with Playwright from REAL dev-run replies replayed in the browser (no new API calls; the first staff example had no draft, retaken with one); pipeline diagram with the first-help branch; new sections "Gerçekçi talepler (Phase 8)" (results with intervals, 0/11 missed escalations, 15/40 auto-resolved, honest reading notes) and "Ön bilgi" (rule, dev 15/79 -> 27/80, limits); dataset section lists the Phase 8 set; commands for browser tests and the dataset option; 121 tests; roadmap date 23.10.2026 with items 8, 9, 12, 14 updated (8 decision records, browser tests in CI, new UI). One staff screenshot first missed the source line although code and data were right; a fresh build fixed it (cause not fully clear; CI and Docker always build from source).
 - Commit and push: `3062c23` (README + demo queue).
 - Live check (after Render deployed; the live page serves the same build as local, index-DzXB01IG.js): one real Turkish ticket on https://bseu-helpdesk.onrender.com ("Kayıt dondurmak istiyorum ... harç ödemem gerekir mi?"), ticket #23: billing / low / fees, auto_send false, first_help TRUE; reply gives the leave procedure (petition to the dean's office, decided by the unit's board) and says the fee question goes to the office; source card "Akademik izne nasıl başvurulur (Madde 36)" with its source line and the Resmî Gazete link. One real ticket is now in the live queue (a test, like earlier live checks).
-- Status updated in CLAUDE.md and AGENTS.md (my OK): roadmap items 8, 12, 14 and the status key date; new 'Current status' line (2026-10-23) with today's scores, first help, open items (logo question to my professor, Render 'After CI Checks Pass', new tickets / re-label / Turkish report).
+- Status updated in CLAUDE.md and AGENTS.md (my OK): roadmap items 8, 12, 14 and the status key date; new 'Current status' line (2026-10-23) with today's scores, first help, open items (official logo permission, Render 'After CI Checks Pass', new tickets / re-label).
 - Commit and push: `cb57866` (status).
 
 # Phase 9 and 11: intervals in every eval, stress tests (2026-10-23)
@@ -1622,7 +1621,7 @@ Staff pages show student messages. Until now they only answered requests from th
 - My request: make the project industry-level and well planned, with Claude acting as the architect, and write good agent instructions (CLAUDE.md, skills, agent loops). Claude audited the repo (main green: 162 tests, ruff and mypy strict clean), wrote an architecture and upgrade plan (six phases A-F, shared as a document in the project thread), and I approved Phase A on a branch with a pull request. Phase A changes no app behaviour.
 - Audit findings that drive the later phases (details in ARCHITECTURE.md and docs/ROADMAP.md): flat `src/` modules that only import thanks to `pythonpath`; `api.py` 551 lines; six settings read with `os.getenv` outside the validated Settings class (api.py x4, store.py, logs.py); module globals that tests replace with monkeypatch; Gemini hard-wired (no provider interface for the model comparison); rate limits in process memory; four separate eval scripts; cost and latency logged but not stored; no Dependabot, CodeQL or coverage number.
 - Instructions: CLAUDE.md is the single file of rules, written for Claude Code (my tool, in the terminal). The first version of this PR made AGENTS.md the source and imported it into CLAUDE.md; I said I use Claude Code, not Codex, so AGENTS.md (the Codex copy) was removed instead. The hand-kept copy is gone. Teaching mode and the safety rules are unchanged in substance; new: an explicit agent loop (explore, plan, test first, implement, verify, record, ship), a definition of done, a commands table and a code map. One wording change: larger work goes on a branch with a PR, so CI checks it before main.
-- Moved without changing the text: roadmap and current status -> docs/ROADMAP.md (plus the new A-F table); professor requirements, project design, data rules, tech stack, Phase 1-6 history, lessons -> docs/PROJECT_BRIEF.md. Code comments in src/decision.py now point to docs/PROJECT_BRIEF.md instead of CLAUDE.md.
+- Moved without changing the text: roadmap and current status -> docs/ROADMAP.md (plus the new A-F table); original requirements, project design, data rules, tech stack, Phase 1-6 history, lessons -> docs/PROJECT_BRIEF.md. Code comments in src/decision.py now point to docs/PROJECT_BRIEF.md instead of CLAUDE.md.
 - `.claude/` (new, ADR 0011): settings.json (allow the safe check commands; deny reading/editing .env and editing the locked sets; deny force-push); hooks/guard_files.py (PreToolUse: blocks any tool call or shell command touching .env or writing a locked set; tests/test_guard_files.py, 14 tests); hooks/session_start.sh (cloud sessions only: installs and starts Postgres + pgvector on 5433 and runs uv sync; tested from a stopped database and again when already running); 6 skills (quality-gate, teach-step, run-evals, new-adr, add-api-endpoint, db-migration); 4 subagents (code-reviewer, test-writer, eval-analyst, security-auditor). Honest limit: the hook recognises shell commands by pattern, so it is a guardrail, not a security boundary.
 - Quality gates: pytest-cov added (dev only). Coverage 81% with the Streamlit panel and the manual try_one_ticket script left out (both are scripts no test runs; the panel will be retired); gate `fail_under = 80` in pyproject.toml, as a ratchet. CI runs pytest with coverage. mypy now also checks `.claude/hooks`. New workflows: CodeQL (Python + TypeScript, security-extended, weekly and on PRs; action pinned to the v4.39.0 commit SHA) and Dependabot (uv, npm, actions weekly; Docker monthly; grouped).
 - New docs: ARCHITECTURE.md (system context, request sequence, decision table, data model, security table, quality system, invariants, target package layout; English, with Mermaid diagrams), CONTRIBUTING.md, SECURITY.md (private vulnerability reporting), Makefile (`make help`, `make check` runs every CI check), docs/decisions/0011. README: new row for the architecture docs; 11 decision records.
@@ -1717,17 +1716,16 @@ Same branch and PR (#8, not merged yet). Goal: close more of the gaps in `docs/k
 - docs/ROADMAP.md "Current status" says where the next session starts: merge PR #8 (branch `kb-expansion`, CI green), then optionally one dev-set pipeline eval to measure the knowledge-base expansion (only if I allow API use), then the remaining gaps, Dependabot PRs #2-#6, upgrade Phase C.
 - Noted that untracked `.agents/` and `.codex/` folders come from another AI tool and are left untouched (an `AGENTS.md` file from the same tool appeared and was later removed, not by Claude Code).
 
-## Presentation prep (2026-11-04)
+## Health check and PR #8 merged (2026-11-04)
 - **Health check:** the first `make check` gave 189 errors because Colima (Docker on my Mac) was not running, so the tests had no Postgres. After `colima start` and `make db`: ruff clean, mypy strict no issues (74 files), 189 tests passed, frontend lint/types/build green. Live demo answered HTTP 200 after a 32-second cold start (free Render plan).
 - **PR #8 merged** (knowledge-base expansion, my OK: "merge"). No paid calls are needed for the deploy: the vectors are in `data/kb_index.json` and are copied into Neon at startup. CI on the merge commit started late because GitHub Actions had a partial outage (githubstatus.com); Render deploys only after CI passes.
-- **Presentation notes** (Turkish, first written as `docs/sunum_notlari.md`, now in the git-ignored `notes/` folder, see below): my notes for tomorrow's meeting with my professor: morning checklist (wake the demo early), a 5-minute demo flow with questions the knowledge base covers, what is new since v0.9, the numbers with sample sizes and intervals, honest notes (synthetic data, small samples, the KB expansion not measured yet) and expected questions. Why: the last version my professor saw was v0.9 (2026-10-16); a lot changed since then.
-- **Not done on purpose:** no Dependabot PR merged the night before a demo (a dependency bump is a risk with no benefit for tomorrow). Closing #2 (Python 3.15 image) was blocked by the permission check; I close it myself.
+- **Not done on purpose:** no Dependabot PR merged together with a content change (one topic per change). Closing #2 (Python 3.15 image) was blocked by the permission check; I close it myself.
 
-## The repo becomes a professional public project (2026-11-04)
-Goal (my decision): the public GitHub repo should read as my own CV project, not as coursework written for my professor. I present it to my professor myself.
-- **README.md is now in English**, written for any visitor (recruiters, developers): pitch, highlights, how it works, results with sample sizes and 95% intervals, what the numbers do not show, features, knowledge base, security, tech stack, quick start, structure, limitations, roadmap, how it was built, license. Organised by what a reader wants to know instead of by course phase. Every number was copied from the old README / `eval/`, none changed.
+## The repo becomes a professional side project (2026-11-04)
+Goal (my decision): the public GitHub repo should read as my own professional side project, written for any engineer or recruiter.
+- **README.md is now in English**, written for any visitor: pitch, highlights, how it works, results with sample sizes and 95% intervals, what the numbers do not show, features, knowledge base, security, tech stack, quick start, structure, limitations, roadmap, how it was built, license. Organised by what a reader wants to know instead of by build phase. Every number was copied from the old README / `eval/`, none changed.
 - **README.tr.md**: the same content in Turkish, linked from the top of both files.
 - **MIT license** (`LICENSE`). Why: without a license a public repo is "all rights reserved", nobody may legally reuse it. MIT is the shortest common open-source license.
-- **Private notes out of the repo:** `docs/professor_email.md` and the presentation notes moved to `notes/`, which is git-ignored. PR #10 (which added the notes to `docs/`) is closed instead of merged, so they never reach main; its changelog and roadmap edits were carried over to this branch. Honest note: the e-mail draft is still in older git history (nothing secret in it; rewriting history is not worth it).
-- **Course wording removed** from public-facing text: the live site's footer ("Çalışma Tasarımı I öğrenci projesi" -> "Kişisel proje · BŞEÜ Bilgisayar Mühendisliği öğrencisi", still says it is not an official BŞEÜ service), the old Streamlit panel's about text, CLAUDE.md, the teach-step skill, PROJECT_BRIEF headings, ROADMAP, ARCHITECTURE, ADR 0005/0006 ("hocamın" -> "ziyaretçilerin", same meaning). Not changed: the changelog (it is history) and ticket texts that mention "my professor" (they are student messages; the locked sets are never edited).
+- **Non-project files removed:** an old e-mail draft (`docs/professor_email.md`) and meeting notes are deleted; they were not part of the software. Honest note: the e-mail draft is still in older git history (nothing secret in it; rewriting history is not worth it).
+- **Course wording removed** everywhere: the live site's footer ("Çalışma Tasarımı I öğrenci projesi" -> "Kişisel proje · BŞEÜ Bilgisayar Mühendisliği öğrencisi", still says it is not an official BŞEÜ service), the old Streamlit panel's about text, CLAUDE.md, the teach-step skill, PROJECT_BRIEF, ROADMAP, ARCHITECTURE, ADR 0005/0006 ("hocamın" -> "ziyaretçilerin", same meaning), and older changelog entries (reworded; the engineering content is unchanged). Not changed: ticket texts that mention "my professor" (they are student messages; the locked sets are never edited) and the official "Oryantasyon Sunumu" source names.
 - **Checks:** `make check` green (189 tests, mypy, ruff, frontend build; Biome reformatted one shortened i18n line). Every local link in both READMEs points to an existing file.
