@@ -4,7 +4,7 @@ Instructions for Claude Code, the coding agent this project is built with (in th
 file short: details live in the files linked below, which Claude reads when a task needs them.
 
 ## What this is
-A course project (Çalışma Tasarımı I, BŞEÜ Computer Engineering) that is also a CV project. The system
+My personal CV project (BŞEÜ Computer Engineering student), which I also present to my professor. The system
 reads a student's support ticket, labels it (category, priority, escalate), finds the answer in official
 university documents (RAG), drafts a reply that cites its source, and decides in plain code: send it
 automatically, or route it to the right office with the draft. Live demo: https://bseu-helpdesk.onrender.com
@@ -12,7 +12,7 @@ automatically, or route it to the right office with the draft. Live demo: https:
 | Read this | When |
 |---|---|
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Before changing code: layers, request flow, data model, invariants |
-| [docs/PROJECT_BRIEF.md](docs/PROJECT_BRIEF.md) | Labels, routing, data rules, the professor's requirements |
+| [docs/PROJECT_BRIEF.md](docs/PROJECT_BRIEF.md) | Labels, routing, data rules, the original requirements |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | What is done, what is next, current status and scores |
 | [docs/decisions/](docs/decisions/) | Why a choice was made (ADRs, in Turkish) |
 | [docs/labels.md](docs/labels.md) | The label rulebook (Turkish) |
@@ -21,9 +21,11 @@ automatically, or route it to the right office with the draft. Live demo: https:
 ## Who I am and how we communicate
 - Computer engineering student, beginner in AI engineering. Mac, VS Code, Claude Code in the terminal.
 - Chat with me in English, in simple words.
-- Anything for my professor or the university (reports, emails, ADRs, the Turkish README) is in Turkish,
+- The public repo reads as a professional personal project: README.md in English, README.tr.md in Turkish.
+  Anything for my professor or the university (reports, emails, ADRs, README.tr.md) is in Turkish,
   with English technical terms kept as they are (RAG, API, embedding, classification...).
-- I must be able to explain every line of this project to my professor myself.
+- I must be able to explain every line of this project myself (to my professor and in job interviews).
+- Private notes (presentations, e-mail drafts) go in the git-ignored `notes/` folder, never in the repo.
 
 ## Teaching mode (always on)
 - Auto mode stays OFF. Never run edits or commands without telling me first.

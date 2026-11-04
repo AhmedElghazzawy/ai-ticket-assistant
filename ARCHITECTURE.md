@@ -1,7 +1,7 @@
 # Architecture
 
 How the BŞEÜ helpdesk assistant is built, why, and where it is going. Written for engineers and coding
-agents; the Turkish README and the ADRs in `docs/decisions/` are written for the course.
+agents. The overview is in README.md (Turkish: README.tr.md); the ADRs in `docs/decisions/` are in Turkish.
 
 Status: describes the code on `main` as of 2026-10-24 (schema version 3). The target layout at the end is
 the plan for upgrade Phase B (`docs/ROADMAP.md`).

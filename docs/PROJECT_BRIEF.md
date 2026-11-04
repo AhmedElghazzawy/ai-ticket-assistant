@@ -1,12 +1,12 @@
 # Project brief
 
-The course context, the design decisions and the data rules of the project. Moved here from CLAUDE.md (2026-10-24) so the agent instructions stay short; the text is unchanged. Agents read this file when a task touches labels, data, routing or the professor's requirements.
+The project context, the design decisions and the data rules of the project. Moved here from CLAUDE.md (2026-10-24) so the agent instructions stay short; the text is unchanged. Agents read this file when a task touches labels, data, routing or the professor's requirements.
 
 ## What this is
-A course project at BŞEÜ (Computer Engineering). The system reads a student's support ticket, labels it (category, priority, escalate), finds the answer in official university documents (RAG), drafts a reply that cites its source, and decides: send it automatically, or hand it to a human together with the draft and the right office.
+A personal project by a BŞEÜ Computer Engineering student, also presented as coursework. The system reads a student's support ticket, labels it (category, priority, escalate), finds the answer in official university documents (RAG), drafts a reply that cites its source, and decides: send it automatically, or hand it to a human together with the draft and the right office.
 It is also my FIRST AI engineering project. The goal is for me to learn and truly understand it, not just to have working code.
 
-## What my professor asked for (his feedback on my idea)
+## Original requirements (feedback on the first idea)
 He said the idea is feasible but too general. Before building, I must define clearly:
 - which kinds of tickets, which units handle them, and what the results are
 - how many ticket categories, and which ones
@@ -55,7 +55,7 @@ Phase 1 is done when:
 - I understand what the first score means and what it does NOT prove (the prompt was adjusted while looking at the same tickets, so the number is optimistic until Phase 2's locked test set).
 - Everything is committed and pushed.
 
-## Later phases (one deliverable per week for my professor)
+## Later phases (one deliverable per week)
 2. Week 3: trustworthy score. About 120 tickets total, 40 locked as the test set, compare dev score and test score for each language, read every mistake.
 3. Weeks 4-5: knowledge base of 8-10 short policy documents, each in Turkish and English, chunking, embeddings, retrieval. In-memory search first, then pgvector. Measure how often the right document is in the top 3.
 4. Week 6: grounded draft replies that cite their source, the decision function, routing to units. Rate 15 drafts; count tickets auto-sent that should not have been.
