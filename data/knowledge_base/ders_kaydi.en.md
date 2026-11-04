@@ -13,3 +13,19 @@ In the first two semesters of their program, students must take all courses offe
 
 ## Adding, dropping and changing courses (Article 16)
 With their advisor's approval, students can change, add and drop courses within the first week after classes start, within the credit limits of Article 15. A student cannot attend or take the exam of a course they did not properly register for in time; if they take the exam anyway, the grade is cancelled.
+
+## Advisor and advisor approval (Article 6)
+- Source: BŞEÜ Associate and Bachelor Education Regulation (Official Gazette no. 30824, 07.07.2019), Article 6; BŞEÜ 2025-2026 Orientation Presentation
+At the start of each academic year, the head of department assigns an advisor to every student. The advisor helps the student solve problems related to studies and university life. The student's registration renewal and course adding and dropping are done with the advisor's approval, within this regulation. According to the orientation presentation, students should first contact their advisor (by e-mail, OBS, etc.) about problems they face or information they need.
+
+## Courses with prerequisites (Articles 4 and 15)
+- Source: BŞEÜ Associate and Bachelor Education Regulation (Official Gazette no. 30824, 07.07.2019), Articles 4, 14, 15
+A course with a prerequisite is a course that can only be taken after one or more courses of lower semesters or years have been passed and/or their attendance requirement has been met. So a course with a prerequisite cannot be taken before its prerequisite course is passed (or its attendance requirement met); by this definition, taking it in the same semester as its prerequisite is not possible. The prerequisites of courses, if any, are set by decision of the relevant boards (Article 14).
+
+## Timetable clashes (Article 15)
+- Source: BŞEÜ Associate and Bachelor Education Regulation (Official Gazette no. 30824, 07.07.2019), Article 15
+If the courses a student wants to register for clash, the student may register for the lower-semester course in the other education program (daytime or evening). Provided the credits are not lower, students may take their courses, except distance-education courses, first from their own program; if they clash, from other programs of the same unit with their advisor's approval; and then, again with their advisor's approval, from other programs of the university at the same level.
+
+## Language of instruction (Article 14)
+- Source: BŞEÜ Associate and Bachelor Education Regulation (Official Gazette no. 30824, 07.07.2019), Article 14
+The language of instruction is Turkish. However, by decision of the relevant boards, some courses in certain departments may be taught in a foreign language.

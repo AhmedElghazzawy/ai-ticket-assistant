@@ -22,3 +22,15 @@
 
 ## Öğrenci kimlik kartı (Akıllı Kart) kaybolursa veya bozulursa
 Üniversitenin Ziraat Bankası hesabına (IBAN: TR39 0001 0001 1848 3433 4750 01) ‘Kart Basım Bedeli’ açıklamasıyla kimlik kartı ücreti yatırılır. "Yatırılan ücreti gösteren dekont/makbuz ile birlikte Öğrenci İşleri Daire Başkanlığına gelen öğrenciye yeni öğrenci kimlik kartı basılarak teslim edilmektedir." Not: IBAN bilgisi değişebilir; ödemeden önce Öğrenci İşleri sayfasından kontrol edin.
+
+## Mezuniyet tarihi
+- Bağlantı: https://bilecik.edu.tr/ogrenciisleri/Icerik/Mezuniyet_tarihi_nasil_belirlenir_
+"Ön lisans ve lisans programlarında diplomalara yazılacak mezuniyet tarihi, öğrencinin kayıtlı olduğu akademik birimin yönetim kurulunun mezuniyet hakkında karar verdiği toplantı tarihidir."
+
+## Diploma ve diploma ekinin teslimi
+- Bağlantı: https://bilecik.edu.tr/ogrenciisleri/Icerik/Diploma_ve_diploma_eki_teslimi_nasil_yapilir_
+"Diploma ve diploma eki yalnızca hak sahiplerinin kendilerine ya da noter onaylı vekâletnamelerini ibraz eden vekillerine/temsilcilerine teslim edilir. Hak sahibinin yurt dışında bulunması hâlinde, vereceği vekâletnamenin Türkiye Cumhuriyeti Konsolosluklarından alınmış olması gerekir." "Diploma, diploma eki, not durum belgesi ve lise diploması ilişik kesme işlemlerinin tamamlaması durumunda, diploma defterindeki ilgili alanlar mezun öğrenci tarafından doldurulduktan sonra imza karşılığı mezun öğrenciye teslim edilir." "Diploma, posta ile gönderilmez, telefon ya da faksla yapılan istekler dikkate alınmaz." Diplomanın düzenlenmesinde öngörülmeyen bir gecikme olursa e-Devlet üzerinden Mezun Belgesi alınabilir (bkz. Mezun belgesi).
+
+## Diploma eki
+- Bağlantı: https://bilecik.edu.tr/ogrenciisleri/Icerik/Diploma_eki_nedir_ve_nasil_alabilirim_
+"Avrupa Konseyi, Avrupa Komisyonu ve UNESCO/CEPES tarafından geliştirilen Diploma Eki, alınan derecenin rahatça anlaşılabilmesi için yükseköğretim kurumları tarafından diplomaya ek olarak verilen bir belgedir. Diploma ile birlikte, öğrenci talep etmeksizin bedelsiz sunulması gerekir ve tıpkı diploma gibi yalnızca bir kez, tek nüsha olarak düzenlenir." Diploma eki, öğrencinin aldığı dersleri ve notlarını da içerir; yurt dışında eğitim veya çalışma için diplomanın anlaşılmasını kolaylaştırır.

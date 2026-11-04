@@ -13,3 +13,19 @@
 
 ## Ders ekleme, bırakma ve değiştirme (Madde 16)
 "Öğrenciler, danışmanlarının onayı ile yarıyıl derslerinin başlangıcını izleyen ilk hafta içinde, kaydolduğu derslerde değiştirme, ekleme ve silme işlemlerini 15 inci maddede belirlenen kredi sınırları içinde yapabilirler." "Öğrenci, süresi içinde usulüne uygun olarak almadığı ya da kayıt yaptırmadığı derslere devam edemez ve bu derslerin sınavına giremez, girse de notu iptal edilir."
+
+## Danışman ve danışman onayı (Madde 6)
+- Kaynak: BŞEÜ Ön Lisans ve Lisans Eğitim-Öğretim Yönetmeliği (Resmî Gazete, sayı 30824, 07.07.2019), Madde 6; BŞEÜ 2025-2026 Oryantasyon Sunumu
+Her öğrenciye öğretim yılı başında bölüm başkanı tarafından bir danışman belirlenir. "Danışman, eğitim-öğretim çalışmaları ve Üniversite yaşamı ile ilgili sorunların çözümünde öğrenciye yardımcı olur. Öğrencinin kayıt yenileme, ders ekleme-silme işlemleri, bu Yönetmelik çerçevesinde danışman onayı ile yapılır." Oryantasyon sunumuna göre: "Öğrencilerin bu süreçte karşılaştıkları sorunlar veya bilgi almak istedikleri konular için öncelikle danışmanı ile iletişime (mail, OBS vb.) geçmesi gerekmektedir."
+
+## Ön koşullu dersler (Madde 4 ve 15)
+- Kaynak: BŞEÜ Ön Lisans ve Lisans Eğitim-Öğretim Yönetmeliği (Resmî Gazete, sayı 30824, 07.07.2019), Madde 4, 14, 15
+Ön koşullu ders: "Alınabilmesi için alt yarıyıl veya yıllarda yer alan derslerden bir veya birkaçının başarılması ve/veya devam koşulunun yerine getirilmesi gereken dersleri" ifade eder. Bu nedenle ön koşulu olan bir ders, ön koşul dersi başarılmadan (veya devam koşulu yerine getirilmeden) alınamaz; ön koşul dersiyle aynı dönemde alınması bu tanıma göre mümkün değildir. Derslerin "varsa ön şartları ilgili kurulların kararı ile belirlenir" (Madde 14).
+
+## Derslerin çakışması (Madde 15)
+- Kaynak: BŞEÜ Ön Lisans ve Lisans Eğitim-Öğretim Yönetmeliği (Resmî Gazete, sayı 30824, 07.07.2019), Madde 15
+"Kayıt yaptırmak istediği derslerin çakışması durumunda öğrenci, alt dönemdeki derse diğer öğretimden ders kaydı yaptırabilir." Öğrenciler kredi değerleri az olmamak şartıyla, uzaktan öğretimle verilen dersler dışındaki derslerini "sırasıyla öncelikle kendi programından, çakışması halinde danışmanının onayıyla ilgili birimin başka programlarından, daha sonra da yine danışmanının onayıyla Üniversitenin aynı düzeydeki diğer programlarından" alabilir.
+
+## Derslerin öğretim dili (Madde 14)
+- Kaynak: BŞEÜ Ön Lisans ve Lisans Eğitim-Öğretim Yönetmeliği (Resmî Gazete, sayı 30824, 07.07.2019), Madde 14
+"Derslerin öğretim dili Türkçedir. Ancak ilgili kurulların kararı ile belirli bölümlerde bazı dersler yabancı dilde verilebilir."

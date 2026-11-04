@@ -19,3 +19,23 @@ Atatürk Principles and History of Revolutions, Basic Information Technology, En
 
 ## Wireless internet (eduroam)
 To use the wireless internet, after your e-mail account is opened, log in at portal.bilecik.edu.tr with your username and password and click the "Yeni Kullanıcı Bilgilerimi Oluştur" (Create My New User Details) button. You can connect directly to the eduroam wireless network with your Student Information System (OBS) username and password.
+
+## If you cannot log in to UZEM
+- Source: BŞEÜ Open and Distance Learning Center (UZEM), Frequently Asked Questions
+- Link: https://bilecik.edu.tr/ue/Icerik/Sıkça_Sorulan_Sorular_(SSS)_952bf
+Course registration must be completed first: your courses and user account become active at https://ders.bilecik.edu.tr/ the day after your course registration. If you see the warning "user does not exist on this site", log in to OBS first and then log in to https://ders.bilecik.edu.tr/ one day later. Reasons for not being able to log in, as listed on the page: course registration not done (contact your advisor), a wrong e-mail address, and an inactive wireless (eduroam) account (check it in the wireless internet menu at sofra.bilecik.edu.tr with your student number and OBS password).
+
+## UZEM password and phone verification
+- Source: BŞEÜ Open and Distance Learning Center (UZEM), Frequently Asked Questions
+- Link: https://bilecik.edu.tr/ue/Icerik/Sıkça_Sorulan_Sorular_(SSS)_952bf
+If you get a "wrong password" warning, create a new password at https://sofra.bilecik.edu.tr/YeniParolaOlustur. The password must contain at least one lowercase letter, one uppercase letter and one digit, and be 8 to 14 characters long. A confirmation code is sent by SMS. Do not change your password at https://ders.bilecik.edu.tr/: a password change made there is not valid. If your phone number or e-mail changed, go to giris.bilecik.edu.tr, enter your contact phone number and current e-mail address in the "Hesabım" (My Account) menu, and verify them. To change the registered e-mail address, contact your academic unit.
+
+## UZEM live classes, recorded classes and technical support
+- Source: BŞEÜ Open and Distance Learning Center (UZEM), Frequently Asked Questions
+- Link: https://bilecik.edu.tr/ue/Icerik/Sıkça_Sorulan_Sorular_(SSS)_952bf
+Live class schedules are shown in OBS. The live class system opens in your web browser; no extra program needs to be installed. You can join from a laptop or desktop computer, a mobile phone or a tablet with an internet connection. A missed live class can be watched later: click the course and that week's class activity, then the "Kayıtlı Dersi İzle" (Watch Recorded Class) link. Questions about the course content go to the course's instructor. To report technical errors in the system, create a technical support request at http://uedestek.bilecik.edu.tr/, with screenshots if you have them.
+
+## Student e-mail quota, limits and after graduation
+- Source: BŞEÜ IT Department, E-mail Settings (Student)
+- Link: https://bilecik.edu.tr/bilgiislem/Icerik/E_posta_Ayarları_(Öğrenci)_7db25
+The e-mail account can be used as long as the student's student rights continue. When student rights end, the e-mail service ends automatically. Limits: each student mailbox has a quota of 25 megabytes. An e-mail can have at most 3 recipients, an account can send at most 10 e-mails a day, and one e-mail can be at most 15 MB in total; infected and executable files (exe, com, pif, bat, etc.) cannot be sent. Students are responsible for backing up the personal data in their mailbox. For a mail app (Outlook, Thunderbird, etc.) the server is ogrenci.bilecik.edu.tr: IMAP port 143, POP3 port 110, security type TLS or STARTTLS; the user name is the e-mail address and the password is the ÖBS/SOFRA password.

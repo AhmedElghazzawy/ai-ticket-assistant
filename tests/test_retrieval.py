@@ -122,3 +122,11 @@ def test_search_on_an_empty_knowledge_base_fails_loudly(
 
 def test_every_chunk_has_an_official_link() -> None:
     assert all(chunk.url.startswith("https://") for chunk in load_chunks())
+
+
+def test_every_section_exists_in_turkish_and_english() -> None:
+    # Search runs in the ticket's language: a section missing in one language cannot answer there.
+    ids = {chunk.id for chunk in load_chunks()}
+    assert {i.replace(".tr#", ".en#") for i in ids if ".tr#" in i} == {
+        i for i in ids if ".en#" in i
+    }
