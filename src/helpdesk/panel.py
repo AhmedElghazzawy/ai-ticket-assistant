@@ -22,7 +22,7 @@ TEXTS: dict[str, dict[str, Any]] = {
         "title": "🎓 BŞEÜ Öğrenci Yardım Masası",
         "tagline": "Yapay zekâ destekli yardım asistanı · prototip",
         "subtitle": "BŞEÜ öğrenci ticket'larını okur, etiketler ve taslak cevap yazar.",
-        "about": "Çalışma Tasarımı I projesi. Ticket → sınıflandırma → belge arama (RAG) → kaynaklı cevap → otomatik gönder veya birime yönlendir.",
+        "about": "BŞEÜ yardım masası AI asistanı. Ticket → sınıflandırma → belge arama (RAG) → kaynaklı cevap → otomatik gönder veya birime yönlendir.",
         "progress": "📊 Proje durumu",
         "menu": "Menü",
         "steps": [
@@ -130,7 +130,7 @@ TEXTS: dict[str, dict[str, Any]] = {
         "title": "🎓 BŞEÜ Student Helpdesk",
         "tagline": "AI-assisted helpdesk assistant · prototype",
         "subtitle": "Reads BŞEÜ student tickets, labels them and drafts a reply.",
-        "about": "Çalışma Tasarımı I project. Ticket → classification → document search (RAG) → reply with source → auto-send or route to an office.",
+        "about": "BŞEÜ helpdesk AI assistant. Ticket → classification → document search (RAG) → reply with source → auto-send or route to an office.",
         "progress": "📊 Project status",
         "menu": "Menu",
         "steps": [

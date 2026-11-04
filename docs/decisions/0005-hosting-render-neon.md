@@ -3,7 +3,7 @@
 **Durum:** Kabul edildi (2026-10-17). İlk tercih Fly.io'nun yerini aldı.
 
 ## Bağlam
-Hocamın ve başkalarının sistemi bir bağlantıyla deneyebilmesi için canlı bir demo gerekiyordu. Bütçe: sıfır. Veriler AB içinde, Türkiye'ye yakın olmalıydı.
+Ziyaretçilerin sistemi bir bağlantıyla deneyebilmesi için canlı bir demo gerekiyordu. Bütçe: sıfır. Veriler AB içinde, Türkiye'ye yakın olmalıydı.
 
 ## Karar
 - **Render**, ücretsiz web servisi, Frankfurt: Dockerfile'dan derler, otomatik HTTPS. Ayarlar `render.yaml` içinde.

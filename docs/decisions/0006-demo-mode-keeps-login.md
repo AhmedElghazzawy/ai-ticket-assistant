@@ -3,7 +3,7 @@
 **Durum:** Kabul edildi (2026-10-12).
 
 ## Bağlam
-Personel sayfaları öğrencilerin mesajlarını gösterir (kişisel veri, KVKK). Canlı demoda hocamın personel panelini hesap olmadan görebilmesi isteniyordu. "Girişi şimdilik kaldıralım" önerisi düşünüldü.
+Personel sayfaları öğrencilerin mesajlarını gösterir (kişisel veri, KVKK). Canlı demoda ziyaretçilerin personel panelini hesap olmadan görebilmesi isteniyordu. "Girişi şimdilik kaldıralım" önerisi düşünüldü.
 
 ## Karar
 Giriş kalır (Argon2id şifreler, HttpOnly çerez oturumları, birime göre yetki, hatalı giriş sınırı, CSRF koruması). Ayrıca `DEMO_MODE=true` olan sitede "Demo olarak dene" düğmesi, **yalnızca örnek talepleri** gören bir demo personeli olarak giriş yapar. Örnek talepler veri setinden ve gerçek sonuçlarından üretilir, her demo girişinde sıfırlanır.
@@ -14,4 +14,4 @@ Giriş kalır (Argon2id şifreler, HttpOnly çerez oturumları, birime göre yet
 
 ## Alternatifler
 - Girişi kaldırmak: internetteki herkes her mesajı okuyabilirdi.
-- Hocama ayrı bir hesap açmak: mümkün ama her ziyaretçi için çalışmaz.
+- Tek tek ziyaretçilere hesap açmak: mümkün ama her ziyaretçi için çalışmaz.

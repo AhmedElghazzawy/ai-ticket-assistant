@@ -97,7 +97,7 @@ const tr = {
   ],
   quickLinks: "Sık kullanılan sistemler",
   footer:
-    "Çalışma Tasarımı I öğrenci projesi · Bilgisayar Mühendisliği · BŞEÜ'nün resmî hizmeti değildir.",
+    "Kişisel proje · BŞEÜ Bilgisayar Mühendisliği öğrencisi · BŞEÜ'nün resmî hizmeti değildir.",
   staff: {
     console: "Personel Paneli",
     queue: "İnceleme kuyruğu",
@@ -311,8 +311,7 @@ const en: Texts = {
     },
   ],
   quickLinks: "Frequently used systems",
-  footer:
-    "Çalışma Tasarımı I student project · Computer Engineering · Not an official BŞEÜ service.",
+  footer: "Personal project · BŞEÜ Computer Engineering student · Not an official BŞEÜ service.",
   staff: {
     console: "Staff Console",
     queue: "Review queue",
