@@ -1,5 +1,6 @@
 """Gemini: one client (created on first use, with timeout and retries) and the LLMProvider for it."""
 
+import threading
 import time
 from functools import lru_cache
 
@@ -13,9 +14,20 @@ from helpdesk.core.settings import get_gemini_settings
 logger = get_logger(__name__)
 
 
-@lru_cache
+# lru_cache alone may build the client twice when two threads ask at once (the classifier runs in
+# its own thread); the extra client is then thrown away and closed during its request.
+CLIENT_LOCK = threading.Lock()
+
+
 def get_client() -> genai.Client:
     """The Gemini client, created on first use (so importing this file needs no API key)."""
+    with CLIENT_LOCK:
+        return new_client()
+
+
+@lru_cache
+def new_client() -> genai.Client:
+    """Build the client once; only called through get_client, under the lock."""
     settings = get_gemini_settings()
     # If Google answers "too busy" (429) or has a server error (500, 503),
     # wait and try again: 2s, then 4s, 8s, 16s (each wait doubles).

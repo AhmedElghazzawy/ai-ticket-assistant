@@ -17,6 +17,12 @@ services:
         sync: false # secret: Neon's connection string (free Postgres, EU), typed into Render's dashboard
       - key: GEMINI_MODEL
         value: gemini-3.5-flash-lite
+      # A student is waiting: give up within about a minute (25 s per try, 2 tries) and say "try
+      # again", instead of the patient eval defaults (60 s x 5); Cloudflare drops requests after 100 s.
+      - key: GEMINI_TIMEOUT_SECONDS
+        value: "25"
+      - key: GEMINI_RETRY_ATTEMPTS
+        value: "2"
       - key: PORT
         value: "8000" # the port our container listens on
       - key: DEMO_MODE
