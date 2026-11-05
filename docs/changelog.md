@@ -1785,3 +1785,11 @@ Problem (mine): "nothing is working, it does not give answers at all." Decision 
 - **Deploy:** the layout fix (`e89e36c`) went live about 7.5 minutes after its push.
 - **Checks:** `make check` green, 220 tests, coverage 85%.
 - **CI failed on the push (`b6a7607`), my Mac did not:** `test_gemini_provider_asks_for_the_schema_with_function_calling_off` read the Gemini settings, which CI does not have (no local secrets file); my Mac has one, which hid it. Render did not deploy (it waits for CI), so the live site stayed on the previous version. Fix: the test fakes its settings, and a new autouse fixture in `tests/conftest.py` stops every test from reading the Gemini settings from the secrets file, so local runs behave like CI. It reproduced the CI failure locally before the test was fixed.
+
+## The backup model no longer depends on a dashboard setting (2026-11-05)
+- **Why:** the backup only worked if Render copied `GEMINI_FALLBACK_MODEL` from `render.yaml` into the service, which Claude cannot check (deploy and dashboard actions are mine). `GeminiSettings.gemini_fallback_model` now defaults to `gemini-3.1-flash-lite`; an empty value switches it off. Safe for evals: they never use the backup (`GeminiProvider(use_fallback=False)` is the default). Test first: `test_the_backup_model_works_without_any_hosting_setting`. `make check`: 221 tests.
+
+## Keep the demo awake (2026-11-05)
+- **Problem:** the live homepage took 33 s to load: Render's free plan puts the app to sleep after ~15 minutes without visitors.
+- **Fix:** `.github/workflows/keep-awake.yml` opens `/api/health` every 10 minutes (free for public repos; a manual "Run workflow" button too). It needs no repository access (`permissions: {}`). `/api/health` does not touch the database, so Neon still sleeps and saves its free compute hours.
+- **Honest limits:** GitHub may start a scheduled run some minutes late, and turns schedules off after 60 days without repo activity. Render's 750 free hours a month are per workspace; this service awake all month uses ~744, so another free service in the same workspace would share them.

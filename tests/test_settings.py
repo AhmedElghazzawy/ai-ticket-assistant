@@ -9,6 +9,8 @@ VARIABLES = (
     "GEMINI_API_KEY",
     "GEMINI_MODEL",
     "GEMINI_TIMEOUT_SECONDS",
+    "GEMINI_RETRY_ATTEMPTS",
+    "GEMINI_FALLBACK_MODEL",
     "DATABASE_URL",
     "LOG_FORMAT",
     "COOKIE_SECURE",
@@ -43,6 +45,17 @@ def test_reads_settings_and_defaults(monkeypatch: pytest.MonkeyPatch) -> None:
     assert settings.gemini_model == "test-model"
     assert settings.gemini_api_key.get_secret_value() == "test-key"
     assert settings.gemini_timeout_seconds == 60
+
+
+def test_the_backup_model_works_without_any_hosting_setting(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # 2026-11-05: the main model was overloaded for hours; the backup must not depend on someone
+    # copying a variable into the hosting dashboard. Evals never use it (GeminiProvider default).
+    settings = load_gemini(monkeypatch, GEMINI_API_KEY="k", GEMINI_MODEL="m")
+    assert settings.gemini_fallback_model == "gemini-3.1-flash-lite"
+    off = load_gemini(monkeypatch, GEMINI_API_KEY="k", GEMINI_MODEL="m", GEMINI_FALLBACK_MODEL="")
+    assert not off.gemini_fallback_model  # an empty value switches the backup off
 
 
 def test_missing_key_is_a_clear_error(monkeypatch: pytest.MonkeyPatch) -> None:
