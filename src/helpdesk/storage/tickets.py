@@ -52,6 +52,7 @@ class StoredTicket(BaseModel):
     draft: str
     covered: bool
     sources: list[StoredSource]
+    general_help: str  # labeled general advice, not from the rules ("" in older rows)
     status: Status
     final_reply: str | None
     handled_at: datetime | None
@@ -82,8 +83,8 @@ def save_ticket(
     ]
     row = connection.execute(
         "INSERT INTO tickets (language, text, category, priority, escalate, ai_reason, office,"
-        " auto_send, reasons, top_score, draft, covered, sources, status, access_hash)"
-        " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id",
+        " auto_send, reasons, top_score, draft, covered, sources, general_help, status, access_hash)"
+        " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id",
         (
             language,
             text,
@@ -98,6 +99,7 @@ def save_ticket(
             answer.reply,
             answer.covered,
             Jsonb([source.model_dump() for source in sources]),
+            answer.general_help,
             "auto_sent" if decision.auto_send else "open",
             access_hash,
         ),

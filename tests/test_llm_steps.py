@@ -16,7 +16,11 @@ from helpdesk.domain.outputs import Answer, Classification
 
 LABELS = Classification(reason="fee question", category="billing", priority="low", escalate=False)
 ANSWER = Answer(
-    evidence="Geri ödenmez.", covered=True, reply="Ödenmez. (Kaynak: SSS)", sources=[CHUNK.id]
+    evidence="Geri ödenmez.",
+    covered=True,
+    reply="Ödenmez. (Kaynak: SSS)",
+    sources=[CHUNK.id],
+    general_help="",
 )
 
 

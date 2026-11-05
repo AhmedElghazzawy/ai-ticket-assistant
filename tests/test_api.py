@@ -12,7 +12,7 @@ from fastapi.testclient import TestClient
 from harness import PASSWORD, Api
 
 from helpdesk.api.security import RateLimiter
-from helpdesk.domain.decision import MIN_SCORE, SimpleReason
+from helpdesk.domain.decision import MIN_SCORE, SimpleReason, WeakMatch
 from helpdesk.pipeline import TicketResult
 
 
@@ -111,6 +111,8 @@ def test_forwarded_ticket_never_shows_the_draft(api: Api) -> None:
     assert response.json()["reply"] is None
     assert response.json()["sources"] == []
     assert "SECRET DRAFT" not in response.text  # not even hidden somewhere in the response
+    assert response.json()["general_help"] is None  # escalated: no AI text at all
+    assert "SECRET GENERAL HELP" not in response.text
 
 
 def test_auto_sent_answer_has_reply_and_source(api: Api) -> None:
@@ -138,6 +140,21 @@ def test_partly_answered_ticket_shows_first_help(api: Api) -> None:
     assert body["first_help"] is True
     assert body["reply"] == "SECRET DRAFT"
     assert [source["id"] for source in body["sources"]] == [CHUNK.id]
+
+
+def test_uncovered_ticket_shows_general_help(api: Api) -> None:
+    # The documents miss it: the student gets labeled general advice now, and the office answers.
+    partly = fake_result(False, forward_reason=SimpleReason(code="not_covered"))
+    api.use_pipeline(lambda *args: partly)
+    assert api.ask().json()["general_help"] == "SECRET GENERAL HELP"
+
+
+def test_weak_match_shows_general_help_but_not_the_draft(api: Api) -> None:
+    weak = fake_result(False, forward_reason=WeakMatch(score=0.5, min=MIN_SCORE))
+    api.use_pipeline(lambda *args: weak)
+    body = api.ask().json()
+    assert body["reply"] is None and body["sources"] == []  # the cited part was not checked
+    assert body["general_help"] == "SECRET GENERAL HELP"
 
 
 def test_answer_explains_how_it_was_decided(api: Api) -> None:

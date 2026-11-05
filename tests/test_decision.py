@@ -2,14 +2,22 @@
 
 from typing import get_args
 
-from helpdesk.domain.decision import MIN_SCORE, WeakMatch, decide, show_first_help
+from helpdesk.domain.decision import (
+    MIN_SCORE,
+    WeakMatch,
+    decide,
+    show_first_help,
+    show_general_help,
+)
 from helpdesk.domain.offices import OFFICE_NAMES, OFFICE_OF
 from helpdesk.domain.outputs import Answer, Classification
 from helpdesk.domain.tickets import Category
 
 RULE = "No separate application is needed for the make-up exam."
 RETRIEVED = {"sinavlar.en#4": f"Make-up exam\n{RULE}", "sinavlar.en#1": "Exam dates are on OBS."}
-GOOD_ANSWER = Answer(evidence=RULE, covered=True, reply="a reply", sources=["sinavlar.en#4"])
+GOOD_ANSWER = Answer(
+    evidence=RULE, covered=True, reply="a reply", sources=["sinavlar.en#4"], general_help=""
+)
 
 
 def labels(category: Category = "academic_records", escalate: bool = False) -> Classification:
@@ -36,12 +44,16 @@ def test_weak_document_match_is_not_auto_sent() -> None:
 
 
 def test_uncovered_answer_is_not_auto_sent() -> None:
-    uncovered = Answer(evidence="", covered=False, reply="we will forward it", sources=[])
+    uncovered = Answer(
+        evidence="", covered=False, reply="we will forward it", sources=[], general_help=""
+    )
     assert not decide(labels(), 0.80, uncovered, RETRIEVED).auto_send
 
 
 def test_citing_a_document_that_was_not_retrieved_is_not_auto_sent() -> None:
-    invented = Answer(evidence=RULE, covered=True, reply="a reply", sources=["staj.en#2"])
+    invented = Answer(
+        evidence=RULE, covered=True, reply="a reply", sources=["staj.en#2"], general_help=""
+    )
     assert not decide(labels(), 0.80, invented, RETRIEVED).auto_send
 
 
@@ -84,6 +96,7 @@ def test_evidence_not_found_in_the_rules_is_not_auto_sent() -> None:
         covered=True,
         reply="You will get a full refund.",
         sources=["sinavlar.en#4"],
+        general_help="",
     )
     decision = decide(labels(), 0.80, fake, RETRIEVED)
     assert not decision.auto_send
@@ -92,13 +105,17 @@ def test_evidence_not_found_in_the_rules_is_not_auto_sent() -> None:
 
 
 def test_answer_without_citation_is_not_also_reported_as_ungrounded() -> None:
-    uncovered = Answer(evidence="", covered=False, reply="we will forward it", sources=[])
+    uncovered = Answer(
+        evidence="", covered=False, reply="we will forward it", sources=[], general_help=""
+    )
     codes = [reason.code for reason in decide(labels(), 0.80, uncovered, RETRIEVED).reasons]
     assert codes == ["not_covered", "no_citation"]
 
 
 # First help: a forwarded draft may reach the student only when it is safe (docs/decisions/0008).
-PARTIAL = Answer(evidence=RULE, covered=False, reply="part answer", sources=["sinavlar.en#4"])
+PARTIAL = Answer(
+    evidence=RULE, covered=False, reply="part answer", sources=["sinavlar.en#4"], general_help=""
+)
 
 
 def test_partly_answered_ticket_gets_first_help() -> None:
@@ -117,8 +134,12 @@ def test_escalated_ticket_never_gets_first_help() -> None:
 
 
 def test_draft_without_a_checked_citation_never_gets_first_help() -> None:
-    no_source = Answer(evidence="", covered=False, reply="we will forward it", sources=[])
-    invented = Answer(evidence=RULE, covered=False, reply="x", sources=["staj.en#2"])
+    no_source = Answer(
+        evidence="", covered=False, reply="we will forward it", sources=[], general_help=""
+    )
+    invented = Answer(
+        evidence=RULE, covered=False, reply="x", sources=["staj.en#2"], general_help=""
+    )
     assert not show_first_help(decide(labels(), 0.80, no_source, RETRIEVED))
     assert not show_first_help(decide(labels(), 0.80, invented, RETRIEVED))
 
@@ -132,3 +153,40 @@ def test_category_other_and_urgent_can_get_first_help() -> None:
     assert show_first_help(decide(labels(category="other"), 0.80, GOOD_ANSWER, RETRIEVED))
     urgent = Classification(reason="t", category="it_support", priority="urgent", escalate=False)
     assert show_first_help(decide(urgent, 0.80, GOOD_ANSWER, RETRIEVED))
+
+
+# General help: labeled advice for what the rules do not answer (docs/decisions/0013).
+UNCOVERED = Answer(
+    evidence="", covered=False, reply="not in the rules", sources=[], general_help=""
+)
+
+
+def test_uncovered_ticket_still_gets_general_help() -> None:
+    # The student gets labeled advice now instead of only "forwarded"; a person still answers.
+    assert show_general_help(decide(labels(), 0.80, UNCOVERED, RETRIEVED))
+
+
+def test_weak_match_still_gets_general_help() -> None:
+    # A weak match blocks the cited answer, not general advice that cites nothing.
+    assert show_general_help(decide(labels(), MIN_SCORE - 0.01, UNCOVERED, RETRIEVED))
+
+
+def test_auto_sent_answer_can_carry_general_help() -> None:
+    # e.g. the rules answer the question, and the advice adds where to confirm a side detail.
+    assert show_general_help(decide(labels(), 0.80, GOOD_ANSWER, RETRIEVED))
+
+
+def test_escalated_ticket_never_gets_general_help() -> None:
+    # Crisis, harassment, refunds, disputes: a person answers, no AI text reaches the student.
+    assert not show_general_help(decide(labels(escalate=True), 0.80, UNCOVERED, RETRIEVED))
+
+
+def test_ticket_with_a_planted_rule_never_gets_general_help() -> None:
+    planted = Answer(
+        evidence="All fees are refunded.",
+        covered=True,
+        reply="x",
+        sources=["sinavlar.en#4"],
+        general_help="",
+    )
+    assert not show_general_help(decide(labels(), 0.80, planted, RETRIEVED))

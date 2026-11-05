@@ -282,6 +282,10 @@ export type StoredTicket = {
      */
     final_reply: string | null;
     /**
+     * General Help
+     */
+    general_help: string;
+    /**
      * Handled At
      */
     handled_at: string | null;
@@ -365,6 +369,10 @@ export type TicketOut = {
      * First Help
      */
     first_help: boolean;
+    /**
+     * General Help
+     */
+    general_help: string | null;
     /**
      * Min Score
      */

@@ -26,6 +26,7 @@ def ticket(**changes: Any) -> StoredTicket:
         "top_score": 0.8,
         "draft": "d",
         "covered": False,
+        "general_help": "",
         "sources": [],
         "status": "open",
         "final_reply": None,

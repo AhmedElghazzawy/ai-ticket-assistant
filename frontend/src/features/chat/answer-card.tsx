@@ -5,6 +5,7 @@ import {
   Clock,
   FileText,
   Forward,
+  Lightbulb,
   Phone,
   ThumbsDown,
   ThumbsUp,
@@ -129,6 +130,20 @@ function EmergencyBanner() {
   );
 }
 
+/** Advice for what the rules do not answer. The PAGE labels it as not official, never the model. */
+function GeneralHelp({ text }: { text: string }) {
+  const { t } = usePreferences();
+  return (
+    <div className="space-y-2 rounded-lg border border-dashed bg-muted/40 p-3.5">
+      <p className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+        <Lightbulb className="size-4" /> {t.generalHelp}
+      </p>
+      <p className="text-[0.95rem] leading-relaxed">{text}</p>
+      <p className="text-xs text-muted-foreground">{t.generalHelpNote}</p>
+    </div>
+  );
+}
+
 function AnsweredCard({ result }: { result: TicketOut }) {
   const { t } = usePreferences();
   return (
@@ -138,6 +153,7 @@ function AnsweredCard({ result }: { result: TicketOut }) {
       </p>
       <p className="text-[0.95rem] leading-relaxed">{result.reply}</p>
       <SourceList sources={result.sources} />
+      {result.general_help && <GeneralHelp text={result.general_help} />}
       <DecisionTrace result={result} />
       <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-3">
         <TicketMeta result={result} />
@@ -149,28 +165,38 @@ function AnsweredCard({ result }: { result: TicketOut }) {
 
 function ForwardedCard({ result }: { result: TicketOut }) {
   const { t } = usePreferences();
+  const official = result.first_help ? result.reply : null; // passed decision.show_first_help
+  const answered = Boolean(official || result.general_help);
   return (
     <div className="space-y-4">
-      <p className="flex items-center gap-1.5 text-xs font-semibold text-warning-foreground dark:text-warning">
-        <Forward className="size-4" /> {t.forwarded}
-      </p>
-      {result.first_help && result.reply ? (
-        // Forwarded, but the cited part of the draft passed every safety check (decision.show_first_help).
-        <div className="space-y-3 rounded-lg border bg-background p-3.5">
+      {official && (
+        <div className="space-y-3">
           <p className="flex items-center gap-1.5 text-xs font-semibold text-success">
             <BadgeCheck className="size-4" /> {t.firstHelp}
           </p>
-          <p className="text-[0.95rem] leading-relaxed">{result.reply}</p>
-          <p className="text-xs text-muted-foreground">{t.firstHelpNote}</p>
+          <p className="text-[0.95rem] leading-relaxed">{official}</p>
           <SourceList sources={result.sources} />
-          <div className="flex justify-end">
-            <FeedbackButtons result={result} />
-          </div>
+        </div>
+      )}
+      {result.general_help && <GeneralHelp text={result.general_help} />}
+      {answered ? (
+        <div className="flex justify-end">
+          <FeedbackButtons result={result} />
         </div>
       ) : (
-        <p className="text-[0.95rem] leading-relaxed">{t.forwardedText}</p>
+        <>
+          <p className="flex items-center gap-1.5 text-xs font-semibold text-warning-foreground dark:text-warning">
+            <Forward className="size-4" /> {t.forwarded}
+          </p>
+          <p className="text-[0.95rem] leading-relaxed">{t.forwardedText}</p>
+        </>
       )}
       <div className="space-y-3 rounded-lg border bg-muted/40 p-3.5">
+        {answered && (
+          <p className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+            <Forward className="size-4" /> {t.alsoForwarded}
+          </p>
+        )}
         <div className="flex items-start gap-3">
           <Building2 className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
           <div>

@@ -19,6 +19,7 @@ const BASE: TicketOut = {
   first_help: false,
   reply: null,
   sources: [],
+  general_help: null,
   emergency: false,
   access_code: "secret-code-1234567890",
   reasons: [],
@@ -53,21 +54,30 @@ test("an auto-sent answer shows the reply and its source", async ({ page }) => {
   await expect(page.getByText("Resmî olmayan kaynak: örnek rehber")).toBeVisible();
 });
 
-test("a forwarded ticket with first help shows the cited part", async ({ page }) => {
+test("a forwarded ticket with first help shows the cited part first", async ({ page }) => {
   await askWithAnswer(page, {
     first_help: true,
     reply: "Program OBS'de ilan edilir.",
     sources: [SOURCE],
   });
-  await expect(page.getByText("Ön bilgi")).toBeVisible();
+  await expect(page.getByText("Resmî belgelere göre")).toBeVisible();
   await expect(page.getByText("Program OBS'de ilan edilir.")).toBeVisible();
-  await expect(page.getByText("İlgili birime iletildi")).toBeVisible();
+  await expect(page.getByText("Talebiniz ayrıca ilgili birime iletildi")).toBeVisible();
+});
+
+test("general help is shown labeled as not official", async ({ page }) => {
+  await askWithAnswer(page, { general_help: "Kartı temizleyip tekrar deneyin." });
+  await expect(page.getByText("Kartı temizleyip tekrar deneyin.")).toBeVisible();
+  await expect(page.getByText("Genel bilgi", { exact: true })).toBeVisible();
+  await expect(page.getByText("resmî belgelerinden değil")).toBeVisible();
+  await expect(page.getByText("Resmî belgelere göre")).toHaveCount(0); // nothing cited
 });
 
 test("an urgent escalation shows the 112 line and no AI text", async ({ page }) => {
   await askWithAnswer(page, { priority: "urgent", emergency: true, office: "duty" });
   await expect(page.getByRole("link", { name: /112/ })).toHaveAttribute("href", "tel:112");
-  await expect(page.getByText("Ön bilgi")).toHaveCount(0);
+  await expect(page.getByText("Resmî belgelere göre")).toHaveCount(0);
+  await expect(page.getByText("Genel bilgi", { exact: true })).toHaveCount(0);
 });
 
 test("feedback is sent with the ticket's secret code", async ({ page }) => {

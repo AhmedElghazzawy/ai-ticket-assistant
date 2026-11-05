@@ -28,11 +28,15 @@ class Answer(BaseModel):
         description="The exact sentence(s) copied from the rules that answer the ticket, or an empty string if none do."
     )
     covered: bool = Field(
-        description="True only if the rules really answer the student's question."
+        description="True if the rules answer the student's main question, even if a side detail is missing."
     )
     reply: str = Field(
         description="A short, polite reply to the student, using only facts from the rules."
     )
     sources: list[str] = Field(
         description="The ids of the rules used (e.g. 'sinavlar.tr#4'); empty if not covered."
+    )
+    general_help: str = Field(
+        description="General advice for the parts the rules do not answer, with no BŞEÜ-specific "
+        "facts; an empty string if the rules answer everything. The page labels it as not official."
     )

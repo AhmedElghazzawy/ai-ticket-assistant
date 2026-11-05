@@ -6,6 +6,7 @@ import sys
 from datetime import timedelta
 
 import psycopg
+import pytest
 
 from helpdesk.domain.decision import Decision, SimpleReason, WeakMatch
 from helpdesk.domain.outputs import Answer, Classification
@@ -42,7 +43,13 @@ def result(auto_send: bool, priority: Priority = "low") -> TicketResult:
             reason="the model's explanation", category="billing", priority=priority, escalate=False
         ),
         hits=[(0.6497, CHUNK)],
-        answer=Answer(evidence="", covered=True, reply="a draft", sources=[CHUNK.id]),
+        answer=Answer(
+            evidence="",
+            covered=True,
+            reply="a draft",
+            sources=[CHUNK.id],
+            general_help="general advice",
+        ),
         decision=Decision(
             auto_send=auto_send,
             reasons=[]
@@ -68,6 +75,31 @@ def test_everything_staff_need_is_saved_and_read_back(db: Connection) -> None:
     assert ticket.created_at.utcoffset() == timedelta(0)  # UTC: every browser shows its local time
     [source] = ticket.sources
     assert (source.section, source.url) == ("Kayıt sildirince iade", CHUNK.url)
+
+
+def test_general_help_is_saved_with_the_ticket(db: Connection) -> None:
+    ticket = get_ticket(db, save_ticket(db, "Kartım çalışmıyor", "tr", result(False)))
+    assert ticket is not None and ticket.general_help == "general advice"
+
+
+def test_tickets_saved_before_general_help_still_load(
+    schema: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Live rows from before migration 4 have no general help: they must load with an empty one.
+    monkeypatch.setattr(store, "MIGRATIONS", {n: s for n, s in store.MIGRATIONS.items() if n <= 3})
+    old = store.connect(None, schema)
+    row = old.execute(
+        "INSERT INTO tickets (language, text, category, priority, escalate, ai_reason, office,"
+        " auto_send, reasons, top_score, draft, covered, sources, status)"
+        " VALUES ('tr', 'q', 'billing', 'low', false, 'r', 'fees', false, '[]', 0.7, 'd', false,"
+        " '[]', 'open') RETURNING id"
+    ).fetchone()
+    assert row is not None
+    monkeypatch.undo()
+    store.migrate(old)
+    ticket = get_ticket(old, int(row["id"]))
+    old.close()
+    assert ticket is not None and ticket.general_help == ""
 
 
 def test_unknown_ticket_number_gives_none(db: Connection) -> None:

@@ -99,3 +99,13 @@ def show_first_help(decision: Decision) -> bool:
     """Forwarded, but the draft may help the student now: not escalated, a strong document match,
     and every cited rule was really retrieved. A person still answers the ticket."""
     return not decision.auto_send and not {r.code for r in decision.reasons} & NO_FIRST_HELP
+
+
+# General help cites nothing, so a weak match or a missing citation does not block it; an escalated
+# ticket (a person must answer) or a planted rule in the ticket does (docs/decisions/0013).
+NO_GENERAL_HELP = {"escalation", "ungrounded"}
+
+
+def show_general_help(decision: Decision) -> bool:
+    """The model's labeled general advice, for what the rules do not answer, may reach the student."""
+    return not {r.code for r in decision.reasons} & NO_GENERAL_HELP

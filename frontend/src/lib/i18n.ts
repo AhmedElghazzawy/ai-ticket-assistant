@@ -26,9 +26,11 @@ const tr = {
   forwardedText:
     "Bu konuda kesin bir cevabı yalnızca bir personel verebilir. Talebiniz ve yapay zekânın hazırladığı taslak, aşağıdaki birime iletildi.",
   nextStep: "Bir personel talebinizi inceleyip size dönüş yapacak.",
-  firstHelp: "Ön bilgi",
-  firstHelpNote:
-    "Bu kısım resmî belgelere dayanıyor. Sorunuzun geri kalanını ilgili birimdeki personel yanıtlayacak.",
+  firstHelp: "Resmî belgelere göre",
+  generalHelp: "Genel bilgi",
+  generalHelpNote:
+    "Bu kısım BŞEÜ'nün resmî belgelerinden değil, genel bilgidir. Resmî bir konuda birime danışın.",
+  alsoForwarded: "Talebiniz ayrıca ilgili birime iletildi",
   emergency: "Acil bir tehlike varsa hemen 112'yi arayın.",
   sources: "Kaynaklar",
   ticketNo: "Talep no",
@@ -166,6 +168,9 @@ const tr = {
     noDraft: "Belgeler bu talebi yanıtlamıyor; taslak yok. Cevabı siz yazın.",
     sourcesUsed: "Taslağın kullandığı kaynaklar",
     noSources: "Bu talep için güçlü bir belge eşleşmesi bulunamadı.",
+    generalHelp: "Yapay zekânın genel tavsiyesi",
+    generalHelpNote:
+      'Resmî belgelerden değil. Talep escalate edilmediyse öğrenciye "Genel bilgi" etiketiyle gösterildi.',
     send: "Cevabı gönder",
     sent: "Cevap gönderildi",
     sentNote: "Talep kapatıldı. Cevap kaydedildi (öğrenciye iletim henüz yok).",
@@ -240,9 +245,11 @@ const en: Texts = {
   forwardedText:
     "Only a staff member can give a definite answer here. Your request and the AI's draft were sent to the office below.",
   nextStep: "A staff member will review your request and get back to you.",
-  firstHelp: "First help",
-  firstHelpNote:
-    "This part is based on official documents. A staff member at the office below will answer the rest.",
+  firstHelp: "From official documents",
+  generalHelp: "General guidance",
+  generalHelpNote:
+    "This is general guidance, not from BŞEÜ's official documents. Check with the office for anything official.",
+  alsoForwarded: "Your request was also sent to the right office",
   emergency: "If you are in immediate danger, call 112 now.",
   sources: "Sources",
   ticketNo: "Ticket no",
@@ -378,6 +385,9 @@ const en: Texts = {
       "The documents do not answer this ticket, so there is no usable draft. Write the reply yourself.",
     sourcesUsed: "Sources used by the draft",
     noSources: "No strong document match was found for this ticket.",
+    generalHelp: "AI general advice",
+    generalHelpNote:
+      'Not from the official documents. Shown to the student as "General guidance" unless the ticket was escalated.',
     send: "Send reply",
     sent: "Reply sent",
     sentNote:

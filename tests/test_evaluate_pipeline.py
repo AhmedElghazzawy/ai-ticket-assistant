@@ -33,6 +33,7 @@ def result_row(
     should: bool,
     sent: bool,
     first_help: bool = False,
+    general_help: str = "",
     escalate: bool = False,
     cites: bool = True,
     grounded: bool = True,
@@ -42,6 +43,7 @@ def result_row(
         "should_auto_send": should,
         "auto_send": sent,
         "first_help": first_help,
+        "general_help": general_help,
         "escalate": escalate,
         "cites_expected_doc": cites,
         "sources": ["doc.en#1"],
@@ -55,6 +57,8 @@ ROWS = [
     result_row("c", should=False, sent=True),  # unsafe: sent although it needed a human
     result_row("d", should=False, sent=False, first_help=True, escalate=True),  # must never happen
     result_row("e", should=True, sent=False, grounded=False),  # quote not found in the rules
+    result_row("f", should=False, sent=False, general_help="try again"),  # only general advice
+    result_row("g", should=False, sent=False, general_help="x", escalate=True),  # must never happen
 ]
 
 
@@ -65,5 +69,10 @@ def test_pipeline_summary_counts_and_intervals() -> None:
     assert s["first_help"] == 2
     assert s["first_help_on_escalated"] == ["d"]
     assert s["ungrounded_citing"] == ["e"]
-    assert s["auto_resolution_ci"] == wilson_interval(2, 5)
-    assert s["helped_now_ci"] == wilson_interval(4, 5)
+    assert s["auto_resolution_ci"] == wilson_interval(2, 7)
+    assert s["helped_now_ci"] == wilson_interval(4, 7)
+    assert s["general_help"] == 2
+    assert s["general_help_on_escalated"] == ["g"]
+    # A direct answer of any kind: official, first help, or general advice (a, b, c, d, f, g).
+    assert s["answered_now"] == "6/7 students got a direct answer"
+    assert s["answered_now_ci"] == wilson_interval(6, 7)

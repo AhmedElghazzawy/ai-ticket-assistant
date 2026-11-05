@@ -10,7 +10,13 @@ from pydantic import BaseModel, Field, field_validator
 from helpdesk.api.deps import ServicesDep
 from helpdesk.api.security import client_ip
 from helpdesk.core.logs import get_logger
-from helpdesk.domain.decision import MIN_SCORE, Decision, Reason, show_first_help
+from helpdesk.domain.decision import (
+    MIN_SCORE,
+    Decision,
+    Reason,
+    show_first_help,
+    show_general_help,
+)
 from helpdesk.domain.offices import OfficeId
 from helpdesk.domain.tickets import Category, Priority
 from helpdesk.storage.db import token_hash
@@ -57,6 +63,9 @@ class TicketOut(BaseModel):
     first_help: bool  # forwarded, but the cited draft helps now (decision.show_first_help)
     reply: str | None  # None: a human answers, so the unchecked draft never leaves the server
     sources: list[StoredSource]
+    # Labeled general advice for what the rules do not answer; None when escalated (a person answers)
+    # or when the ticket planted a fake rule (decision.show_general_help).
+    general_help: str | None
     emergency: bool  # show the 112 line (urgent and escalated)
     access_code: str  # shown ONCE: with it, only this student can see the status and give feedback
     # "Nasıl karar verildi?": the checks behind the decision (never the draft or the model's text)
@@ -147,7 +156,8 @@ def create_ticket(ticket: TicketIn, services: ServicesDep) -> TicketOut:
         top_score=round(saved.top_score, 4),
     )
     # The response is built from the SAVED ticket, so students and staff always see the same data.
-    first_help = show_first_help(Decision(auto_send=saved.auto_send, reasons=saved.reasons))
+    decision = Decision(auto_send=saved.auto_send, reasons=saved.reasons)
+    first_help = show_first_help(decision)
     shown = saved.auto_send or first_help
     return TicketOut(
         ticket_id=saved.id,
@@ -158,6 +168,7 @@ def create_ticket(ticket: TicketIn, services: ServicesDep) -> TicketOut:
         first_help=first_help,
         reply=saved.draft if shown else None,
         sources=saved.sources if shown else [],
+        general_help=(saved.general_help or None) if show_general_help(decision) else None,
         emergency=saved.escalate and saved.priority == "urgent",
         access_code=code,
         reasons=saved.reasons,

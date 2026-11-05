@@ -431,6 +431,10 @@
             ],
             "title": "Final Reply"
           },
+          "general_help": {
+            "title": "General Help",
+            "type": "string"
+          },
           "handled_at": {
             "anyOf": [
               {
@@ -543,6 +547,7 @@
           "draft",
           "covered",
           "sources",
+          "general_help",
           "status",
           "final_reply",
           "handled_at",
@@ -607,6 +612,17 @@
           "first_help": {
             "title": "First Help",
             "type": "boolean"
+          },
+          "general_help": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "General Help"
           },
           "min_score": {
             "title": "Min Score",
@@ -695,6 +711,7 @@
           "first_help",
           "reply",
           "sources",
+          "general_help",
           "emergency",
           "access_code",
           "reasons",

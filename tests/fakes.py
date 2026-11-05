@@ -3,7 +3,7 @@
 from pydantic import BaseModel
 
 from helpdesk.ai.provider import Output, Thinking
-from helpdesk.domain.decision import Decision, SimpleReason
+from helpdesk.domain.decision import Decision, SimpleReason, WeakMatch
 from helpdesk.domain.outputs import Answer, Classification
 from helpdesk.domain.tickets import Priority
 from helpdesk.pipeline import TicketResult
@@ -24,7 +24,7 @@ def fake_result(
     auto_send: bool,
     escalate: bool = False,
     priority: Priority = "low",
-    forward_reason: SimpleReason | None = None,
+    forward_reason: SimpleReason | WeakMatch | None = None,
 ) -> TicketResult:
     """A hand-made pipeline result. Forwarded results default to the reason "escalation"."""
     reason = forward_reason or SimpleReason(code="escalation")
@@ -34,7 +34,11 @@ def fake_result(
         ),
         hits=[(0.8, CHUNK)],
         answer=Answer(
-            evidence="Geri ödenmez.", covered=True, reply="SECRET DRAFT", sources=[CHUNK.id]
+            evidence="Geri ödenmez.",
+            covered=True,
+            reply="SECRET DRAFT",
+            sources=[CHUNK.id],
+            general_help="SECRET GENERAL HELP",
         ),
         decision=Decision(auto_send=auto_send, reasons=[] if auto_send else [reason]),
     )

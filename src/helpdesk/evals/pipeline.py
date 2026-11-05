@@ -11,7 +11,7 @@ from typing import Any
 
 from helpdesk.ai.gemini import GeminiProvider
 from helpdesk.core.paths import EVAL_DIR
-from helpdesk.domain.decision import show_first_help
+from helpdesk.domain.decision import show_first_help, show_general_help
 from helpdesk.domain.grounding import is_grounded
 from helpdesk.domain.tickets import DATASETS, TICKETS_PATH, Ticket, load_tickets
 from helpdesk.evals.report import run_metadata
@@ -40,6 +40,8 @@ def summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
     sent = [r for r in rows if r["auto_send"]]
     first_help = [r for r in rows if r["first_help"]]
     helped = len(sent) + len(first_help)
+    general = [r for r in rows if r["general_help"]]
+    answered = sum(r["auto_send"] or r["first_help"] or bool(r["general_help"]) for r in rows)
     return {
         "tickets": len(rows),
         "auto_sent": len(sent),
@@ -52,6 +54,11 @@ def summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "helped_now_ci": wilson_interval(helped, len(rows)),
         # Must stay empty: AI text shown to a student whose ticket (by my labels) needed a human.
         "first_help_on_escalated": [r["id"] for r in first_help if r["escalate"]],
+        # General advice (labeled as not official) shown to the student; read it for BŞEÜ-specific claims.
+        "general_help": len(general),
+        "general_help_on_escalated": [r["id"] for r in general if r["escalate"]],  # must stay empty
+        "answered_now": f"{answered}/{len(rows)} students got a direct answer",
+        "answered_now_ci": wilson_interval(answered, len(rows)),
         # Answers that cite a rule but whose quoted evidence is not found in the retrieved rules.
         "ungrounded_citing": [r["id"] for r in rows if r["sources"] and not r["grounded"]],
     }
@@ -89,6 +96,8 @@ def run(dataset: str) -> None:
                 "cites_expected_doc": expected[t.id] in cited_docs,
                 "top_score": round(r.hits[0][0], 3),
                 "reply": r.answer.reply,
+                # Only what the student really sees (decision.show_general_help).
+                "general_help": r.answer.general_help if show_general_help(r.decision) else "",
                 "evidence": r.answer.evidence,
                 "grounded": is_grounded(r.answer.evidence, [c.text for _, c in r.hits]),
             }

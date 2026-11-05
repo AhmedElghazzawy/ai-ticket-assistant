@@ -93,6 +93,11 @@ ALTER TABLE tickets ADD COLUMN access_hash TEXT;
 ALTER TABLE tickets ADD COLUMN feedback TEXT CHECK (feedback IN ('helpful', 'not_helpful'));
 ALTER TABLE tickets ADD COLUMN feedback_at TIMESTAMPTZ;
 """,
+    4: """
+-- General advice for what the official rules do not answer, shown labeled as not official
+-- (docs/decisions/0013). Older rows have none.
+ALTER TABLE tickets ADD COLUMN general_help TEXT NOT NULL DEFAULT '';
+""",
 }
 SCHEMA_VERSION = max(MIGRATIONS)
 

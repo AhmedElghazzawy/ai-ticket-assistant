@@ -239,6 +239,12 @@ export function TicketPage() {
         </div>
         <div className="space-y-6">
           <ReplyEditor key={ticket.id} ticket={ticket} />
+          {ticket.general_help && (
+            <Panel title={t.staff.generalHelp}>
+              <p className="text-sm whitespace-pre-wrap">{ticket.general_help}</p>
+              <p className="text-xs text-muted-foreground">{t.staff.generalHelpNote}</p>
+            </Panel>
+          )}
           <Panel title={t.staff.sourcesUsed}>
             {ticket.sources.length > 0 ? (
               <ul className="space-y-2">
