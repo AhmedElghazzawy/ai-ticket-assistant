@@ -15,9 +15,20 @@ from harness import Api, no_pipeline
 from psycopg_pool import ConnectionPool
 
 from helpdesk.api.app import create_app
-from helpdesk.core.settings import AppSettings
+from helpdesk.core.settings import AppSettings, GeminiSettings, get_gemini_settings
 from helpdesk.storage import db as store
 from helpdesk.storage.db import Connection
+
+
+@pytest.fixture(autouse=True)
+def no_gemini_key_file(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
+    """Tests never read the Gemini settings in .env: CI has no .env, so a test that passed only
+    thanks to my local key would fail there (it happened: 2026-11-05)."""
+    config = {**GeminiSettings.model_config, "env_file": None}
+    monkeypatch.setattr(GeminiSettings, "model_config", config)
+    get_gemini_settings.cache_clear()
+    yield
+    get_gemini_settings.cache_clear()
 
 
 @pytest.fixture(autouse=True)

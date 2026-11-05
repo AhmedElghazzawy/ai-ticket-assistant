@@ -1,6 +1,7 @@
 """The two model steps talk to an LLMProvider, never to Gemini directly (no API calls here)."""
 
 import json
+from types import SimpleNamespace
 from typing import Any, NoReturn
 
 import pytest
@@ -64,15 +65,18 @@ def test_gemini_provider_asks_for_the_schema_with_function_calling_off(
     def fake_generate(
         stage: str, contents: str, config: types.GenerateContentConfig, model: str
     ) -> types.GenerateContentResponse:
-        sent.update(stage=stage, contents=contents, config=config)
+        sent.update(stage=stage, contents=contents, config=config, model=model)
         part = types.Part.from_text(text=json.dumps(LABELS.model_dump()))
         return types.GenerateContentResponse(
             candidates=[types.Candidate(content=types.Content(parts=[part]))]
         )
 
+    settings = SimpleNamespace(gemini_model="main-model", gemini_fallback_model=None)
+    monkeypatch.setattr(gemini, "get_gemini_settings", lambda: settings)
     monkeypatch.setattr(gemini, "generate", fake_generate)
     labels = GeminiProvider().generate_json("classify", "SYSTEM", "TICKET", Classification, "low")
     assert labels == LABELS and sent["stage"] == "classify" and sent["contents"] == "TICKET"
+    assert sent["model"] == "main-model"
     config: types.GenerateContentConfig = sent["config"]
     assert config.system_instruction == "SYSTEM"
     assert config.response_json_schema == Classification.model_json_schema()

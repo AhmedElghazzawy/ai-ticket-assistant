@@ -1784,3 +1784,4 @@ Problem (mine): "nothing is working, it does not give answers at all." Decision 
 - **Flaky test fixed:** `test_pipeline_uses_the_model_it_is_given` expected the calls in a fixed order; since the parallel change either may come first, so it compares the set.
 - **Deploy:** the layout fix (`e89e36c`) went live about 7.5 minutes after its push.
 - **Checks:** `make check` green, 220 tests, coverage 85%.
+- **CI failed on the push (`b6a7607`), my Mac did not:** `test_gemini_provider_asks_for_the_schema_with_function_calling_off` read the Gemini settings, which CI does not have (no local secrets file); my Mac has one, which hid it. Render did not deploy (it waits for CI), so the live site stayed on the previous version. Fix: the test fakes its settings, and a new autouse fixture in `tests/conftest.py` stops every test from reading the Gemini settings from the secrets file, so local runs behave like CI. It reproduced the CI failure locally before the test was fixed.
