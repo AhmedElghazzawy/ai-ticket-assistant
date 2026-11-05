@@ -1,7 +1,8 @@
 """One command for every eval. Each result in eval/ records what produced it (evals/report.py).
 
 Run: make eval SUITE=classifier|pipeline|retrieval|security [SET=dev|test|phase8] [LEVEL=low|high]
-(or: uv run python -m helpdesk.evals pipeline --set dev)
+     [MODEL=gemini-...] [RUNS=1|2]   (classifier only: compare another model; own result file)
+(or: uv run python -m helpdesk.evals classifier --model gemini-3.6-flash --runs 1)
 
 Evals make real model calls: see .claude/skills/run-evals/SKILL.md before running one.
 """
@@ -23,20 +24,26 @@ def parse(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("suite", choices=SUITES)
     parser.add_argument("--set", dest="dataset", choices=list(DATASETS))
     parser.add_argument("--level", choices=("low", "high"))
+    parser.add_argument("--model", help="classifier only: another model than GEMINI_MODEL")
+    parser.add_argument("--runs", type=int, help="classifier only: how often each ticket is asked")
     args = parser.parse_args(argv)
     if args.dataset and args.suite not in PER_DATASET:
         parser.error(f"{args.suite} always runs on its own data; drop --set")
-    if args.level and args.suite != "classifier":
-        parser.error("--level only applies to the classifier")
+    for option in ("level", "model", "runs"):
+        if getattr(args, option) is not None and args.suite != "classifier":
+            parser.error(f"--{option} only applies to the classifier")
+    if args.runs is not None and args.runs < 1:
+        parser.error("--runs must be at least 1")
     args.dataset = args.dataset or "dev"
     args.level = args.level or THINKING
+    args.runs = args.runs or classifier.RUNS
     return args
 
 
 def main(argv: Sequence[str] | None = None) -> None:
     args = parse(argv)
     if args.suite == "classifier":
-        classifier.run(args.level, args.dataset)
+        classifier.run(args.level, args.dataset, args.model, args.runs)
     elif args.suite == "pipeline":
         pipeline.run(args.dataset)
     elif args.suite == "retrieval":

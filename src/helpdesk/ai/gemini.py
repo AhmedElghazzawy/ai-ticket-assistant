@@ -127,12 +127,13 @@ class GeminiProvider:
     With `use_fallback` (the live API only), a call that fails because the main model is overloaded
     is asked once more on GEMINI_FALLBACK_MODEL, so a busy model does not take the site down."""
 
-    def __init__(self, use_fallback: bool = False) -> None:
+    def __init__(self, use_fallback: bool = False, model: str | None = None) -> None:
         self.use_fallback = use_fallback
+        self.chosen_model = model  # e.g. for a model comparison; None: GEMINI_MODEL
 
     @property
     def model(self) -> str:
-        return get_gemini_settings().gemini_model
+        return self.chosen_model or get_gemini_settings().gemini_model
 
     def generate_json(
         self, stage: str, system: str, contents: str, schema: type[Output], thinking: Thinking

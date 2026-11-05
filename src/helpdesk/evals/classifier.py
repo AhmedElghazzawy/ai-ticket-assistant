@@ -8,6 +8,7 @@ Run: make eval SUITE=classifier                 (dev tickets, thinking level hig
 import json
 import time
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 from google.genai import errors
@@ -28,10 +29,12 @@ Predictions = dict[
 ]  # ticket id -> {"reason", "category", "priority", "escalate"}
 
 
-def predict_all(tickets: list[Ticket], llm: LLMProvider, thinking: Thinking) -> list[Predictions]:
-    """Classify every ticket RUNS times. Stops early (keeping what it has) if the quota is used up."""
+def predict_all(
+    tickets: list[Ticket], llm: LLMProvider, thinking: Thinking, run_count: int = RUNS
+) -> list[Predictions]:
+    """Classify every ticket `run_count` times. Stops early (keeping what it has) if the quota is used up."""
     runs: list[Predictions] = []
-    for run_number in range(1, RUNS + 1):
+    for run_number in range(1, run_count + 1):
         predictions: Predictions = {}
         runs.append(predictions)
         for number, ticket in enumerate(tickets, start=1):
@@ -158,10 +161,17 @@ def print_mistakes(tickets: list[Ticket], predictions: Predictions) -> None:
             print(f"- {t.id} | {diffs}\n    {t.text}\n    reason: {p['reason']}")
 
 
-def run(level: Thinking, dataset: str) -> None:
+def result_path(level: Thinking, dataset: str, model: str | None) -> Path:
+    """The main model keeps its usual file; a compared model gets its own, so nothing is overwritten."""
+    suffix = "" if dataset == "dev" else f"_{dataset}"
+    other = f"_{model}" if model else ""
+    return RESULTS_DIR / f"results_{level}{suffix}{other}.json"
+
+
+def run(level: Thinking, dataset: str, model: str | None = None, run_count: int = RUNS) -> None:
     tickets = load_tickets(DATASETS[dataset])
-    llm = GeminiProvider()
-    runs = predict_all(tickets, llm, level)
+    llm = GeminiProvider(model=model)
+    runs = predict_all(tickets, llm, level, run_count)
     by_language = {lang: [t for t in tickets if t.language == lang] for lang in ("tr", "en")}
     results = {
         "run": run_metadata("classifier", llm.model, {dataset: DATASETS[dataset]}),
@@ -178,8 +188,7 @@ def run(level: Thinking, dataset: str) -> None:
         "predictions": runs,
     }
     RESULTS_DIR.mkdir(exist_ok=True)
-    suffix = "" if dataset == "dev" else f"_{dataset}"
-    path = RESULTS_DIR / f"results_{level}{suffix}.json"
+    path = result_path(level, dataset, model)
     path.write_text(json.dumps(results, ensure_ascii=False, indent=2), encoding="utf-8")
     print_report(results)
     print_mistakes(tickets, runs[0])

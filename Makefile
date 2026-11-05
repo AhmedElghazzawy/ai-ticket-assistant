@@ -69,5 +69,7 @@ index: ## Rebuild data/kb_index.json after a knowledge-base change (paid embeddi
 SUITE ?=
 SET ?=
 LEVEL ?=
-eval: ## One eval, versioned in eval/: make eval SUITE=classifier|pipeline|retrieval|security [SET=..] [LEVEL=..]
-	uv run python -m helpdesk.evals $(SUITE) $(if $(SET),--set $(SET)) $(if $(LEVEL),--level $(LEVEL))
+MODEL ?=
+RUNS ?=
+eval: ## One eval, versioned in eval/: make eval SUITE=classifier|pipeline|retrieval|security [SET=..] [LEVEL=..] [MODEL=..] [RUNS=..]
+	uv run python -m helpdesk.evals $(SUITE) $(if $(SET),--set $(SET)) $(if $(LEVEL),--level $(LEVEL)) $(if $(MODEL),--model $(MODEL)) $(if $(RUNS),--runs $(RUNS))
