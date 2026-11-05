@@ -113,6 +113,15 @@ clock = time.monotonic  # a function, so tests can move time forward
 main_down_until = 0.0  # clock time until which the live API goes straight to the backup
 
 
+# The live API's own limits, in code so they never depend on a hosting dashboard (Render kept the old
+# 25 s x 2 and one live answer took 64 s, 2026-11-05). A healthy call takes 2-8 s; a stuck one goes to
+# the backup after 12 s, without a retry. Evals keep the patient client limits (GEMINI_TIMEOUT_SECONDS).
+LIVE_LIMITS = types.HttpOptions(
+    timeout=12_000,  # milliseconds
+    retry_options=types.HttpRetryOptions(attempts=1),
+)
+
+
 def is_overloaded(error: Exception) -> bool:
     if isinstance(error, httpx.TimeoutException):
         return True
@@ -144,6 +153,7 @@ class GeminiProvider:
             response_json_schema=schema.model_json_schema(),  # Gemini must answer in this shape
             thinking_config=types.ThinkingConfig(thinking_level=THINKING_LEVELS[thinking]),
             automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
+            http_options=LIVE_LIMITS if self.use_fallback else None,  # None: the client's limits
         )
         fallback = get_gemini_settings().gemini_fallback_model if self.use_fallback else None
         if fallback and clock() < main_down_until:

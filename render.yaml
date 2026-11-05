@@ -1,6 +1,8 @@
 # Render Blueprint: the whole app, free plan, Frankfurt (EU, the closest region to Turkey).
 # Render builds the Dockerfile from this repository. The Gemini key is entered once in Render's
 # dashboard (sync: false), never written in this file.
+# Note: the live service was created with the Render CLI, not from this Blueprint, so Render does not
+# apply changes here by itself; its dashboard values win. Anything the live site must have is in code.
 services:
   - type: web
     name: bseu-helpdesk
@@ -19,12 +21,7 @@ services:
       # gemini-3.5-flash-lite within the 95% intervals, and it answered while that one was overloaded.
       - key: GEMINI_MODEL
         value: gemini-3.1-flash-lite
-      # A student is waiting: one try of 12 s, then the backup model at once (worst case ~25 s),
-      # instead of the patient eval defaults (60 s x 5). A healthy call takes 2-8 s (2026-11-05).
-      - key: GEMINI_TIMEOUT_SECONDS
-        value: "12"
-      - key: GEMINI_RETRY_ATTEMPTS
-        value: "1"
+      # The live time limit (12 s, one try, then the backup) is in code: LIVE_LIMITS in ai/gemini.py.
       # When the main model is overloaded (503 "high demand"), ask this one instead. Free tier.
       - key: GEMINI_FALLBACK_MODEL
         value: gemini-3.5-flash-lite

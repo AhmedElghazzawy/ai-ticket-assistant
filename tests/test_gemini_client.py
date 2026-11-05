@@ -8,7 +8,7 @@ from types import SimpleNamespace
 import httpx
 import pytest
 from google import genai
-from google.genai import errors
+from google.genai import errors, types
 
 from helpdesk.ai import gemini
 from helpdesk.domain.outputs import Classification
@@ -58,15 +58,20 @@ LABELS_JSON = '{"reason": "r", "category": "billing", "priority": "low", "escala
 
 
 class FakeGemini:
-    """The main model fails with `failure`; the backup model answers. Records which models were asked."""
+    """The main model fails with `failure` (None: it answers); the backup model answers. Records
+    which models were asked and with which config."""
 
     def __init__(self) -> None:
-        self.failure: Exception = errors.ServerError(503, {"error": {"code": 503}})
+        self.failure: Exception | None = errors.ServerError(503, {"error": {"code": 503}})
         self.models: list[str] = []
+        self.configs: list[types.GenerateContentConfig] = []
 
-    def generate(self, stage: str, contents: str, config: object, model: str) -> object:
+    def generate(
+        self, stage: str, contents: str, config: types.GenerateContentConfig, model: str
+    ) -> object:
         self.models.append(model)
-        if model == "main-model":
+        self.configs.append(config)
+        if model == "main-model" and self.failure is not None:
             raise self.failure
         return SimpleNamespace(text=LABELS_JSON)
 
@@ -108,6 +113,25 @@ def test_evals_never_fall_back(fake: FakeGemini) -> None:
     with pytest.raises(errors.ServerError):
         ask(use_fallback=False)
     assert fake.models == ["main-model"]
+
+
+def test_live_calls_give_up_after_12_seconds_without_any_hosting_setting(fake: FakeGemini) -> None:
+    # The hosting dashboard kept old values (25 s x 2: one answer took 64 s live, 2026-11-05), so the
+    # live limit is in code: a stuck call goes to the backup after 12 s, and the backup gets 12 s too.
+    ask(use_fallback=True)
+    for config in fake.configs:
+        assert config.http_options is not None
+        assert config.http_options.timeout == 12_000  # milliseconds
+        assert config.http_options.retry_options is not None
+        assert config.http_options.retry_options.attempts == 1  # no retry: the backup is faster
+    assert fake.models == ["main-model", "backup-model"]
+
+
+def test_evals_keep_the_patient_client_limits(fake: FakeGemini) -> None:
+    # Evals must not lose tickets to a slow minute: they keep GEMINI_TIMEOUT_SECONDS and retries.
+    fake.failure = None
+    ask(use_fallback=False)
+    assert fake.configs[0].http_options is None
 
 
 def test_a_bad_request_does_not_fall_back(fake: FakeGemini) -> None:
