@@ -19,12 +19,12 @@ services:
       # gemini-3.5-flash-lite within the 95% intervals, and it answered while that one was overloaded.
       - key: GEMINI_MODEL
         value: gemini-3.1-flash-lite
-      # A student is waiting: give up within about a minute (25 s per try, 2 tries) and say "try
-      # again", instead of the patient eval defaults (60 s x 5); Cloudflare drops requests after 100 s.
+      # A student is waiting: one try of 12 s, then the backup model at once (worst case ~25 s),
+      # instead of the patient eval defaults (60 s x 5). A healthy call takes 2-8 s (2026-11-05).
       - key: GEMINI_TIMEOUT_SECONDS
-        value: "25"
+        value: "12"
       - key: GEMINI_RETRY_ATTEMPTS
-        value: "2"
+        value: "1"
       # When the main model is overloaded (503 "high demand"), ask this one instead. Free tier.
       - key: GEMINI_FALLBACK_MODEL
         value: gemini-3.5-flash-lite
