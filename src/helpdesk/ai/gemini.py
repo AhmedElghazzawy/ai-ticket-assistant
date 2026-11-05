@@ -106,6 +106,13 @@ THINKING_LEVELS = {"low": types.ThinkingLevel.LOW, "high": types.ThinkingLevel.H
 OVERLOADED = {429, 500, 503, 504}
 
 
+# After an overload the main model is skipped for a while: Google takes ~20 s to answer "busy", so
+# asking a model we know is down first made every answer take ~60 s (live, 2026-11-05).
+SKIP_MAIN_SECONDS = 300
+clock = time.monotonic  # a function, so tests can move time forward
+main_down_until = 0.0  # clock time until which the live API goes straight to the backup
+
+
 def is_overloaded(error: Exception) -> bool:
     if isinstance(error, httpx.TimeoutException):
         return True
@@ -137,14 +144,25 @@ class GeminiProvider:
             thinking_config=types.ThinkingConfig(thinking_level=THINKING_LEVELS[thinking]),
             automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
         )
-        try:
-            response = generate(stage, contents, config, self.model)
-        except Exception as error:
-            fallback = get_gemini_settings().gemini_fallback_model
-            if not (self.use_fallback and fallback and is_overloaded(error)):
-                raise
-            logger.warning(
-                "gemini_fallback", stage=stage, error_type=type(error).__name__, model=fallback
-            )
-            response = generate(stage, contents, config, fallback)
+        fallback = get_gemini_settings().gemini_fallback_model if self.use_fallback else None
+        if fallback and clock() < main_down_until:
+            response = generate(stage, contents, config, fallback)  # the main model is resting
+        else:
+            try:
+                response = generate(stage, contents, config, self.model)
+            except Exception as error:
+                if not (fallback and is_overloaded(error)):
+                    raise
+                mark_main_down()
+                logger.warning(
+                    "gemini_fallback", stage=stage, error_type=type(error).__name__, model=fallback
+                )
+                response = generate(stage, contents, config, fallback)
         return schema.model_validate_json(response_text(response))
+
+
+def mark_main_down() -> None:
+    """Skip the main model for SKIP_MAIN_SECONDS. A plain float write: the worst a race between the
+    two pipeline threads can do is set almost the same time twice."""
+    global main_down_until
+    main_down_until = clock() + SKIP_MAIN_SECONDS

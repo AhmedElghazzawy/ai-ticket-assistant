@@ -77,6 +77,7 @@ def fake(monkeypatch: pytest.MonkeyPatch) -> FakeGemini:
     settings = SimpleNamespace(gemini_model="main-model", gemini_fallback_model="backup-model")
     monkeypatch.setattr(gemini, "get_gemini_settings", lambda: settings)
     monkeypatch.setattr(gemini, "generate", fake.generate)
+    monkeypatch.setattr(gemini, "main_down_until", 0.0)  # no overload left over from another test
     return fake
 
 
@@ -115,3 +116,44 @@ def test_a_bad_request_does_not_fall_back(fake: FakeGemini) -> None:
     with pytest.raises(errors.ClientError):
         ask(use_fallback=True)
     assert fake.models == ["main-model"]
+
+
+class FakeClock:
+    def __init__(self) -> None:
+        self.now = 1000.0
+
+    def __call__(self) -> float:
+        return self.now
+
+
+@pytest.fixture
+def clock(monkeypatch: pytest.MonkeyPatch) -> FakeClock:
+    fake_clock = FakeClock()
+    monkeypatch.setattr(gemini, "clock", fake_clock)
+    monkeypatch.setattr(gemini, "main_down_until", 0.0)
+    return fake_clock
+
+
+def test_after_an_overload_the_main_model_is_skipped_for_a_while(
+    fake: FakeGemini, clock: FakeClock
+) -> None:
+    # Google takes ~20 s to say "busy": asking the dead model first made every answer take ~60 s.
+    ask(use_fallback=True)
+    assert fake.models == ["main-model", "backup-model"]
+    clock.now += gemini.SKIP_MAIN_SECONDS - 1
+    ask(use_fallback=True)
+    assert fake.models[2:] == ["backup-model"]  # straight to the backup
+
+
+def test_the_main_model_is_tried_again_after_the_pause(fake: FakeGemini, clock: FakeClock) -> None:
+    ask(use_fallback=True)
+    clock.now += gemini.SKIP_MAIN_SECONDS + 1
+    ask(use_fallback=True)
+    assert fake.models[2:] == ["main-model", "backup-model"]  # still down: back to the backup
+
+
+def test_evals_always_ask_the_main_model(fake: FakeGemini, clock: FakeClock) -> None:
+    ask(use_fallback=True)  # the live site saw an overload...
+    with pytest.raises(errors.ServerError):
+        ask(use_fallback=False)  # ...but an eval still measures the main model only
+    assert fake.models[2:] == ["main-model"]

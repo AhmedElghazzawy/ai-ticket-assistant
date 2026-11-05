@@ -1793,3 +1793,11 @@ Problem (mine): "nothing is working, it does not give answers at all." Decision 
 - **Problem:** the live homepage took 33 s to load: Render's free plan puts the app to sleep after ~15 minutes without visitors.
 - **Fix:** `.github/workflows/keep-awake.yml` opens `/api/health` every 10 minutes (free for public repos; a manual "Run workflow" button too). It needs no repository access (`permissions: {}`). `/api/health` does not touch the database, so Neon still sleeps and saves its free compute hours.
 - **Honest limits:** GitHub may start a scheduled run some minutes late, and turns schedules off after 60 days without repo activity. Render's 750 free hours a month are per workspace; this service awake all month uses ~744, so another free service in the same workspace would share them.
+
+## Skip the dead main model for 5 minutes (2026-11-05)
+- **Measured live after the backup went live:** the site answered again (ticket #47: the card question, auto-sent with the official card steps; the Turkish GPA question: correct, cited `notlar_ortalama.tr#4`, auto-sent), but the GPA answer took 59.9 s: every request first waited for the overloaded main model (Google takes ~20 s to say 503, and we retried once) before the backup answered.
+- **Fix, a circuit breaker:** after an overload the live API skips the main model for `SKIP_MAIN_SECONDS = 300` and goes straight to the backup, then tries the main model again. Evals always ask the main model. The state is one float per app process (`main_down_until`); a race between the two pipeline threads can only write almost the same time twice.
+- **Tests first** (`tests/test_gemini_client.py`, fake clock): the main model is skipped during the pause, tried again after it, and evals never skip it; the shared state is reset for every test so it cannot leak between tests.
+- **Real test, two questions in a row with the main model down:** 18.3 s (finds it down) then 4.4 s (straight to the backup), both auto-sent with a source.
+- **Keep-awake job:** first manual run succeeded.
+- **Checks:** `make check` green, 224 tests.
