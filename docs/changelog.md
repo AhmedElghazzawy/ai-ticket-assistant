@@ -1818,3 +1818,11 @@ Decision record: ADR 0015.
 - **Measured live after the model switch:** "How is my GPA calculated?" 3.4 s, correct, auto-sent; "I missed my final exam" (the first request after the deploy) 70.8 s. On my Mac the answer step takes ~4 s at both thinking levels, with one Google spike of 21 s, so lowering thinking would cost quality for almost no speed; the time is lost when one call hangs: 25 s x 2 tries before the backup is asked.
 - **Change (`render.yaml`):** `GEMINI_TIMEOUT_SECONDS` 25 -> 12 and `GEMINI_RETRY_ATTEMPTS` 2 -> 1: a stuck call goes to the backup model after 12 s; worst case ~25 s instead of ~100 s. A healthy call takes 2-8 s. Evals keep their patient defaults (60 s x 5).
 - **Honest limit:** Render takes these values from `render.yaml` only if the service syncs the Blueprint; otherwise the dashboard values stay. The user is asked to check the Environment tab.
+
+## Live check after the model switch (2026-11-05)
+- **Why:** the user asked only that the live site works.
+- **Health:** `/api/health` and the homepage answered 200 in 0.26 s (the app was awake).
+- **Ticket #55** "How is my GPA calculated?" (EN): `academic_records`, low, auto-sent with the correct formula, cited `notlar_ortalama.en#4` and `#1`.
+- **Ticket #56** "Final sınavına hastalık yüzünden giremedim" (TR): 5.0 s, `academic_records`, high, forwarded to `student_affairs` (reasons: escalation, ungrounded), no auto-send: correct, a make-up exam is a human decision.
+- **Keep-awake job:** still only the manual run, no scheduled run yet ~1 hour after it was added; the workflow is active and correct. GitHub often delays the first runs of a new schedule; checked again later.
+- **Six more live questions** (summer school, e-mail password, internship, academic leave, fee dates, student certificate; TR and EN): all six auto-sent a correct, cited answer from the right document (`yaz_okulu`, `bilisim_hesaplar`, `staj`, `akademik_izin`, `harc_ucretler`, `belgeler_hesaplar`). Five took 3.7-7.7 s; the internship question took 64.1 s. That fits the old 25 s x 2 timeout, not the new 12 s x 1 from `render.yaml`, so Render's Environment tab probably still has the old values (the user's check).
