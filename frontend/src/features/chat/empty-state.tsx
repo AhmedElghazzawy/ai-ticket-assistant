@@ -132,7 +132,7 @@ export function EmptyState({ onSend, busy }: { onSend: (text: string) => void; b
           <Examples onPick={onSend} />
         </div>
       </div>
-      <div className="relative mx-auto mt-14 grid max-w-5xl items-start gap-8 lg:grid-cols-[1.35fr_1fr]">
+      <div className="relative mx-auto mt-14 grid max-w-5xl items-start gap-8 grid-cols-1 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
         <LiveExample onAsk={onSend} />
         <Results />
       </div>

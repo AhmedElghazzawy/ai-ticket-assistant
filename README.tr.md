@@ -139,11 +139,11 @@ escalation gerektiren hiçbir talepte gösterilmedi.
 
 ## Bilgi tabanı
 
-13 konu × 2 dil = 26 belge ve 180 parça, yalnızca resmî BŞEÜ kaynaklarından: Ön Lisans ve Lisans
+14 konu × 2 dil = 28 belge ve 190 parça, yalnızca resmî BŞEÜ kaynaklarından: Ön Lisans ve Lisans
 Eğitim-Öğretim Yönetmeliği, Muafiyet ve İntibak, Yaz Okulu, Staj, Öğrenci Kulüpleri ve Engelli
 Öğrenciler yönergeleri, Öğrenci İşleri SSS, SKS sayfaları, Kütüphane sayfaları, Bilgi İşlem e-posta
 sayfası, 2026-2027 katkı payı tabloları, Tahsilat Rehberi, UZEM SSS ve 2025-2026 oryantasyon
-sunumları. Tırnak içindeki 119 cümlenin 119'u resmî metinle birebir kontrol edildi. Vektörler
+sunumları. Tırnak içindeki her cümle resmî metinle birebir kontrol edildi (önce 119; notlar belgesinin 11 alıntısı 2026-11-05'te eklenip kontrol edildi). Vektörler
 [`data/kb_index.json`](data/kb_index.json) dosyasında saklanır ve uygulama başlarken Postgres'e
 kopyalanır; böylece boş bir veritabanı API çağrısı yapmadan dolar. Hangi boşluğun neden kapatıldığı:
 [`docs/knowledge_gaps.md`](docs/knowledge_gaps.md).
@@ -218,7 +218,7 @@ src/helpdesk/        Backend paketi; katmanlar yalnızca içe doğru bağımlıd
   evals/             Sınıflandırma, arama, tüm akış ve güvenlik değerlendirmeleri; Wilson aralıkları
   pipeline.py        Bir talep için baştan sona akış
 frontend/            React uygulaması (öğrenci sohbeti, Taleplerim, personel paneli) ve Playwright testleri
-data/knowledge_base/ Resmî kaynaklı 26 belge (TR + EN)
+data/knowledge_base/ Resmî kaynaklı 28 belge (TR + EN)
 data/tickets/        Etiketli talepler: dev (80), kilitli test (40), kilitli gerçekçi set (40)
 eval/                Kayıtlı değerlendirme sonuçları
 docs/                Etiket kural kitabı, karar kayıtları, yol haritası, sorun kataloğu, değişiklik günlüğü

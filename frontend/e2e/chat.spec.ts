@@ -147,3 +147,23 @@ test("the live example can be asked for real", async ({ page }) => {
     language: "tr",
   });
 });
+
+for (const language of ["tr", "en"]) {
+  test(`the start page fits the screen (${language})`, async ({ page }) => {
+    // A long English source title once stretched a grid column: sideways scrolling on phones,
+    // a squeezed results column on desktops.
+    await page.addInitScript((lang) => localStorage.setItem("language", lang), language);
+    await page.goto("/");
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    // The emulated screen width, not window.innerWidth: a phone browser widens that to fit the page.
+    const screen = page.viewportSize()?.width ?? 0;
+    const pageWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+    expect(pageWidth).toBeLessThanOrEqual(screen);
+    if (screen >= 1024) {
+      // Side by side on a wide screen: the results column must keep room for its numbers.
+      const title = language === "tr" ? "Ölçülen sonuçlar" : "Measured results";
+      const results = page.locator("section", { has: page.getByRole("heading", { name: title }) });
+      expect((await results.boundingBox())?.width ?? 0).toBeGreaterThanOrEqual(250);
+    }
+  });
+}

@@ -137,12 +137,12 @@ word in the documents [86–99.5%].
 
 ## Knowledge base
 
-13 topics × 2 languages = 26 documents and 180 chunks, written only from official BŞEÜ sources: the
+14 topics × 2 languages = 28 documents and 190 chunks, written only from official BŞEÜ sources: the
 undergraduate education regulation, exemption, summer school, internship, student club and disabled
 students directives, the student affairs FAQ, the culture and sports (SKS) pages, the library pages, the IT
 department's e-mail page, the 2026-2027 fee tables, the payment guide, the distance-learning (UZEM)
-FAQ and the 2025-2026 orientation slides. All 119 quoted sentences were checked word for word against
-the official text. The vectors are stored in [`data/kb_index.json`](data/kb_index.json) and copied
+FAQ and the 2025-2026 orientation slides. Every quoted sentence was checked word for word against the
+official text (119 at first; the grades document's 11 quotes were added and checked on 2026-11-05). The vectors are stored in [`data/kb_index.json`](data/kb_index.json) and copied
 into Postgres at startup, so a fresh database fills itself without any API call. Which gaps were
 filled and why: [`docs/knowledge_gaps.md`](docs/knowledge_gaps.md).
 
@@ -216,7 +216,7 @@ src/helpdesk/        Backend package; layers depend only inward (core <- domain 
   evals/             Classifier, retrieval, pipeline and security evals; Wilson intervals
   pipeline.py        One ticket end to end
 frontend/            React app (student chat, Taleplerim, staff console) and Playwright tests
-data/knowledge_base/ The 26 official-source documents (TR + EN)
+data/knowledge_base/ The 28 official-source documents (TR + EN)
 data/tickets/        Labelled tickets: dev (80), locked test (40), locked realistic (40)
 eval/                Saved evaluation results
 docs/                Label rulebook, decision records, roadmap, problem catalogue, changelog
