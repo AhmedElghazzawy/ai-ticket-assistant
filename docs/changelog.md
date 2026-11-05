@@ -1774,3 +1774,13 @@ Problem (mine): "the English UI is not working correctly."
 - **Fix:** `empty-state.tsx` grid columns are `minmax(0, …)` (`grid-cols-1` on phones), so the title is cut off as designed.
 - **Test first:** `e2e/chat.spec.ts` "the start page fits the screen" (TR + EN, phone + desktop): the page is not wider than the screen, and on a wide screen the results column keeps at least 250 px. My first version passed on the broken page: a phone browser widens `window.innerWidth` to fit an overflowing page, so the test now compares with the emulated screen width. It then failed in all 4 cases and passes after the fix. Also checked by hand in English on a phone: My tickets, staff login and a chat answer with a long source title all fit.
 - **Stale counts fixed:** the start page said 26 official documents; it is 28 (14 topics × TR + EN), 190 chunks (README.md, README.tr.md, ARCHITECTURE.md). The 11 quotes of the new grades document were compared word for word with the raw Resmî Gazete text (11/11 found); the READMEs now say so instead of a single total.
+
+## The live site stopped answering: a backup model (2026-11-05)
+Problem (mine): "nothing is working, it does not give answers at all." Decision record: ADR 0014.
+- **Checked live:** `/api/health` ok in 0.1 s; one real question to `POST /api/tickets` returned `503 "The assistant is not available right now."` after 40 s. One tiny call from my Mac with the same key: `gemini-3.5-flash-lite` → `503 UNAVAILABLE, high demand` after 20 s; `gemini-3.1-flash-lite` → "OK" in 0.9 s. So: not our code, key or quota, but one overloaded Google model.
+- **Fix:** `GeminiProvider(use_fallback=True)` (live API only) asks `GEMINI_FALLBACK_MODEL` once when the main model fails with 429/500/503/504 or a timeout; each switch is logged as `gemini_fallback`. A 400 does not switch (our bug, must be seen). Evals never switch, so a score measures one model. `render.yaml` sets `GEMINI_FALLBACK_MODEL=gemini-3.1-flash-lite` (stable and free per Google's models and pricing pages, checked today); `.env.example` documents it.
+- **Tests first** (`tests/test_gemini_client.py`): 503, 504, 429 and a timeout switch to the backup; evals never switch; a 400 never switches. They failed before the code.
+- **Real test:** the GPA question, with the main model returning 503 on both steps: the backup answered in 9.8 s, correct ("(5 × 3.3 + 3 × 2.0) / 8 = 2.81"), cited `notlar_ortalama.en#1` and `#4`, auto-sent.
+- **Flaky test fixed:** `test_pipeline_uses_the_model_it_is_given` expected the calls in a fixed order; since the parallel change either may come first, so it compares the set.
+- **Deploy:** the layout fix (`e89e36c`) went live about 7.5 minutes after its push.
+- **Checks:** `make check` green, 220 tests, coverage 85%.

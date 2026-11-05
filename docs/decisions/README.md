@@ -17,5 +17,6 @@ Projedeki önemli seçimler, her biri kısa bir dosyada: bağlam, karar, sonuçl
 | [0011](0011-agent-instructions-and-guardrails.md) | Claude Code için tek, kısa talimat dosyası (CLAUDE.md), kurallar kod olarak (hook'lar) | Kabul edildi |
 | [0012](0012-package-factory-llm-provider.md) | Katmanlı paket, app factory ve LLMProvider arayüzü | Kabul edildi |
 | [0013](0013-direct-answer-and-general-help.md) | Doğrudan cevap ve etiketli "genel bilgi" (resmî ve genel bilgi ayrı alanlarda) | Kabul edildi |
+| [0014](0014-fallback-model.md) | Ana model aşırı yüklenince yedek model (yalnızca canlı API, eval'lerde asla) | Kabul edildi |
 
 Yeni bir önemli karar alındığında bir sonraki numarayla yeni dosya eklenir. Bir karar değişirse eski dosya silinmez: durumu "Yerini aldı: 00XX" olur.

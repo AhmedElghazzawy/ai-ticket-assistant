@@ -51,7 +51,8 @@ def test_pipeline_uses_the_model_it_is_given(monkeypatch: pytest.MonkeyPatch) ->
     monkeypatch.setattr(pipeline, "search", lambda *args, **kwargs: [(0.8, CHUNK)])
     llm = FakeLLM(LABELS, ANSWER)
     result = pipeline.process_ticket("Harç iade edilir mi?", "tr", no_database, llm)
-    assert [call["stage"] for call in llm.calls] == ["classify", "answer"]
+    # Both steps ran; their order is not fixed (they run at the same time).
+    assert {call["stage"] for call in llm.calls} == {"classify", "answer"} and len(llm.calls) == 2
     assert result.classification == LABELS and result.answer.reply == "Ödenmez."
 
 
@@ -61,7 +62,7 @@ def test_gemini_provider_asks_for_the_schema_with_function_calling_off(
     sent: dict[str, Any] = {}
 
     def fake_generate(
-        stage: str, contents: str, config: types.GenerateContentConfig
+        stage: str, contents: str, config: types.GenerateContentConfig, model: str
     ) -> types.GenerateContentResponse:
         sent.update(stage=stage, contents=contents, config=config)
         part = types.Part.from_text(text=json.dumps(LABELS.model_dump()))

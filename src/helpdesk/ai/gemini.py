@@ -4,8 +4,9 @@ import threading
 import time
 from functools import lru_cache
 
+import httpx
 from google import genai
-from google.genai import types
+from google.genai import errors, types
 
 from helpdesk.ai.provider import Output, Thinking
 from helpdesk.core.logs import get_logger
@@ -65,10 +66,9 @@ def estimated_cost(usage: types.GenerateContentResponseUsageMetadata | None) -> 
 
 
 def generate(
-    stage: str, contents: str, config: types.GenerateContentConfig
+    stage: str, contents: str, config: types.GenerateContentConfig, model: str
 ) -> types.GenerateContentResponse:
     """One Gemini call, timed and logged (tokens, estimated cost). Never logs the contents."""
-    model = get_gemini_settings().gemini_model
     started = time.perf_counter()
     response = get_client().models.generate_content(model=model, contents=contents, config=config)
     usage = response.usage_metadata
@@ -95,16 +95,33 @@ def response_text(response: types.GenerateContentResponse) -> str:
 
 def ask(prompt: str) -> str:
     """Send one prompt to Gemini and return its text reply."""
-    return response_text(generate("ask", prompt, NO_AFC))
+    return response_text(generate("ask", prompt, NO_AFC, get_gemini_settings().gemini_model))
 
 
 THINKING_LEVELS = {"low": types.ThinkingLevel.LOW, "high": types.ThinkingLevel.HIGH}
 
 
+# Google's side is busy or slow, or the main model's quota is used up: another model can still answer.
+# A 400 is not here: it means our request is wrong, and another model would not fix that.
+OVERLOADED = {429, 500, 503, 504}
+
+
+def is_overloaded(error: Exception) -> bool:
+    if isinstance(error, httpx.TimeoutException):
+        return True
+    return isinstance(error, errors.APIError) and error.code in OVERLOADED
+
+
 class GeminiProvider:
     """The LLMProvider for Gemini: structured output in the given schema, the thinking level, and
     no function calling. Temperature is NOT set: Gemini 3 should stay at its default 1.0 (Google's
-    advice); consistency comes from the schema and clear rules, and is measured by running twice."""
+    advice); consistency comes from the schema and clear rules, and is measured by running twice.
+
+    With `use_fallback` (the live API only), a call that fails because the main model is overloaded
+    is asked once more on GEMINI_FALLBACK_MODEL, so a busy model does not take the site down."""
+
+    def __init__(self, use_fallback: bool = False) -> None:
+        self.use_fallback = use_fallback
 
     @property
     def model(self) -> str:
@@ -120,4 +137,14 @@ class GeminiProvider:
             thinking_config=types.ThinkingConfig(thinking_level=THINKING_LEVELS[thinking]),
             automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
         )
-        return schema.model_validate_json(response_text(generate(stage, contents, config)))
+        try:
+            response = generate(stage, contents, config, self.model)
+        except Exception as error:
+            fallback = get_gemini_settings().gemini_fallback_model
+            if not (self.use_fallback and fallback and is_overloaded(error)):
+                raise
+            logger.warning(
+                "gemini_fallback", stage=stage, error_type=type(error).__name__, model=fallback
+            )
+            response = generate(stage, contents, config, fallback)
+        return schema.model_validate_json(response_text(response))

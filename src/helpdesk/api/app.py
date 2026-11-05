@@ -71,7 +71,7 @@ def create_app(
     load_index()  # fail at startup, not on the first ticket, if the search index is out of date
     services = Services(
         settings=settings,
-        pipeline=pipeline or partial(process_ticket, llm=GeminiProvider()),
+        pipeline=pipeline or partial(process_ticket, llm=GeminiProvider(use_fallback=True)),
         pool=LazyPool(open_pool),
         dist_dir=dist_dir,
     )
