@@ -18,5 +18,6 @@ Projedeki önemli seçimler, her biri kısa bir dosyada: bağlam, karar, sonuçl
 | [0012](0012-package-factory-llm-provider.md) | Katmanlı paket, app factory ve LLMProvider arayüzü | Kabul edildi |
 | [0013](0013-direct-answer-and-general-help.md) | Doğrudan cevap ve etiketli "genel bilgi" (resmî ve genel bilgi ayrı alanlarda) | Kabul edildi |
 | [0014](0014-fallback-model.md) | Ana model aşırı yüklenince yedek model (yalnızca canlı API, eval'lerde asla) | Kabul edildi |
+| [0015](0015-main-model-3-1-flash-lite.md) | Canlı ana model gemini-3.1-flash-lite (dev setinde ölçülerek seçildi) | Kabul edildi |
 
 Yeni bir önemli karar alındığında bir sonraki numarayla yeni dosya eklenir. Bir karar değişirse eski dosya silinmez: durumu "Yerini aldı: 00XX" olur.

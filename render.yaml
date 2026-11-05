@@ -15,18 +15,19 @@ services:
         sync: false # secret: typed into Render's dashboard
       - key: DATABASE_URL
         sync: false # secret: Neon's connection string (free Postgres, EU), typed into Render's dashboard
+      # Measured on the 80 dev tickets (ADR 0015): 0 missed escalations, as accurate as
+      # gemini-3.5-flash-lite within the 95% intervals, and it answered while that one was overloaded.
       - key: GEMINI_MODEL
-        value: gemini-3.5-flash-lite
+        value: gemini-3.1-flash-lite
       # A student is waiting: give up within about a minute (25 s per try, 2 tries) and say "try
       # again", instead of the patient eval defaults (60 s x 5); Cloudflare drops requests after 100 s.
       - key: GEMINI_TIMEOUT_SECONDS
         value: "25"
       - key: GEMINI_RETRY_ATTEMPTS
         value: "2"
-      # When the main model is overloaded (503 "high demand"), ask this one instead (2026-11-05:
-      # gemini-3.5-flash-lite failed every call while this answered in 0.9 s). Free tier.
+      # When the main model is overloaded (503 "high demand"), ask this one instead. Free tier.
       - key: GEMINI_FALLBACK_MODEL
-        value: gemini-3.1-flash-lite
+        value: gemini-3.5-flash-lite
       - key: PORT
         value: "8000" # the port our container listens on
       - key: DEMO_MODE

@@ -162,7 +162,7 @@ See [SECURITY.md](SECURITY.md) to report a vulnerability.
 
 | Layer | Tools |
 |---|---|
-| LLM | Google Gemini (`gemini-3.5-flash-lite`, free tier), `gemini-embedding-2` |
+| LLM | Google Gemini, free tier: live `gemini-3.1-flash-lite` with `gemini-3.5-flash-lite` as backup (ADR 0015; scores below were measured on 3.5-flash-lite), `gemini-embedding-2` |
 | Backend | Python 3.12, FastAPI, pydantic-settings, structlog, psycopg 3 |
 | Database | PostgreSQL 18 + pgvector (Neon in production) |
 | Frontend | React 19, TypeScript, Vite, Tailwind CSS, shadcn/ui, TanStack Router + Query; the API client is generated from the OpenAPI schema |

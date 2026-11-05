@@ -1801,3 +1801,15 @@ Problem (mine): "nothing is working, it does not give answers at all." Decision 
 - **Real test, two questions in a row with the main model down:** 18.3 s (finds it down) then 4.4 s (straight to the backup), both auto-sent with a source.
 - **Keep-awake job:** first manual run succeeded.
 - **Checks:** `make check` green, 224 tests.
+
+## Compare free models on the dev set (2026-11-05)
+- **Why:** the user asked to switch to the best free model if the current one does not work well. Choosing by measurement needs the classifier eval to run on any model.
+- **Change:** `make eval SUITE=classifier MODEL=<name> RUNS=<n>` (`--model`, `--runs` in `helpdesk.evals`). Each model writes its own file, `eval/results_<level>_<model>.json`, so the main result is never overwritten. Both options are classifier-only and `--runs` must be at least 1; tests first in `tests/test_eval_cli.py` (they failed before the code).
+- **Checks:** `make check` green, 228 tests.
+
+## Live main model is now gemini-3.1-flash-lite (2026-11-05)
+Decision record: ADR 0015.
+- **Why:** the user asked to switch models if the current one does not work well. Live check: after the free Render app woke up, one answer took 70 s, because each new process waits for the overloaded `gemini-3.5-flash-lite` before the backup.
+- **Measured (classifier, dev set, 80 tickets, 1 run, no locked set):** `gemini-3.1-flash-lite` all three labels right 80.0% (95% CI 70-87%), 0 missed escalations, 4 over-escalations (tr-011, tr-016, tr-035, tr-036), 2-4 s per call, no errors. Reference: `gemini-3.5-flash-lite` 83.8%, 0 missed, 3 over (2026-10-09). The intervals overlap: as accurate as we can tell. `gemini-3.6-flash` took ~20 s per call and hit its free daily quota (429) after 12 tickets; its partial file was deleted so n=12 is not read as a score.
+- **Change:** `render.yaml` swaps the two: main `gemini-3.1-flash-lite`, backup `gemini-3.5-flash-lite`. The code's backup default stays `gemini-3.1-flash-lite`, so if Render does not apply `render.yaml`, the site keeps today's working setup. README.md and README.tr.md now name the live model and say the published scores come from 3.5-flash-lite.
+- **Also found:** the keep-awake job has run only once (the manual run); GitHub has not started the 10-minute schedule yet, so the app still falls asleep.

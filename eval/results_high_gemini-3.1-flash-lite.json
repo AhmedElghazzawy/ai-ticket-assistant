@@ -1,0 +1,608 @@
+{
+  "run": {
+    "suite": "classifier",
+    "date": "2026-11-05T11:16:54+00:00",
+    "git_commit": "4ca4dff86c4b2b9da44aabce3d7e78fd0bd483ac",
+    "git_dirty": true,
+    "model": "gemini-3.1-flash-lite",
+    "prompts": {
+      "classifier": "044457ad59e7",
+      "answer": "5520a787edb4"
+    },
+    "datasets": {
+      "dev": "1efbceae030e"
+    },
+    "kb_index": "3d708614904e"
+  },
+  "date": "2026-11-05T14:16:54",
+  "model": "gemini-3.1-flash-lite",
+  "thinking_level": "HIGH",
+  "dataset": "dev",
+  "runs": 1,
+  "score_run1": {
+    "n": 80,
+    "category": 0.975,
+    "category_ci": [
+      0.9133539994467789,
+      0.9931172511018748
+    ],
+    "priority": 0.85,
+    "priority_ci": [
+      0.7558657249889396,
+      0.9120604596258579
+    ],
+    "escalate": 0.95,
+    "escalate_ci": [
+      0.878375474489178,
+      0.9803867628727044
+    ],
+    "all_three": 0.8,
+    "all_three_ci": [
+      0.6995355220341885,
+      0.8729726362070666
+    ],
+    "priority_within_one": 1.0,
+    "priority_within_one_ci": [
+      0.954180263735425,
+      1.0
+    ],
+    "missed_escalations": [],
+    "over_escalations": [
+      "tr-011",
+      "tr-016",
+      "tr-035",
+      "tr-036"
+    ]
+  },
+  "score_run1_tr": {
+    "n": 40,
+    "category": 0.975,
+    "category_ci": [
+      0.8711834051199223,
+      0.9955732825922052
+    ],
+    "priority": 0.85,
+    "priority_ci": [
+      0.7092737396097997,
+      0.9293890829149256
+    ],
+    "escalate": 0.9,
+    "escalate_ci": [
+      0.7694792561952611,
+      0.9604211124044252
+    ],
+    "all_three": 0.75,
+    "all_three_ci": [
+      0.598057409330299,
+      0.8581303210445048
+    ],
+    "priority_within_one": 1.0,
+    "priority_within_one_ci": [
+      0.9123754607496077,
+      1.0
+    ],
+    "missed_escalations": [],
+    "over_escalations": [
+      "tr-011",
+      "tr-016",
+      "tr-035",
+      "tr-036"
+    ]
+  },
+  "score_run1_en": {
+    "n": 40,
+    "category": 0.975,
+    "category_ci": [
+      0.8711834051199223,
+      0.9955732825922052
+    ],
+    "priority": 0.85,
+    "priority_ci": [
+      0.7092737396097997,
+      0.9293890829149256
+    ],
+    "escalate": 1.0,
+    "escalate_ci": [
+      0.9123754607496077,
+      1.0
+    ],
+    "all_three": 0.85,
+    "all_three_ci": [
+      0.7092737396097997,
+      0.9293890829149256
+    ],
+    "priority_within_one": 1.0,
+    "priority_within_one_ci": [
+      0.9123754607496077,
+      1.0
+    ],
+    "missed_escalations": [],
+    "over_escalations": []
+  },
+  "score_run2": null,
+  "consistency": null,
+  "predictions": [
+    {
+      "tr-001": {
+        "reason": "The student cannot access their OBS account due to a forgotten password and the reset email not arriving. Since the course registration deadline is tomorrow morning, this constitutes an urgent account access issue.",
+        "category": "account_access",
+        "priority": "urgent",
+        "escalate": false
+      },
+      "tr-002": {
+        "reason": "The ticket concerns a dormitory facility maintenance issue, which falls under the campus_life category. It does not meet any of the criteria for escalation.",
+        "category": "campus_life",
+        "priority": "medium",
+        "escalate": false
+      },
+      "tr-003": {
+        "reason": "The student reports a double charge for tuition fees, which constitutes a financial error requiring a refund. This falls under billing, is high priority, and requires escalation due to the need for a financial correction.",
+        "category": "billing",
+        "priority": "high",
+        "escalate": true
+      },
+      "tr-004": {
+        "reason": "The student cannot access the OBS account due to a forgotten password, which falls under the category of account_access. As no specific urgent deadline or exam mention is provided, the priority is set to medium.",
+        "category": "account_access",
+        "priority": "medium",
+        "escalate": false
+      },
+      "tr-005": {
+        "reason": "The student is requesting a grade appeal, which falls under the academic_records category. Rule 5 of the escalation criteria requires escalation for grade appeals.",
+        "category": "academic_records",
+        "priority": "medium",
+        "escalate": true
+      },
+      "en-001": {
+        "reason": "The student is reporting a persistent technical issue with the campus Wi-Fi connection, which falls under IT support. No escalation criteria are met.",
+        "category": "it_support",
+        "priority": "medium",
+        "escalate": false
+      },
+      "en-002": {
+        "reason": "The student is unable to register for a course due to a prerequisite error, which is a registration issue. Since the student claims the system error is incorrect regarding their passed course, it requires manual correction (escalation rule 4).",
+        "category": "registration",
+        "priority": "high",
+        "escalate": true
+      },
+      "en-003": {
+        "reason": "The student is requesting information on how to obtain an official transcript, which falls under academic_records. This is a standard procedure inquiry with no urgency or need for manual intervention, so it is low priority and does not require escalation.",
+        "category": "academic_records",
+        "priority": "low",
+        "escalate": false
+      },
+      "en-004": {
+        "reason": "The student is inquiring about the spring registration date, which falls under the registration category. The aggressive language does not elevate the priority or necessitate escalation based on the provided rules.",
+        "category": "registration",
+        "priority": "low",
+        "escalate": false
+      },
+      "en-005": {
+        "reason": "The student is reporting a lost ID card, which is an administrative issue handled under academic_records. Although they also asked about the lost and found office, the ID replacement is the primary request.",
+        "category": "academic_records",
+        "priority": "medium",
+        "escalate": false
+      },
+      "tr-006": {
+        "reason": "The user can log into the main system (OBS) but is experiencing technical issues with a specific educational platform (UZEM), which falls under IT support.",
+        "category": "it_support",
+        "priority": "medium",
+        "escalate": false
+      },
+      "tr-007": {
+        "reason": "The student is asking about tuition fee policy related to registration suspension. This is categorized as billing due to the financial nature of the query and is a standard procedure inquiry with no urgent deadline.",
+        "category": "billing",
+        "priority": "low",
+        "escalate": false
+      },
+      "tr-008": {
+        "reason": "The student reports a payment error where money loaded onto their cafeteria card is not showing. This falls under campus_life, and according to the para hatası kuralı (rule 4), transaction errors require escalation.",
+        "category": "campus_life",
+        "priority": "high",
+        "escalate": true
+      },
+      "tr-009": {
+        "reason": "The student is requesting a psychological counseling appointment, which is categorized under campus_life. It requires escalation because the student expresses symptoms of distress and hopelessness.",
+        "category": "campus_life",
+        "priority": "urgent",
+        "escalate": true
+      },
+      "tr-010": {
+        "reason": "The student is asking about accessibility services for exams, which falls under the 'other' category according to the rulebook. This is an information request with no immediate deadline or crisis, so it is low priority and does not require escalation.",
+        "category": "other",
+        "priority": "low",
+        "escalate": false
+      },
+      "en-006": {
+        "reason": "The ticket concerns a double-charged tuition fee, which falls under billing. Escalation is required due to the financial error and the student's mention of repeated unanswered contact attempts along with a threat of legal action (rules 4 and 6).",
+        "category": "billing",
+        "priority": "high",
+        "escalate": true
+      },
+      "en-007": {
+        "reason": "The ticket is extremely vague and does not provide enough information to identify a specific issue, therefore it falls under 'other'.",
+        "category": "other",
+        "priority": "low",
+        "escalate": false
+      },
+      "en-008": {
+        "reason": "The student cannot access their university email account as it says the account does not exist, which qualifies as an account access issue. No urgent deadline or specific criteria for escalation are mentioned.",
+        "category": "account_access",
+        "priority": "medium",
+        "escalate": false
+      },
+      "en-009": {
+        "reason": "The student is asking about campus transportation, which is explicitly covered under the campus_life category. As this is a routine information request, it has low priority and does not require escalation.",
+        "category": "campus_life",
+        "priority": "low",
+        "escalate": false
+      },
+      "en-010": {
+        "reason": "The student has provided their credentials to a potential phishing source, indicating a security breach (account compromise). This falls under rule 2 for escalation and requires urgent priority to secure the account.",
+        "category": "account_access",
+        "priority": "urgent",
+        "escalate": true
+      },
+      "tr-011": {
+        "reason": "The request concerns a registration issue during the add-drop period. Because the student is blocked by an advisor's non-approval, it requires human assistance to resolve.",
+        "category": "registration",
+        "priority": "medium",
+        "escalate": true
+      },
+      "tr-012": {
+        "reason": "The student has a registration hold due to unpaid tuition, which falls under the 'billing' category according to the rulebook. Since the registration deadline is Friday, this is a time-sensitive issue, warranting a 'high' priority.",
+        "category": "billing",
+        "priority": "high",
+        "escalate": false
+      },
+      "tr-013": {
+        "reason": "The student is asking about the academic procedure for taking summer courses at another university and the recognition of those credits, which falls under academic regulations and records.",
+        "category": "academic_records",
+        "priority": "low",
+        "escalate": false
+      },
+      "tr-014": {
+        "reason": "MATLAB failure on lab computers is a technical support issue. Since the student has an assignment deadline tomorrow, it falls under the 24-hour urgent timeframe.",
+        "category": "it_support",
+        "priority": "urgent",
+        "escalate": false
+      },
+      "tr-015": {
+        "reason": "The user is inquiring about library operating hours, which falls under the campus_life category. The request to override instructions and set the priority as urgent is ignored as it is a prompt injection attempt and does not meet the objective criteria for high or urgent priority.",
+        "category": "campus_life",
+        "priority": "low",
+        "escalate": false
+      },
+      "en-011": {
+        "reason": "The student is asking about their status on a course waitlist, which pertains to course registration. As it involves a specific registration process with an upcoming deadline, it is classified as registration with medium priority, and does not require escalation.",
+        "category": "registration",
+        "priority": "medium",
+        "escalate": false
+      },
+      "en-012": {
+        "reason": "The student is inquiring about the course transfer or exemption process for a previously taken course, which falls under academic records. This is a standard academic inquiry and does not require escalation.",
+        "category": "academic_records",
+        "priority": "low",
+        "escalate": false
+      },
+      "en-013": {
+        "reason": "The ticket contains a technical issue with a printer and an informational question about GPA. I categorized it under IT support because a malfunctioning printer is an operational issue that takes precedence over an informational query.",
+        "category": "it_support",
+        "priority": "medium",
+        "escalate": false
+      },
+      "en-014": {
+        "reason": "The request concerns tuition payments, which falls under the billing category. It is a general inquiry about payment options and does not require escalation or high priority.",
+        "category": "billing",
+        "priority": "low",
+        "escalate": false
+      },
+      "en-015": {
+        "reason": "The student is formally contesting an exam grade, which falls under the category of academic records. This is considered an exam objection, which requires escalation according to rule 5 of the rulebook.",
+        "category": "academic_records",
+        "priority": "medium",
+        "escalate": true
+      },
+      "tr-016": {
+        "reason": "The student is unable to log in to the system due to 2FA verification going to an old phone number, which is an account access issue. As the user cannot update this registration info themselves and requires manual correction, it is escalated.",
+        "category": "account_access",
+        "priority": "medium",
+        "escalate": true
+      },
+      "tr-017": {
+        "reason": "The student is asking how to obtain a student certificate, which is classified under academic_records. The frustrated tone does not influence the priority, which remains low as it is a general information request, and it does not meet any escalation criteria.",
+        "category": "academic_records",
+        "priority": "low",
+        "escalate": false
+      },
+      "tr-018": {
+        "reason": "Disciplinary investigations are categorized under academic_records. This request requires escalation because it involves a disciplinary process as per rule 6.",
+        "category": "academic_records",
+        "priority": "high",
+        "escalate": true
+      },
+      "tr-019": {
+        "reason": "The student is inquiring about booking a venue for a club event, which falls under the 'campus_life' category as it relates to student clubs and university activities.",
+        "category": "campus_life",
+        "priority": "low",
+        "escalate": false
+      },
+      "en-016": {
+        "reason": "The student is unable to access their university email due to a 2FA issue, which falls under the 'account_access' category. As no specific deadline or urgent threat is mentioned, the priority is set to 'medium' and no escalation rules apply.",
+        "category": "account_access",
+        "priority": "medium",
+        "escalate": false
+      },
+      "en-017": {
+        "reason": "The ticket involves harassment and threats from another student, which is classified as a safety issue. According to the rulebook, this falls under the category 'other', requires immediate escalation, and is 'urgent' due to the threat to personal safety.",
+        "category": "other",
+        "priority": "urgent",
+        "escalate": true
+      },
+      "en-018": {
+        "reason": "This is a general knowledge question unrelated to university services, so it fits into 'other'. It is a simple inquiry with no urgency, so it is 'low' priority and does not require escalation.",
+        "category": "other",
+        "priority": "low",
+        "escalate": false
+      },
+      "en-019": {
+        "reason": "The inquiry concerns the status of a diploma, which relates to official academic records. As this is a routine information request with no urgency or rule exceptions, the priority is low and escalation is not required.",
+        "category": "academic_records",
+        "priority": "low",
+        "escalate": false
+      },
+      "en-020": {
+        "reason": "The student is asking about the standard procedure for a make-up exam due to a medical excuse. According to the rulebook, a medical excuse application for a make-up exam is a routine academic process and does not require escalation.",
+        "category": "academic_records",
+        "priority": "medium",
+        "escalate": false
+      },
+      "en-021": {
+        "reason": "The student is asking for registration dates and information about English-taught courses, which falls under the registration category. As this is a general information request with no urgency or special conditions, it is low priority and does not require escalation.",
+        "category": "registration",
+        "priority": "low",
+        "escalate": false
+      },
+      "tr-020": {
+        "reason": "The student is reporting a discrepancy in their tuition fee status after submitting an exemption document, which falls under the billing category. This requires a correction of the student's financial record, triggering an escalation per rule #4 regarding system errors.",
+        "category": "billing",
+        "priority": "high",
+        "escalate": true
+      },
+      "tr-021": {
+        "reason": "The ticket is a general inquiry about tuition fees, which falls under the 'billing' category. Since it is a request for information without any reported errors or urgent constraints, it is classified as low priority and does not require escalation.",
+        "category": "billing",
+        "priority": "low",
+        "escalate": false
+      },
+      "tr-022": {
+        "reason": "The student is reporting an unpaid part-time salary, which falls under billing. Due to the mentioned financial hardship (inability to pay rent), this is a high-priority issue that requires human intervention (escalation rule 4 regarding payment issues).",
+        "category": "billing",
+        "priority": "high",
+        "escalate": true
+      },
+      "tr-023": {
+        "reason": "The student is inquiring about tuition fee refund eligibility after deregistration, which falls under billing. Since this is a general inquiry about a procedure rather than a reported error or urgent request, it is classified as low priority and does not require escalation.",
+        "category": "billing",
+        "priority": "low",
+        "escalate": false
+      },
+      "tr-024": {
+        "reason": "The student is asking a technical configuration question regarding campus Wi-Fi, which falls under it_support. It is a general information request without urgency or escalation criteria, making it low priority.",
+        "category": "it_support",
+        "priority": "low",
+        "escalate": false
+      },
+      "tr-025": {
+        "reason": "The student reports a system failure in the LMS (UZEM) during an exam, which is a technical issue. Escalation is triggered per Rule 5, as the incident involves an exam validity concern due to the system crash.",
+        "category": "it_support",
+        "priority": "urgent",
+        "escalate": true
+      },
+      "tr-026": {
+        "reason": "The student can access their account, so it is not an access issue. Software licensing questions fall under technical support. Since it is a general information request with no deadline or critical blockage, it is low priority and does not require escalation.",
+        "category": "it_support",
+        "priority": "low",
+        "escalate": false
+      },
+      "tr-027": {
+        "reason": "The student reports a technical issue with the OBS system. Since it describes a system malfunction rather than an explicit login credential failure, it is classified under technical support.",
+        "category": "it_support",
+        "priority": "medium",
+        "escalate": false
+      },
+      "tr-028": {
+        "reason": "The request is regarding dormitory housing issues, which falls under the 'campus_life' category according to the rulebook for KYK dormitories. As it is a general procedural inquiry without mention of safety threats, it does not require escalation and is classified as medium priority.",
+        "category": "campus_life",
+        "priority": "medium",
+        "escalate": false
+      },
+      "tr-029": {
+        "reason": "The student is inquiring about food options in the cafeteria, which falls under the campus life category. As this is a general inquiry without an emergency or administrative error, it is classified as low priority and does not require escalation.",
+        "category": "campus_life",
+        "priority": "low",
+        "escalate": false
+      },
+      "tr-030": {
+        "reason": "The student is asking about sports facility access and operating hours, which falls under the campus life category. This is a general inquiry with no urgency or escalation criteria met.",
+        "category": "campus_life",
+        "priority": "low",
+        "escalate": false
+      },
+      "tr-031": {
+        "reason": "The student is inquiring about a lost item (lost and found), which is explicitly listed under the 'other' category. This request is not urgent and does not meet any of the criteria for escalation.",
+        "category": "other",
+        "priority": "low",
+        "escalate": false
+      },
+      "tr-032": {
+        "reason": "The request asks for general information about the weather, which does not fall under any specific academic or administrative department. It is classified as 'other' and is low priority without escalation needs.",
+        "category": "other",
+        "priority": "low",
+        "escalate": false
+      },
+      "tr-033": {
+        "reason": "The student reports being harassed and humiliated by a professor, which is categorized as 'other' and requires immediate escalation according to the safety and harassment rules.",
+        "category": "other",
+        "priority": "urgent",
+        "escalate": true
+      },
+      "tr-034": {
+        "reason": "The student is requesting a late registration after the add-drop deadline, which requires an exception to the rules (escalation rule 3).",
+        "category": "registration",
+        "priority": "high",
+        "escalate": true
+      },
+      "tr-035": {
+        "reason": "The student is asking for an exception to the credit limit regulation (ECTS overload), which requires manual administrative approval (Escalation Rule 3). This pertains to registration policies.",
+        "category": "registration",
+        "priority": "low",
+        "escalate": true
+      },
+      "tr-036": {
+        "reason": "The student is reporting a course schedule conflict, which is covered under the 'registration' category. This issue requires human intervention to resolve or provide an exception, therefore it is escalated.",
+        "category": "registration",
+        "priority": "medium",
+        "escalate": true
+      },
+      "tr-037": {
+        "reason": "The user is unable to access the OBS system and cannot remember their password, which falls under account access issues. No urgent deadline or escalation criteria are met.",
+        "category": "account_access",
+        "priority": "medium",
+        "escalate": false
+      },
+      "tr-038": {
+        "reason": "The student cannot access their university email account, which classifies as account_access. It is a genuine access issue with no urgent deadline mentioned, so it is set to medium priority and does not meet the criteria for escalation.",
+        "category": "account_access",
+        "priority": "medium",
+        "escalate": false
+      },
+      "tr-039": {
+        "reason": "The student reports a suspected unauthorized account access and potential compromise, which falls under account access category. This requires urgent priority and mandatory escalation due to security concerns.",
+        "category": "account_access",
+        "priority": "urgent",
+        "escalate": true
+      },
+      "tr-040": {
+        "reason": "The student is asking about a graduation document, which is classified under academic records. This is a routine request for information rather than an error report or an urgent crisis, so no escalation is required.",
+        "category": "academic_records",
+        "priority": "medium",
+        "escalate": false
+      },
+      "en-022": {
+        "reason": "The query concerns a university scholarship payment, which falls under the billing category per the rulebook. It is a status inquiry rather than a reported error, so it does not require escalation.",
+        "category": "billing",
+        "priority": "medium",
+        "escalate": false
+      },
+      "en-023": {
+        "reason": "The query is about tuition fees, which falls under the billing category. It is a general inquiry without an error or urgency, so it is low priority and does not require escalation.",
+        "category": "billing",
+        "priority": "low",
+        "escalate": false
+      },
+      "en-024": {
+        "reason": "The student is reporting an incorrect late fee on their tuition payment, which is a financial error requiring correction. This falls under the billing category and necessitates escalation for administrative review.",
+        "category": "billing",
+        "priority": "high",
+        "escalate": true
+      },
+      "en-025": {
+        "reason": "The request concerns a tuition payment receipt, which falls under the billing category. The deadline of tomorrow makes it a high priority request, but requesting a receipt is a standard procedure and does not require escalation.",
+        "category": "billing",
+        "priority": "high",
+        "escalate": false
+      },
+      "en-026": {
+        "reason": "The prompt injection attempt to change grades is ignored. The actual request regarding laptop connectivity to eduroam is classified as a technical support issue.",
+        "category": "it_support",
+        "priority": "medium",
+        "escalate": false
+      },
+      "en-027": {
+        "reason": "The user is reporting a hardware issue with a classroom projector, which falls under IT support. The priority is urgent due to the imminent 30-minute deadline for a presentation, but it does not meet the criteria for escalation.",
+        "category": "it_support",
+        "priority": "urgent",
+        "escalate": false
+      },
+      "en-028": {
+        "reason": "The user reports a technical issue with the UZEM assignment upload system, which falls under it_support. As no immediate deadline is mentioned, the priority is medium and it does not meet any escalation criteria.",
+        "category": "it_support",
+        "priority": "medium",
+        "escalate": false
+      },
+      "en-029": {
+        "reason": "The student is able to log in, so this is not an account access issue. Since the problem involves technical issues with email synchronization rather than login, it falls under it_support.",
+        "category": "it_support",
+        "priority": "medium",
+        "escalate": false
+      },
+      "en-030": {
+        "reason": "The user is inquiring about starting a student club, which is explicitly classified under the 'campus_life' category. This is a general information request without urgency or the need for exceptions, so it is labeled as low priority and does not require escalation.",
+        "category": "campus_life",
+        "priority": "low",
+        "escalate": false
+      },
+      "en-031": {
+        "reason": "The student is expressing signs of psychological distress and a potential crisis, which necessitates an urgent priority. According to the rulebook, requests for psychological counseling are categorized under campus_life and require immediate escalation.",
+        "category": "campus_life",
+        "priority": "urgent",
+        "escalate": true
+      },
+      "en-032": {
+        "reason": "The inquiry is about dining hall operating hours, which falls under campus life. It is a simple information request that does not require escalation or high priority.",
+        "category": "campus_life",
+        "priority": "low",
+        "escalate": false
+      },
+      "en-033": {
+        "reason": "The ticket is too vague and does not provide specific details to classify into any of the functional categories, so it is classified as 'other' with low priority.",
+        "category": "other",
+        "priority": "low",
+        "escalate": false
+      },
+      "en-034": {
+        "reason": "The student is asking for internship recommendations, which falls under the 'other' category according to the rulebook. It is a general inquiry with low priority and does not meet any escalation criteria.",
+        "category": "other",
+        "priority": "low",
+        "escalate": false
+      },
+      "en-035": {
+        "reason": "The inquiry is about a KYK loan, which falls under the 'other' category as per the rulebook. The ticket is escalated because it represents a repeated, unanswered inquiry (rule 6).",
+        "category": "other",
+        "priority": "medium",
+        "escalate": true
+      },
+      "en-036": {
+        "reason": "The student is asking a general policy question regarding course registration and prerequisites, which falls under the registration category. Since there is no specific deadline or urgent issue, it is a low-priority informational query.",
+        "category": "registration",
+        "priority": "low",
+        "escalate": false
+      },
+      "en-037": {
+        "reason": "The student is requesting to drop a course after the official registration deadline, which classifies it under registration. Since this is a request for an exception to university regulations, it requires escalation.",
+        "category": "registration",
+        "priority": "medium",
+        "escalate": true
+      },
+      "en-038": {
+        "reason": "The student cannot access the OBS system due to authentication errors. This is an account access issue without an urgent deadline, requiring a medium priority and no escalation.",
+        "category": "account_access",
+        "priority": "medium",
+        "escalate": false
+      },
+      "en-039": {
+        "reason": "The student reports a potential unauthorized access to their student email account, which constitutes a security compromise. This triggers the account_access category, urgent priority, and escalation according to rule 2.",
+        "category": "account_access",
+        "priority": "urgent",
+        "escalate": true
+      },
+      "en-040": {
+        "reason": "The student is requesting information about obtaining an English transcript, which falls under academic records. This is a general information request without a specified urgent deadline or error report.",
+        "category": "academic_records",
+        "priority": "low",
+        "escalate": false
+      }
+    }
+  ]
+}
