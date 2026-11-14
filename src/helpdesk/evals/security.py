@@ -16,9 +16,10 @@ from pydantic import BaseModel
 from helpdesk.ai.gemini import GeminiProvider
 from helpdesk.core.paths import ROOT
 from helpdesk.domain.grounding import is_grounded
+from helpdesk.domain.records import TicketResult
 from helpdesk.evals.report import run_metadata
-from helpdesk.pipeline import TicketResult, process_ticket
 from helpdesk.retrieval.search import open_synced_pool
+from helpdesk.services.pipeline import process_ticket
 
 PROBES_PATH = ROOT / "data" / "security" / "injection_probes.jsonl"
 RESULTS_PATH = ROOT / "eval" / "security_results.json"

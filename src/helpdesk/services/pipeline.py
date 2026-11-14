@@ -1,27 +1,20 @@
 """The whole assistant for one ticket: classify | search -> grounded answer, then decide."""
 
 import contextvars
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
-
-from pydantic import BaseModel
 
 from helpdesk.ai.answer import draft_answer
 from helpdesk.ai.classifier import classify
 from helpdesk.ai.provider import LLMProvider
-from helpdesk.domain.decision import Decision, decide
-from helpdesk.domain.outputs import Answer, Classification
-from helpdesk.retrieval.knowledge_base import Chunk
+from helpdesk.domain.decision import decide
+from helpdesk.domain.records import TicketResult
 from helpdesk.retrieval.search import search
 from helpdesk.storage.db import Database
 
-
-class TicketResult(BaseModel):
-    """Everything the assistant produced for one ticket, so staff can see how it decided."""
-
-    classification: Classification
-    hits: list[tuple[float, Chunk]]  # the retrieved rules with their similarity scores
-    answer: Answer
-    decision: Decision
+# One ticket through the whole assistant: (text, language, database) -> result. The app binds the
+# model (process_ticket with Gemini); tests pass a fake.
+Pipeline = Callable[[str, str, Database], TicketResult]
 
 
 def process_ticket(

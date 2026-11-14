@@ -4,8 +4,8 @@ import re
 
 from helpdesk.ai.fence import fence_ticket
 from helpdesk.ai.provider import LLMProvider
+from helpdesk.domain.knowledge import Chunk
 from helpdesk.domain.outputs import Answer
-from helpdesk.retrieval.knowledge_base import Chunk
 
 SYSTEM_PROMPT = """You are the student helpdesk of Bilecik Şeyh Edebali Üniversitesi (BŞEÜ).
 Answer the student directly, like a helpful assistant would, in two separate parts:

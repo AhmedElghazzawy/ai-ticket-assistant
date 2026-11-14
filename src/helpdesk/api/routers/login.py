@@ -3,13 +3,11 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, Field
 
-from helpdesk import auth
 from helpdesk.api.deps import COOKIE_NAME, CurrentStaff, ServicesDep
 from helpdesk.api.security import client_ip, same_origin
-from helpdesk.auth import Staff
 from helpdesk.core.logs import get_logger
-from helpdesk.storage.db import Connection
-from helpdesk.storage.tickets import reset_demo_tickets
+from helpdesk.domain.staff import Staff
+from helpdesk.services import auth, staff_desk
 
 logger = get_logger(__name__)
 
@@ -25,11 +23,11 @@ class LoginOptions(BaseModel):
     demo: bool
 
 
-def start_session(response: Response, staff_member: Staff, db: Connection, secure: bool) -> None:
-    """Create a session and put it in the cookie (used by the normal and the demo login)."""
+def set_session_cookie(response: Response, token: str, secure: bool) -> None:
+    """Put a new session token in the cookie (used by the normal and the demo login)."""
     response.set_cookie(
         COOKIE_NAME,
-        auth.create_session(db, staff_member.id),
+        token,
         max_age=auth.SESSION_HOURS * 3600,
         httponly=True,  # page scripts cannot read it, so an XSS bug cannot steal the session
         secure=secure,  # COOKIE_SECURE: only over https (false only for plain-http development)
@@ -50,9 +48,9 @@ def demo_log_in(response: Response, services: ServicesDep) -> Staff:
     if not services.settings.demo_mode:
         raise HTTPException(status_code=404, detail="Not found.")
     with services.pool.connection() as db:
-        staff_member = auth.demo_account(db)
-        reset_demo_tickets(db)
-        start_session(response, staff_member, db, services.settings.cookie_secure)
+        staff_member = staff_desk.start_demo(db)
+        token = auth.create_session(db, staff_member.id)
+        set_session_cookie(response, token, services.settings.cookie_secure)
     logger.info("demo_login")
     return staff_member
 
@@ -73,7 +71,8 @@ def log_in(body: LoginIn, request: Request, response: Response, services: Servic
         if staff_member is None:
             logger.info("login_failed")
             raise HTTPException(status_code=401, detail="Wrong email or password.")
-        start_session(response, staff_member, db, services.settings.cookie_secure)
+        token = auth.create_session(db, staff_member.id)
+        set_session_cookie(response, token, services.settings.cookie_secure)
     logger.info("login", staff_id=staff_member.id)
     return staff_member
 

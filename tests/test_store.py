@@ -9,14 +9,13 @@ import psycopg
 import pytest
 
 from helpdesk.domain.decision import Decision, SimpleReason, WeakMatch
+from helpdesk.domain.knowledge import Chunk
 from helpdesk.domain.outputs import Answer, Classification
+from helpdesk.domain.records import StoredSource, TicketResult
 from helpdesk.domain.tickets import Priority
-from helpdesk.pipeline import TicketResult
-from helpdesk.retrieval.knowledge_base import Chunk
 from helpdesk.storage import db as store
 from helpdesk.storage.db import Connection
 from helpdesk.storage.tickets import (
-    StoredSource,
     get_ticket,
     list_tickets,
     mark_handled,

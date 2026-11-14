@@ -8,8 +8,9 @@ import json
 from psycopg_pool import ConnectionPool
 
 from helpdesk.core.paths import DATA_DIR
+from helpdesk.domain.knowledge import Chunk
 from helpdesk.retrieval.embeddings import DIMENSIONS, EMBED_MODEL, document_text, embed, query_text
-from helpdesk.retrieval.knowledge_base import Chunk, load_chunks
+from helpdesk.retrieval.knowledge_base import load_chunks
 from helpdesk.storage.db import Connection, Database, open_pool
 
 Index = list[tuple[Chunk, list[float]]]  # every chunk with its vector

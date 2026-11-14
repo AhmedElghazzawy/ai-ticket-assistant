@@ -11,8 +11,8 @@ from typing import get_args
 from pydantic import BaseModel
 
 from helpdesk.domain.decision import Decision, show_first_help
+from helpdesk.domain.records import StoredTicket
 from helpdesk.domain.tickets import Category
-from helpdesk.storage.tickets import StoredTicket
 
 DAYS = 14  # the trend chart's window
 

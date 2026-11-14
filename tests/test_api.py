@@ -13,7 +13,7 @@ from harness import PASSWORD, Api
 
 from helpdesk.api.security import RateLimiter
 from helpdesk.domain.decision import MIN_SCORE, SimpleReason, WeakMatch
-from helpdesk.pipeline import TicketResult
+from helpdesk.domain.records import TicketResult
 
 
 @pytest.fixture

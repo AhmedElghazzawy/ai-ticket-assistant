@@ -4,10 +4,10 @@ from pydantic import BaseModel
 
 from helpdesk.ai.provider import Output, Thinking
 from helpdesk.domain.decision import Decision, SimpleReason, WeakMatch
+from helpdesk.domain.knowledge import Chunk
 from helpdesk.domain.outputs import Answer, Classification
+from helpdesk.domain.records import TicketResult
 from helpdesk.domain.tickets import Priority
-from helpdesk.pipeline import TicketResult
-from helpdesk.retrieval.knowledge_base import Chunk
 
 CHUNK = Chunk(
     id="harc_ucretler.tr#5",

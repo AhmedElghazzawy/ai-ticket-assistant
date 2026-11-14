@@ -2,71 +2,25 @@
 
 import json
 from datetime import UTC, datetime, timedelta
-from typing import TYPE_CHECKING, Any, Literal
+from typing import Any
 
 from psycopg.types.json import Jsonb
-from pydantic import BaseModel
 
 from helpdesk.core.paths import DATA_DIR
-from helpdesk.domain.decision import Reason
 from helpdesk.domain.offices import OFFICE_OF, OfficeId
-from helpdesk.domain.tickets import Category, Language, Priority
+from helpdesk.domain.records import Feedback, Status, StoredSource, StoredTicket, TicketResult
+from helpdesk.domain.tickets import Language
 from helpdesk.storage.db import Connection, token_hash
-
-if TYPE_CHECKING:  # only for the type hint, so this module does not load the AI pipeline
-    from helpdesk.pipeline import TicketResult
 
 # The demo queue (tools/make_demo_tickets.py builds it from the dataset and its real results).
 DEMO_PATH = DATA_DIR / "demo_tickets.json"
-
-
-Status = Literal["auto_sent", "open", "handled"]
-
-
-Feedback = Literal["helpful", "not_helpful"]
-
-
-class StoredSource(BaseModel):
-    id: str  # e.g. "harc_ucretler.tr#5"
-    title: str
-    section: str
-    source: str = ""  # the official source line, e.g. "Resmî olmayan kaynak: ..."; "" in older rows
-    url: str
-
-
-class StoredTicket(BaseModel):
-    """One row, checked by pydantic: a broken row fails here, not later on the page."""
-
-    id: int
-    created_at: datetime
-    language: Language
-    text: str
-    category: Category
-    priority: Priority
-    escalate: bool
-    ai_reason: str
-    office: OfficeId
-    auto_send: bool
-    reasons: list[Reason]
-    top_score: float
-    draft: str
-    covered: bool
-    sources: list[StoredSource]
-    general_help: str  # labeled general advice, not from the rules ("" in older rows)
-    status: Status
-    final_reply: str | None
-    handled_at: datetime | None
-    demo: bool  # a sample ticket for the demo: never mixed with real visitors' tickets
-    feedback: Feedback | None = None  # the student's thumbs up / down, if they gave one
-    # When the student sent the automatic answer on to a person; None if they never asked.
-    human_requested_at: datetime | None = None
 
 
 def save_ticket(
     connection: Connection,
     text: str,
     language: Language,
-    result: "TicketResult",
+    result: TicketResult,
     access_hash: str | None = None,
 ) -> int:
     """Store one processed ticket and return its number. Auto-sent tickets are stored too (for statistics)."""

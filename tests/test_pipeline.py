@@ -8,9 +8,9 @@ import structlog
 from fakes import CHUNK, FakeLLM
 from pydantic import BaseModel
 
-from helpdesk import pipeline
 from helpdesk.ai.provider import Output, Thinking
 from helpdesk.domain.outputs import Answer, Classification
+from helpdesk.services import pipeline
 from helpdesk.storage.db import Connection
 
 

@@ -8,12 +8,12 @@ import pytest
 from fakes import CHUNK, FakeLLM
 from google.genai import types
 
-from helpdesk import pipeline
 from helpdesk.ai import gemini
 from helpdesk.ai.answer import draft_answer
 from helpdesk.ai.classifier import SYSTEM_PROMPT, classify
 from helpdesk.ai.gemini import GeminiProvider
 from helpdesk.domain.outputs import Answer, Classification
+from helpdesk.services import pipeline
 
 LABELS = Classification(reason="fee question", category="billing", priority="low", escalate=False)
 ANSWER = Answer(

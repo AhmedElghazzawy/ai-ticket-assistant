@@ -7,7 +7,7 @@ import pytest
 from fakes import fake_result
 from harness import Api
 
-from helpdesk import auth
+from helpdesk.services import auth
 from helpdesk.storage.tickets import DEMO_PATH
 
 DEMO_COUNT = len(json.loads(DEMO_PATH.read_text(encoding="utf-8")))

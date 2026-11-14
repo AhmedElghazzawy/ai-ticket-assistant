@@ -2,28 +2,10 @@
 
 from pathlib import Path
 
-from pydantic import BaseModel
-
 from helpdesk.core.paths import DATA_DIR
+from helpdesk.domain.knowledge import Chunk
 
 KB_DIR = DATA_DIR / "knowledge_base"
-
-
-class Chunk(BaseModel):
-    """One searchable piece of a document: a single rule with its heading."""
-
-    id: str  # e.g. "sinavlar.tr#3": document name, language, section number
-    doc: str  # e.g. "sinavlar": the same for the TR and EN versions
-    language: str  # "tr" or "en"
-    title: str  # the document title (first "# " line)
-    source: str  # the official source line, so answers can cite it
-    url: str  # the official link (the "- Bağlantı:" / "- Link:" line), so readers can check it
-    text: str  # the section heading and its text
-
-    @property
-    def section(self) -> str:
-        """The section heading, e.g. "Bütünleme sınavı (Madde 19)"."""
-        return self.text.splitlines()[0].strip()
 
 
 SOURCE_KEYS = ("- Kaynak:", "- Source:")

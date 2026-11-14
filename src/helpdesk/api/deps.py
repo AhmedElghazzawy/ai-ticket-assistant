@@ -15,15 +15,12 @@ from typing import Annotated
 from fastapi import Depends, HTTPException, Request
 from psycopg_pool import ConnectionPool
 
-from helpdesk import auth
 from helpdesk.api.security import RateLimiter
-from helpdesk.auth import Staff
 from helpdesk.core.settings import AppSettings
-from helpdesk.pipeline import TicketResult
+from helpdesk.domain.staff import Staff
+from helpdesk.services import auth
+from helpdesk.services.pipeline import Pipeline
 from helpdesk.storage.db import Connection, Database
-
-# One ticket through the whole assistant: (text, language, database) -> result.
-Pipeline = Callable[[str, str, Database], TicketResult]
 
 COOKIE_NAME = "helpdesk_session"
 

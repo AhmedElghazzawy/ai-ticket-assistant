@@ -17,16 +17,18 @@ from pathlib import Path
 
 import structlog
 from fastapi import FastAPI, Request, Response
+from fastapi.responses import JSONResponse
 from psycopg_pool import ConnectionPool
 
 from helpdesk.ai.gemini import GeminiProvider
-from helpdesk.api.deps import LazyPool, Pipeline, Services
+from helpdesk.api.deps import LazyPool, Services
 from helpdesk.api.routers import login, staff, tickets, web
 from helpdesk.core.logs import configure, get_logger
 from helpdesk.core.paths import ROOT
 from helpdesk.core.settings import AppSettings, get_app_settings
-from helpdesk.pipeline import process_ticket
 from helpdesk.retrieval.search import load_index, open_synced_pool
+from helpdesk.services.errors import AssistantUnavailable, Conflict, NotFound
+from helpdesk.services.pipeline import Pipeline, process_ticket
 from helpdesk.storage.db import Connection
 
 logger = get_logger(__name__)
@@ -55,6 +57,14 @@ async def log_requests(
     )
     response.headers["X-Request-ID"] = request_id
     return response
+
+
+# A refused use case becomes an HTTP answer here, once, in FastAPI's usual {"detail": ...} shape.
+ERROR_STATUS: dict[type[Exception], int] = {NotFound: 404, Conflict: 409, AssistantUnavailable: 503}
+
+
+async def use_case_error(_: Request, error: Exception) -> Response:
+    return JSONResponse({"detail": str(error)}, status_code=ERROR_STATUS[type(error)])
 
 
 def create_app(
@@ -90,6 +100,8 @@ def create_app(
     )
     app.state.services = services
     app.middleware("http")(log_requests)
+    for error_type in ERROR_STATUS:
+        app.add_exception_handler(error_type, use_case_error)
     for router in (tickets.router, login.router, staff.router, web.router):  # web last: catch-all
         app.include_router(router)
     return app

@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from helpdesk import auth
+from helpdesk.services import auth
 from helpdesk.storage import db as store
 from helpdesk.storage.db import Connection
 

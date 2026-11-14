@@ -94,17 +94,22 @@ Evals call the paid model: run them only when asked, one suite at a time (`make 
 `run-evals` skill). Use `make` or `uv run python -m helpdesk...`: never `python src/...` paths.
 
 ## Code map
-The backend is the package `src/helpdesk/`; layers only depend inward (core <- domain <- the rest).
+The backend is the package `src/helpdesk/`. Layers only import the layers below them, and
+`tests/test_architecture.py` fails CI otherwise: core <- domain <- ai, storage <- retrieval <- services
+<- api, evals.
 - `core/` settings (`settings.py`, the only place that reads the environment), `paths.py`, `logs.py`.
-- `domain/` pure rules, no I/O to the model or database: `decision.py` (the auto-send rules, the most
-  important file to keep tested), `offices.py`, `tickets.py` (labels, dataset loader), `outputs.py`
-  (the model's output schemas), `grounding.py` (evidence must be in the rules, ADR 0010).
+- `domain/` pure rules and data, no I/O: `decision.py` (the auto-send rules, the most important file
+  to keep tested), `offices.py`, `tickets.py` (labels, dataset loader), `outputs.py` (the model's
+  output schemas), `grounding.py` (ADR 0010), `records.py` (saved ticket), `knowledge.py`, `staff.py`.
 - `ai/` the two LLM steps `classifier.py`, `answer.py`; `fence.py` (prompt-injection fence);
   `gemini.py` the shared Gemini client.
+- `storage/` the only place with SQL: `db.py` connections and migrations, `tickets.py`, `staff.py`.
 - `retrieval/` `knowledge_base.py` chunks, `embeddings.py`, `search.py` index sync and pgvector search.
-- `storage/` `db.py` connections and migrations, `tickets.py` the ticket table.
-- `auth.py` staff login; `insights.py` staff statistics; `pipeline.py` one ticket end to end.
-- `api/app.py` the FastAPI app; `evals/` evals and Wilson intervals (results in `eval/`).
+- `services/` the use cases: `pipeline.py` (one ticket end to end), `student_tickets.py`,
+  `staff_desk.py` (the office access rule), `auth.py`, `insights.py`; `errors.py` (NotFound,
+  Conflict: `api/app.py` maps them to 404/409).
+- `api/` thin HTTP: `app.py` (factory, the composition root), `deps.py`, `routers/`.
+  `evals/` evals and Wilson intervals (results in `eval/`).
 - `frontend/` React app (student chat, Taleplerim, staff console); its API client is generated.
 - `tests/` pytest against a real Postgres; `tests/fakes.py` fakes every AI call.
 

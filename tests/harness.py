@@ -11,10 +11,11 @@ import httpx2
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from helpdesk import auth
-from helpdesk.api.deps import Pipeline, Services
-from helpdesk.auth import Role
+from helpdesk.api.deps import Services
 from helpdesk.domain.offices import OfficeId
+from helpdesk.domain.staff import Role
+from helpdesk.services import auth
+from helpdesk.services.pipeline import Pipeline
 from helpdesk.storage.db import Connection
 
 PASSWORD = "correct horse battery"

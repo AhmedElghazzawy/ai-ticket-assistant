@@ -16,8 +16,8 @@ from helpdesk.domain.grounding import is_grounded
 from helpdesk.domain.tickets import DATASETS, TICKETS_PATH, Ticket, load_tickets
 from helpdesk.evals.report import run_metadata
 from helpdesk.evals.stats import wilson_interval
-from helpdesk.pipeline import process_ticket
 from helpdesk.retrieval.search import open_synced_pool
+from helpdesk.services.pipeline import process_ticket
 
 EXPECTED_PATH = TICKETS_PATH.parent / "expected_docs.jsonl"
 RESULTS_DIR = EVAL_DIR

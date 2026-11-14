@@ -13,8 +13,9 @@ from contextlib import closing
 from getpass import getpass
 from typing import get_args
 
-from helpdesk import auth
 from helpdesk.domain.offices import OfficeId
+from helpdesk.domain.staff import Role
+from helpdesk.services import auth
 from helpdesk.storage.db import connect
 
 
@@ -32,7 +33,7 @@ def main() -> None:
         sys.exit("The two passwords differ.")
     with closing(connect()) as db:  # DATABASE_URL: local Docker, or Neon in production
         try:
-            role: auth.Role = "admin" if args.admin else "staff"
+            role: Role = "admin" if args.admin else "staff"
             auth.create_staff(db, args.email, args.name, role, args.office, password)
         except ValueError as error:
             sys.exit(str(error))

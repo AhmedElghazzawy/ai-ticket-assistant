@@ -60,7 +60,7 @@ Phase 1 is done when:
 3. Weeks 4-5: knowledge base of 8-10 short policy documents, each in Turkish and English, chunking, embeddings, retrieval. In-memory search first, then pgvector. Measure how often the right document is in the top 3.
 4. Week 6: grounded draft replies that cite their source, the decision function, routing to units. Rate 15 drafts; count tickets auto-sent that should not have been.
 5. Week 7: FastAPI endpoint POST /tickets, saved results, pytest tests for the decision rules.
-6. Week 8: rebuild as a LangGraph graph, add a human review queue tab in Streamlit. (Status 2026-10-17: the review queue was built, first in Streamlit, now in the React staff console; the LangGraph rebuild was NOT done. The pipeline is a plain Python function (src/pipeline.py), which is enough for a straight line of steps; LangGraph stays "possible" if the flow ever needs loops or branches.)
+6. Week 8: rebuild as a LangGraph graph, add a human review queue tab in Streamlit. (Status 2026-10-17: the review queue was built, first in Streamlit, now in the React staff console; the LangGraph rebuild was NOT done. The pipeline is a plain Python function (src/helpdesk/services/pipeline.py), which is enough for a straight line of steps; LangGraph stays "possible" if the flow ever needs loops or branches.)
 
 ## Lessons from my first attempt
 - Claude Code ran in auto mode and wrote more than I understood. That is why we restarted.

@@ -14,7 +14,7 @@ if `frontend/openapi.json` or `frontend/src/client/` is out of date.
    limit, 404 for another office's ticket). AI calls are faked with `tests/fakes.py`.
 2. **Schemas:** pydantic models for the body and the response with `Field` limits (lengths, ranges).
    Never return a database row or a model object directly: return a response model, so nothing leaks.
-3. **Route:** a short function; the work lives in a module (`store.py`, `pipeline.py`...).
+3. **Route:** a short function; the work lives in a use case in `services/` (SQL only in `storage/`); raise `services.errors.NotFound` / `Conflict`, never `HTTPException`, from a use case.
    - Public routes that cost money or touch the database get a rate-limit dependency.
    - Staff routes take `staff_member: CurrentStaff` and check the office with `visible()`.
    - Changing routes (POST, PATCH, DELETE) on cookie auth sit behind `same_origin` (CSRF).
