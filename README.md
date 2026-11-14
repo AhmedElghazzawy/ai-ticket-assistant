@@ -116,6 +116,8 @@ word in the documents [86–99.5%].
 - **"Nasıl karar verildi?"**: a step-by-step trace of the real checks behind each decision.
 - **Taleplerim**: track your tickets and read the staff reply with a secret access code (only its hash
   is stored, [ADR 0009](docs/decisions/0009-student-ticket-access-code.md)).
+- **"Send to a specialist"**: if an automatic answer did not solve the problem, one click puts the
+  ticket in the right office's queue, marked for staff ([ADR 0016](docs/decisions/0016-student-can-ask-for-a-person.md)).
 - Feedback buttons, an emergency (112) button on crisis tickets, and an honest waiting indicator.
 
 **For staff**

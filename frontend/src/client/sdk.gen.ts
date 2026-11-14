@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreateTicketData, CreateTicketErrors, CreateTicketResponses, DemoLogInData, DemoLogInResponses, GiveFeedbackData, GiveFeedbackErrors, GiveFeedbackResponses, HealthData, HealthResponses, LogInData, LogInErrors, LoginOptionsData, LoginOptionsResponses, LogInResponses, LogOutData, LogOutResponses, LookupTicketData, LookupTicketErrors, LookupTicketResponses, MeData, MeResponses, StaffGetData, StaffGetErrors, StaffGetResponses, StaffInsightsData, StaffInsightsResponses, StaffListData, StaffListErrors, StaffListResponses, StaffReassignData, StaffReassignErrors, StaffReassignResponses, StaffReplyData, StaffReplyErrors, StaffReplyResponses } from './types.gen';
+import type { AskForAPersonData, AskForAPersonErrors, AskForAPersonResponses, CreateTicketData, CreateTicketErrors, CreateTicketResponses, DemoLogInData, DemoLogInResponses, GiveFeedbackData, GiveFeedbackErrors, GiveFeedbackResponses, HealthData, HealthResponses, LogInData, LogInErrors, LoginOptionsData, LoginOptionsResponses, LogInResponses, LogOutData, LogOutResponses, LookupTicketData, LookupTicketErrors, LookupTicketResponses, MeData, MeResponses, StaffGetData, StaffGetErrors, StaffGetResponses, StaffInsightsData, StaffInsightsResponses, StaffListData, StaffListErrors, StaffListResponses, StaffReassignData, StaffReassignErrors, StaffReassignResponses, StaffReplyData, StaffReplyErrors, StaffReplyResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -146,6 +146,22 @@ export const lookupTicket = <ThrowOnError extends boolean = false>(options: Opti
  */
 export const giveFeedback = <ThrowOnError extends boolean = false>(options: Options<GiveFeedbackData, ThrowOnError>): RequestResult<GiveFeedbackResponses, GiveFeedbackErrors, ThrowOnError> => (options.client ?? client).post<GiveFeedbackResponses, GiveFeedbackErrors, ThrowOnError>({
     url: '/api/tickets/{ticket_id}/feedback',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Ask For A Person
+ *
+ * The student's "Still need help?" button: the automatic answer did not solve it, so a person
+ * in the ticket's office takes over (docs/decisions/0016). Asking twice, or on a forwarded ticket,
+ * changes nothing.
+ */
+export const askForAPerson = <ThrowOnError extends boolean = false>(options: Options<AskForAPersonData, ThrowOnError>): RequestResult<AskForAPersonResponses, AskForAPersonErrors, ThrowOnError> => (options.client ?? client).post<AskForAPersonResponses, AskForAPersonErrors, ThrowOnError>({
+    url: '/api/tickets/{ticket_id}/human',
     ...options,
     headers: {
         'Content-Type': 'application/json',

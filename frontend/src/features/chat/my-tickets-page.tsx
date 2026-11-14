@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { loadMyTickets, type MyTicket } from "@/lib/my-tickets";
 import { cn } from "@/lib/utils";
+import { AskSpecialist } from "./ask-specialist";
 
 const STATUS_STYLE = {
   auto_sent: "text-success",
@@ -17,6 +18,7 @@ const STATUS_STYLE = {
 
 function TicketStatus({ ticket }: { ticket: MyTicket }) {
   const { t, language } = usePreferences();
+  const queryClient = useQueryClient();
   const status = useQuery({
     queryKey: ["my-ticket", ticket.id],
     queryFn: async () => {
@@ -66,6 +68,17 @@ function TicketStatus({ ticket }: { ticket: MyTicket }) {
               </div>
             ) : (
               <p className="text-sm text-muted-foreground">{t.waiting}</p>
+            )}
+            {status.data.human_requested && (
+              <p className="text-xs text-muted-foreground">{t.humanRequested}</p>
+            )}
+            {status.data.status === "auto_sent" && (
+              <AskSpecialist
+                ticketId={ticket.id}
+                code={ticket.code}
+                office={status.data.office}
+                onSent={() => queryClient.invalidateQueries({ queryKey: ["my-ticket", ticket.id] })}
+              />
             )}
           </div>
         ) : (

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
-import { ChevronRight, Inbox, Search, ShieldAlert } from "lucide-react";
+import { ChevronRight, Inbox, Search, ShieldAlert, UserRound } from "lucide-react";
 import { usePreferences } from "@/app/preferences";
 import { meOptions, staffListOptions } from "@/client/@tanstack/react-query.gen";
 import { Button } from "@/components/ui/button";
@@ -51,6 +51,11 @@ function TicketRow({ ticket }: { ticket: StoredTicket }) {
           {ticket.escalate && (
             <span className="inline-flex items-center gap-1 text-destructive">
               <ShieldAlert className="size-3.5" /> {t.staff.escalated}
+            </span>
+          )}
+          {ticket.human_requested_at && (
+            <span className="inline-flex items-center gap-1 text-warning-foreground dark:text-warning">
+              <UserRound className="size-3.5" /> {t.staff.humanRequested}
             </span>
           )}
         </div>

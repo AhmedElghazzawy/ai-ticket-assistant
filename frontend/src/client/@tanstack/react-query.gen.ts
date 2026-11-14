@@ -3,8 +3,8 @@
 import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { createTicket, demoLogIn, giveFeedback, health, logIn, loginOptions, logOut, lookupTicket, me, type Options, staffGet, staffInsights, staffList, staffReassign, staffReply } from '../sdk.gen';
-import type { CreateTicketData, CreateTicketError, CreateTicketResponse, DemoLogInData, DemoLogInResponse, GiveFeedbackData, GiveFeedbackError, GiveFeedbackResponse, HealthData, HealthResponse, LogInData, LogInError, LoginOptionsData, LoginOptionsResponse, LogInResponse, LogOutData, LogOutResponse, LookupTicketData, LookupTicketError, LookupTicketResponse, MeData, MeResponse, StaffGetData, StaffGetError, StaffGetResponse, StaffInsightsData, StaffInsightsResponse, StaffListData, StaffListError, StaffListResponse, StaffReassignData, StaffReassignError, StaffReassignResponse, StaffReplyData, StaffReplyError, StaffReplyResponse } from '../types.gen';
+import { askForAPerson, createTicket, demoLogIn, giveFeedback, health, logIn, loginOptions, logOut, lookupTicket, me, type Options, staffGet, staffInsights, staffList, staffReassign, staffReply } from '../sdk.gen';
+import type { AskForAPersonData, AskForAPersonError, AskForAPersonResponse, CreateTicketData, CreateTicketError, CreateTicketResponse, DemoLogInData, DemoLogInResponse, GiveFeedbackData, GiveFeedbackError, GiveFeedbackResponse, HealthData, HealthResponse, LogInData, LogInError, LoginOptionsData, LoginOptionsResponse, LogInResponse, LogOutData, LogOutResponse, LookupTicketData, LookupTicketError, LookupTicketResponse, MeData, MeResponse, StaffGetData, StaffGetError, StaffGetResponse, StaffInsightsData, StaffInsightsResponse, StaffListData, StaffListError, StaffListResponse, StaffReassignData, StaffReassignError, StaffReassignResponse, StaffReplyData, StaffReplyError, StaffReplyResponse } from '../types.gen';
 
 /**
  * Demo Log In
@@ -296,6 +296,27 @@ export const giveFeedbackMutation = (options?: Partial<Options<GiveFeedbackData>
     const mutationOptions: UseMutationOptions<GiveFeedbackResponse, GiveFeedbackError, Options<GiveFeedbackData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await giveFeedback({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Ask For A Person
+ *
+ * The student's "Still need help?" button: the automatic answer did not solve it, so a person
+ * in the ticket's office takes over (docs/decisions/0016). Asking twice, or on a forwarded ticket,
+ * changes nothing.
+ */
+export const askForAPersonMutation = (options?: Partial<Options<AskForAPersonData>>): UseMutationOptions<AskForAPersonResponse, AskForAPersonError, Options<AskForAPersonData>> => {
+    const mutationOptions: UseMutationOptions<AskForAPersonResponse, AskForAPersonError, Options<AskForAPersonData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await askForAPerson({
                 ...options,
                 ...fnOptions,
                 throwOnError: true

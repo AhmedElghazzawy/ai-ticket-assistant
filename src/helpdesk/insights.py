@@ -35,6 +35,7 @@ class Insights(BaseModel):
     total: int
     outcomes: Outcomes
     first_help_total: int  # every ticket that got first help, also those staff answered later
+    human_requested: int  # automatic answers the student sent on to a person: they were not enough
     median_reply_minutes: float | None  # None until staff have replied to at least one ticket
     handled_n: int  # the sample size of the reply time
     feedback_helpful: int
@@ -65,6 +66,7 @@ def summarize(tickets: list[StoredTicket], now: datetime) -> Insights:
             handled=sum(t.status == "handled" for t in tickets),
         ),
         first_help_total=sum(not t.auto_send and got_first_help(t) for t in tickets),
+        human_requested=sum(t.human_requested_at is not None for t in tickets),
         median_reply_minutes=round(median(minutes), 1) if minutes else None,
         handled_n=len(minutes),
         feedback_helpful=sum(t.feedback == "helpful" for t in rated),

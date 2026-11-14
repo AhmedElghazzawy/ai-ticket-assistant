@@ -465,6 +465,46 @@ def test_feedback_needs_the_code_and_the_last_choice_counts(
     assert row is not None and row["feedback"] == "not_helpful"
 
 
+def ask_for_a_person(api: Api, ticket_id: int, code: str) -> httpx2.Response:
+    return api.client.post(f"/api/tickets/{ticket_id}/human", json={"code": code})
+
+
+def test_student_can_send_an_auto_answered_ticket_to_a_specialist(api: Api) -> None:
+    api.use_pipeline(lambda *args: fake_result(auto_send=True))
+    body = api.ask().json()
+    number, code = body["ticket_id"], body["access_code"]
+    sent = ask_for_a_person(api, number, code)
+    assert sent.status_code == 200 and sent.json()["status"] == "open"
+    found = lookup(api, number, code).json()
+    assert found["status"] == "open" and found["human_requested"]
+    assert found["reply"] == "SECRET DRAFT"  # the AI answer they already got stays visible
+    [queued] = api.staff().get("/api/staff/tickets").json()  # staff see it, marked
+    assert queued["id"] == number and queued["human_requested_at"] is not None
+
+
+def test_asking_for_a_specialist_needs_the_right_code(api: Api) -> None:
+    api.use_pipeline(lambda *args: fake_result(auto_send=True))
+    body = api.ask().json()
+    wrong_code = ask_for_a_person(api, body["ticket_id"], "x" * 22)
+    unknown_ticket = ask_for_a_person(api, body["ticket_id"] + 1000, body["access_code"])
+    assert wrong_code.status_code == unknown_ticket.status_code == 404
+    assert wrong_code.json() == unknown_ticket.json()
+
+
+def test_a_ticket_staff_already_answered_cannot_be_reopened(api: Api) -> None:
+    api.use_pipeline(lambda *args: fake_result(auto_send=False))
+    body = api.ask().json()
+    number = body["ticket_id"]
+    api.staff().post(f"/api/staff/tickets/{number}/reply", json={"reply": "Dilekçe verin."})
+    assert ask_for_a_person(api, number, body["access_code"]).status_code == 409
+
+
+def test_asking_for_a_specialist_is_rate_limited(api: Api) -> None:
+    api.services.lookup_limiter = RateLimiter(((3, 60.0),))
+    answers = [ask_for_a_person(api, 1, "x" * 22).status_code for _ in range(4)]
+    assert answers == [404, 404, 404, 429]
+
+
 def test_lookups_are_rate_limited_per_visitor(api: Api) -> None:
     api.services.lookup_limiter = RateLimiter(((3, 60.0),))
     answers = [lookup(api, 1, "x" * 22).status_code for _ in range(4)]

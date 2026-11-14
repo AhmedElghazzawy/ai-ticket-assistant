@@ -5,6 +5,16 @@ export type ClientOptions = {
 };
 
 /**
+ * CodeIn
+ */
+export type CodeIn = {
+    /**
+     * Code
+     */
+    code: string;
+};
+
+/**
  * DayCount
  */
 export type DayCount = {
@@ -72,6 +82,10 @@ export type Insights = {
      * Handled N
      */
     handled_n: number;
+    /**
+     * Human Requested
+     */
+    human_requested: number;
     /**
      * Median Reply Minutes
      */
@@ -290,6 +304,10 @@ export type StoredTicket = {
      */
     handled_at: string | null;
     /**
+     * Human Requested At
+     */
+    human_requested_at?: string | null;
+    /**
      * Id
      */
     id: number;
@@ -417,6 +435,10 @@ export type TicketStatusOut = {
      * Handled At
      */
     handled_at: string | null;
+    /**
+     * Human Requested
+     */
+    human_requested: boolean;
     /**
      * Office
      */
@@ -813,3 +835,37 @@ export type GiveFeedbackResponses = {
 };
 
 export type GiveFeedbackResponse = GiveFeedbackResponses[keyof GiveFeedbackResponses];
+
+export type AskForAPersonData = {
+    body: CodeIn;
+    path: {
+        /**
+         * Ticket Id
+         */
+        ticket_id: number;
+    };
+    query?: never;
+    url: '/api/tickets/{ticket_id}/human';
+};
+
+export type AskForAPersonErrors = {
+    /**
+     * Staff already answered this ticket.
+     */
+    409: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type AskForAPersonError = AskForAPersonErrors[keyof AskForAPersonErrors];
+
+export type AskForAPersonResponses = {
+    /**
+     * Successful Response
+     */
+    200: TicketStatusOut;
+};
+
+export type AskForAPersonResponse = AskForAPersonResponses[keyof AskForAPersonResponses];

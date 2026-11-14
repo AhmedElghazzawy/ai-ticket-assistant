@@ -23,9 +23,11 @@ from helpdesk.storage.db import token_hash
 from helpdesk.storage.tickets import (
     Status,
     StoredSource,
+    StoredTicket,
     count_tickets_since,
     find_for_student,
     get_ticket,
+    request_human,
     save_feedback,
     save_ticket,
 )
@@ -87,8 +89,15 @@ class TicketStatusOut(BaseModel):
     ticket_id: int
     status: Status
     office: OfficeId
-    reply: str | None  # the auto-sent answer or the staff reply; None while staff work on it
+    # The staff reply, else the automatic answer the student already got (also after they asked for
+    # a person); None while staff work on a forwarded ticket.
+    reply: str | None
     handled_at: datetime | None
+    human_requested: bool  # the student sent the automatic answer on to a person
+
+
+class CodeIn(BaseModel):
+    code: str = Field(min_length=1, max_length=100)
 
 
 class FeedbackIn(BaseModel):
@@ -184,14 +193,42 @@ def lookup_ticket(body: LookupIn, services: ServicesDep) -> TicketStatusOut:
         found = find_for_student(db, body.ticket_id, body.code)
     if found is None:
         raise HTTPException(status_code=404, detail=NOT_FOUND)
-    reply = {"auto_sent": found.draft, "handled": found.final_reply}.get(found.status)
+    return status_out(found)
+
+
+def status_out(found: StoredTicket) -> TicketStatusOut:
+    if found.status == "handled":
+        reply = found.final_reply
+    else:  # the automatic answer was already shown; a forwarded draft never is
+        reply = found.draft if found.auto_send else None
     return TicketStatusOut(
         ticket_id=found.id,
         status=found.status,
         office=found.office,
         reply=reply,
         handled_at=found.handled_at,
+        human_requested=found.human_requested_at is not None,
     )
+
+
+@router.post(
+    "/{ticket_id}/human",
+    dependencies=[Depends(check_lookup_limits)],
+    responses={409: {"description": "Staff already answered this ticket."}},
+)
+def ask_for_a_person(ticket_id: int, body: CodeIn, services: ServicesDep) -> TicketStatusOut:
+    """The student's "Still need help?" button: the automatic answer did not solve it, so a person
+    in the ticket's office takes over (docs/decisions/0016). Asking twice, or on a forwarded ticket,
+    changes nothing."""
+    with services.pool.connection() as db:
+        status = request_human(db, ticket_id, body.code)
+        found = find_for_student(db, ticket_id, body.code) if status else None
+    if found is None:
+        raise HTTPException(status_code=404, detail=NOT_FOUND)
+    if status == "handled":  # the staff reply is there; reopening would loop staff without end
+        raise HTTPException(status_code=409, detail="Staff already answered this ticket.")
+    logger.info("human_requested", ticket_id=ticket_id)  # never the text or the code
+    return status_out(found)
 
 
 @router.post("/{ticket_id}/feedback", status_code=204, dependencies=[Depends(check_lookup_limits)])

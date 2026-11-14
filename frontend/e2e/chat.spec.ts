@@ -96,6 +96,41 @@ test("feedback is sent with the ticket's secret code", async ({ page }) => {
   expect(sent).toEqual({ code: BASE.access_code, helpful: true });
 });
 
+test("a student can send an automatic answer on to a specialist", async ({ page }) => {
+  let sent: unknown = null;
+  await page.route("**/api/tickets/42/human", async (route) => {
+    sent = route.request().postDataJSON();
+    await route.fulfill({
+      json: {
+        ticket_id: 42,
+        status: "open",
+        office: "student_affairs",
+        reply: "Program OBS'de ilan edilir.",
+        handled_at: null,
+        human_requested: true,
+      },
+    });
+  });
+  await askWithAnswer(page, {
+    auto_send: true,
+    reply: "Program OBS'de ilan edilir.",
+    sources: [SOURCE],
+  });
+  await expect(page.getByText("Sorununuz çözülmedi mi?")).toBeVisible();
+  await expect(page.getByText("Öğrenci İşleri Daire Başkanlığı birimine")).toBeVisible();
+  await page.getByRole("button", { name: "Bir uzmana gönder" }).click();
+  await expect(page.getByRole("status")).toContainText("ilgili birime iletildi");
+  expect(sent).toEqual({ code: BASE.access_code });
+});
+
+test("a forwarded ticket offers no specialist button: a person already has it", async ({
+  page,
+}) => {
+  await askWithAnswer(page, {});
+  await expect(page.getByText("İlgili birime iletildi")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Bir uzmana gönder" })).toHaveCount(0);
+});
+
 test("my tickets shows the staff reply for a ticket sent from this browser", async ({ page }) => {
   await page.route("**/api/tickets/lookup", (route) =>
     route.fulfill({
@@ -105,6 +140,7 @@ test("my tickets shows the staff reply for a ticket sent from this browser", asy
         office: "student_affairs",
         reply: "Dilekçe verin.",
         handled_at: null,
+        human_requested: false,
       },
     }),
   );

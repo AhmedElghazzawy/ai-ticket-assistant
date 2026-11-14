@@ -8,6 +8,7 @@ import {
   FileText,
   Send,
   ShieldAlert,
+  UserRound,
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -201,6 +202,11 @@ export function TicketPage() {
           {ticket.escalate && (
             <span className="inline-flex items-center gap-1 text-xs font-medium text-destructive">
               <ShieldAlert className="size-3.5" /> {t.staff.escalated}
+            </span>
+          )}
+          {ticket.human_requested_at && (
+            <span className="inline-flex items-center gap-1 text-xs font-medium text-warning-foreground dark:text-warning">
+              <UserRound className="size-3.5" /> {t.staff.humanRequested}
             </span>
           )}
           <span className="text-sm text-muted-foreground">

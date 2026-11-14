@@ -98,6 +98,11 @@ ALTER TABLE tickets ADD COLUMN feedback_at TIMESTAMPTZ;
 -- (docs/decisions/0013). Older rows have none.
 ALTER TABLE tickets ADD COLUMN general_help TEXT NOT NULL DEFAULT '';
 """,
+    5: """
+-- When the student sent an automatic answer on to a person ("Still need help?",
+-- docs/decisions/0016). NULL: they never asked (and in every older row).
+ALTER TABLE tickets ADD COLUMN human_requested_at TIMESTAMPTZ;
+""",
 }
 SCHEMA_VERSION = max(MIGRATIONS)
 

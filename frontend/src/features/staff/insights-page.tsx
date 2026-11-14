@@ -268,7 +268,11 @@ export function InsightsPage() {
               <Tile
                 label={texts.autoRate}
                 value={percent(data.outcomes.auto_sent, data.total)}
-                note={texts.sample(data.total)}
+                note={
+                  data.human_requested
+                    ? `${texts.sample(data.total)} · ${texts.sentOn(data.human_requested)}`
+                    : texts.sample(data.total)
+                }
               />
               <Tile
                 label={texts.helpedNow}

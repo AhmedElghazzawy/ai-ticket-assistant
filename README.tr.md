@@ -117,6 +117,8 @@ escalation gerektiren hiçbir talepte gösterilmedi.
 - **"Nasıl karar verildi?"**: kararın arkasındaki gerçek kontrollerin adım adım izi.
 - **Taleplerim**: gizli bir erişim koduyla talebi takip etme ve personelin cevabını okuma (veritabanında
   yalnızca kodun özeti saklanır, [ADR 0009](docs/decisions/0009-student-ticket-access-code.md)).
+- **"Bir uzmana gönder"**: otomatik cevap sorunu çözmediyse tek tıkla talep doğru birimin kuyruğuna
+  girer, personel için işaretlenir ([ADR 0016](docs/decisions/0016-student-can-ask-for-a-person.md)).
 - Geri bildirim düğmeleri, kriz taleplerinde acil durum (112) düğmesi ve dürüst bir bekleme göstergesi.
 
 **Personel için**

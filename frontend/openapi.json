@@ -1,6 +1,21 @@
 {
   "components": {
     "schemas": {
+      "CodeIn": {
+        "properties": {
+          "code": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code"
+        ],
+        "title": "CodeIn",
+        "type": "object"
+      },
       "DayCount": {
         "properties": {
           "count": {
@@ -96,6 +111,10 @@
             "title": "Handled N",
             "type": "integer"
           },
+          "human_requested": {
+            "title": "Human Requested",
+            "type": "integer"
+          },
           "median_reply_minutes": {
             "anyOf": [
               {
@@ -119,6 +138,7 @@
           "total",
           "outcomes",
           "first_help_total",
+          "human_requested",
           "median_reply_minutes",
           "handled_n",
           "feedback_helpful",
@@ -447,6 +467,18 @@
             ],
             "title": "Handled At"
           },
+          "human_requested_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Human Requested At"
+          },
           "id": {
             "title": "Id",
             "type": "integer"
@@ -736,6 +768,10 @@
             ],
             "title": "Handled At"
           },
+          "human_requested": {
+            "title": "Human Requested",
+            "type": "boolean"
+          },
           "office": {
             "enum": [
               "it",
@@ -777,7 +813,8 @@
           "status",
           "office",
           "reply",
-          "handled_at"
+          "handled_at",
+          "human_requested"
         ],
         "title": "TicketStatusOut",
         "type": "object"
@@ -1351,6 +1388,59 @@
           }
         },
         "summary": "Give Feedback"
+      }
+    },
+    "/api/tickets/{ticket_id}/human": {
+      "post": {
+        "description": "The student's \"Still need help?\" button: the automatic answer did not solve it, so a person\nin the ticket's office takes over (docs/decisions/0016). Asking twice, or on a forwarded ticket,\nchanges nothing.",
+        "operationId": "ask_for_a_person",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ticket_id",
+            "required": true,
+            "schema": {
+              "title": "Ticket Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CodeIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketStatusOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "409": {
+            "description": "Staff already answered this ticket."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Ask For A Person"
       }
     }
   }

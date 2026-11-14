@@ -15,6 +15,7 @@ const INSIGHTS: StaffInsightsResponse = {
   total: 10,
   outcomes: { auto_sent: 4, first_help_waiting: 2, waiting: 1, handled: 3 },
   first_help_total: 3,
+  human_requested: 1,
   median_reply_minutes: 95,
   handled_n: 3,
   feedback_helpful: 3,

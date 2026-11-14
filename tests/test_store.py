@@ -21,6 +21,7 @@ from helpdesk.storage.tickets import (
     list_tickets,
     mark_handled,
     reassign,
+    request_human,
     reset_demo_tickets,
     save_ticket,
 )
@@ -135,6 +136,36 @@ def test_only_one_reply_can_close_a_ticket(db: Connection) -> None:
     assert mark_handled(db, number, "second") is False
     ticket = get_ticket(db, number)
     assert ticket is not None and ticket.final_reply == "first"
+
+
+CODE = "c" * 22  # a student's secret ticket code (only its hash is stored)
+
+
+def test_student_can_send_an_auto_answered_ticket_to_a_person(db: Connection) -> None:
+    number = save_ticket(db, "answered", "tr", result(True), access_hash=store.token_hash(CODE))
+    assert request_human(db, number, CODE) == "open"
+    [ticket] = list_tickets(db, "open")  # now in the office's queue
+    assert ticket.id == number and ticket.human_requested_at is not None
+    assert ticket.auto_send  # what the AI decided stays recorded: only the status moved
+
+
+def test_asking_for_a_person_needs_the_code(db: Connection) -> None:
+    number = save_ticket(db, "answered", "tr", result(True), access_hash=store.token_hash(CODE))
+    assert request_human(db, number, "x" * 22) is None
+    assert request_human(db, number + 1000, CODE) is None
+    assert list_tickets(db, "open") == []
+
+
+def test_asking_again_or_on_a_forwarded_ticket_changes_nothing(db: Connection) -> None:
+    # A forwarded ticket is already with a person; a handled one already has the staff reply.
+    forwarded = save_ticket(db, "f", "tr", result(False), access_hash=store.token_hash(CODE))
+    assert request_human(db, forwarded, CODE) == "open"
+    handled = save_ticket(db, "h", "tr", result(False), access_hash=store.token_hash(CODE))
+    mark_handled(db, handled, "staff reply")
+    assert request_human(db, handled, CODE) == "handled"
+    for number in (forwarded, handled):
+        ticket = get_ticket(db, number)
+        assert ticket is not None and ticket.human_requested_at is None
 
 
 def test_reassign_changes_the_office(db: Connection) -> None:

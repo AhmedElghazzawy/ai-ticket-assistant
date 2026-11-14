@@ -92,3 +92,11 @@ def test_first_help_counts_tickets_that_staff_answered_later_too() -> None:
     s = summarize([*TICKETS, later], NOW)
     assert s.outcomes.handled == 2
     assert s.first_help_total == 2  # tickets 2 and 5: "helped right away" must count both
+
+
+def test_counts_ai_answers_the_student_sent_on_to_a_person() -> None:
+    # How often an automatic answer was not enough: the student asked for a specialist.
+    asked = ticket(id=5, auto_send=True, reasons=[], human_requested_at=NOW)
+    s = summarize([*TICKETS, asked], NOW)
+    assert (s.human_requested, s.outcomes.auto_sent) == (1, 1)  # still counted once, as open
+    assert s.outcomes.waiting == 2

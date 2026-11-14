@@ -39,6 +39,14 @@ const tr = {
   thanks: "Teşekkürler, geri bildiriminiz kaydedildi.",
   feedbackYes: "Evet, işime yaradı",
   feedbackNo: "Hayır, işime yaramadı",
+  needHelp: "Sorununuz çözülmedi mi?",
+  askSpecialist: "Bir uzmana gönder",
+  askSpecialistText: (office: string) =>
+    `Talebiniz, yapay zekânın cevabıyla birlikte ${office} birimine iletilir; bir personel inceleyip size dönüş yapar.`,
+  askSpecialistSent:
+    "Talebiniz ilgili birime iletildi. Durumunu Taleplerim sayfasından takip edebilirsiniz.",
+  askSpecialistError: "Talep iletilemedi. Lütfen biraz sonra tekrar deneyin.",
+  humanRequested: "Bir uzmana gönderdiniz",
   myTickets: "Taleplerim",
   myTicketsTitle: "Taleplerim",
   myTicketsText:
@@ -110,6 +118,7 @@ const tr = {
         "Talepler nasıl sonuçlanıyor, personel ne kadar hızlı cevaplıyor, öğrenciler ne düşünüyor.",
       total: "Toplam talep",
       autoRate: "Otomatik cevaplanan",
+      sentOn: (n: number) => `${n} uzmana gönderildi`, // the AI answer was not enough
       helpedNow: "Hemen yardım alan",
       helpedNowNote: "otomatik cevap + ön bilgi",
       waiting: "Cevap bekleyen",
@@ -182,6 +191,7 @@ const tr = {
     sendError: "Cevap gönderilemedi. Lütfen tekrar deneyin.",
     notFound: "Bu numarada bir talep yok.",
     escalated: "İnsan incelemesi gerekli",
+    humanRequested: "Otomatik cevaptan sonra öğrenci uzman istedi",
     received: "Alındı",
     handled: "Yanıtlandı",
     reasons: {
@@ -258,6 +268,14 @@ const en: Texts = {
   thanks: "Thank you, your feedback was saved.",
   feedbackYes: "Yes, it helped",
   feedbackNo: "No, it did not help",
+  needHelp: "Still need help?",
+  askSpecialist: "Send to a specialist",
+  askSpecialistText: (office: string) =>
+    `Your request and the AI's answer go to ${office}; a staff member will review it and get back to you.`,
+  askSpecialistSent:
+    "Your request was sent to the office. You can follow it on the My tickets page.",
+  askSpecialistError: "The request could not be sent. Please try again in a moment.",
+  humanRequested: "You sent this to a specialist",
   myTickets: "My tickets",
   myTicketsTitle: "My tickets",
   myTicketsText: "Tickets sent from this browser. When staff answer, you will see the reply here.",
@@ -328,6 +346,7 @@ const en: Texts = {
       subtitle: "How tickets end, how fast staff reply, what students think.",
       total: "Total tickets",
       autoRate: "Answered automatically",
+      sentOn: (n: number) => `${n} sent to a specialist`, // the AI answer was not enough
       helpedNow: "Helped right away",
       helpedNowNote: "automatic answer + first help",
       waiting: "Waiting for a reply",
@@ -400,6 +419,7 @@ const en: Texts = {
     sendError: "The reply could not be sent. Please try again.",
     notFound: "There is no ticket with this number.",
     escalated: "Needs human review",
+    humanRequested: "Student asked for a person after the automatic answer",
     received: "Received",
     handled: "Handled",
     reasons: {

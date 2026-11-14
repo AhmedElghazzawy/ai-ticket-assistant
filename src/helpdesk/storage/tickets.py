@@ -58,6 +58,8 @@ class StoredTicket(BaseModel):
     handled_at: datetime | None
     demo: bool  # a sample ticket for the demo: never mixed with real visitors' tickets
     feedback: Feedback | None = None  # the student's thumbs up / down, if they gave one
+    # When the student sent the automatic answer on to a person; None if they never asked.
+    human_requested_at: datetime | None = None
 
 
 def save_ticket(
@@ -159,6 +161,22 @@ def save_feedback(connection: Connection, ticket_id: int, code: str, feedback: F
         (feedback, ticket_id, token_hash(code)),
     ).fetchone()
     return row is not None
+
+
+def request_human(connection: Connection, ticket_id: int, code: str) -> Status | None:
+    """The student is not helped by the automatic answer: put the ticket in its office's queue.
+    Only an auto-sent ticket moves; an open one is already with a person and a handled one already
+    has the staff reply, so those stay as they are. Returns the status afterwards, or None if the
+    number or code is wrong."""
+    moved = connection.execute(
+        "UPDATE tickets SET status = 'open', human_requested_at = now()"
+        " WHERE id = %s AND access_hash = %s AND NOT demo AND status = 'auto_sent' RETURNING id",
+        (ticket_id, token_hash(code)),
+    ).fetchone()
+    if moved is not None:
+        return "open"
+    found = find_for_student(connection, ticket_id, code)
+    return found.status if found else None
 
 
 def mark_handled(connection: Connection, ticket_id: int, final_reply: str) -> bool:

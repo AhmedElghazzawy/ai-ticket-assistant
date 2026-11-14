@@ -16,6 +16,7 @@ import { giveFeedback } from "@/client";
 import { Button } from "@/components/ui/button";
 import type { StoredSource, TicketOut } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { AskSpecialist } from "./ask-specialist";
 import { DecisionTrace } from "./decision-trace";
 
 /** Thumbs up / down, saved with the ticket's secret code (the last choice counts). */
@@ -154,6 +155,7 @@ function AnsweredCard({ result }: { result: TicketOut }) {
       <p className="text-[0.95rem] leading-relaxed">{result.reply}</p>
       <SourceList sources={result.sources} />
       {result.general_help && <GeneralHelp text={result.general_help} />}
+      <AskSpecialist ticketId={result.ticket_id} code={result.access_code} office={result.office} />
       <DecisionTrace result={result} />
       <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-3">
         <TicketMeta result={result} />
