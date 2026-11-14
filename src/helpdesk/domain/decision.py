@@ -5,7 +5,7 @@ Plain code, not AI: a safety rule must be predictable and testable.
 
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
+from pydantic import BaseModel, ConfigDict, Field
 
 from helpdesk.domain.grounding import is_grounded
 from helpdesk.domain.outputs import Answer, Classification
@@ -37,26 +37,6 @@ class WeakMatch(BaseModel):
 
 # pydantic picks the right class by looking at `code` (a "discriminated union").
 Reason = Annotated[SimpleReason | WeakMatch, Field(discriminator="code")]
-
-ENGLISH: dict[str, str] = {
-    "category_other": "category is 'other'",
-    "escalation": "an escalation rule applies (a human must answer)",
-    "urgent": "urgent: a human answers",
-    "not_covered": "the documents do not answer the ticket",
-    "no_citation": "the reply does not cite a retrieved document",
-    "ungrounded": "the quoted evidence is not found in the retrieved documents",
-}
-
-
-def describe(reason: SimpleReason | WeakMatch) -> str:
-    """One reason in plain English, for command-line output and the old staff panel."""
-    if isinstance(reason, WeakMatch):
-        return f"weak document match ({reason.score:.3f} < {reason.min:.3f})"
-    return ENGLISH[reason.code]
-
-
-# Reads a saved JSON list of reasons back into Reason objects.
-REASON_LIST: TypeAdapter[list[SimpleReason | WeakMatch]] = TypeAdapter(list[Reason])
 
 
 class Decision(BaseModel):

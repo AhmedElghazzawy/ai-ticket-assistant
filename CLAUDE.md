@@ -104,8 +104,7 @@ The backend is the package `src/helpdesk/`; layers only depend inward (core <- d
 - `retrieval/` `knowledge_base.py` chunks, `embeddings.py`, `search.py` index sync and pgvector search.
 - `storage/` `db.py` connections and migrations, `tickets.py` the ticket table.
 - `auth.py` staff login; `insights.py` staff statistics; `pipeline.py` one ticket end to end.
-- `api/app.py` the FastAPI app; `evals/` evals and Wilson intervals (results in `eval/`);
-  `panel.py` the old Streamlit panel.
+- `api/app.py` the FastAPI app; `evals/` evals and Wilson intervals (results in `eval/`).
 - `frontend/` React app (student chat, Taleplerim, staff console); its API client is generated.
 - `tests/` pytest against a real Postgres; `tests/fakes.py` fakes every AI call.
 

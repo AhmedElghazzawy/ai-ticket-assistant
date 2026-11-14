@@ -25,10 +25,6 @@ build-backend = "uv_build"
 module-name = "helpdesk"
 
 [dependency-groups]
-# The old Streamlit panel (overview, dataset, evaluation): not in the production image.
-panel = [
-    "streamlit>=1.65.0",
-]
 # Tools for developers and CI only; not installed in the production image.
 dev = [
     "pytest>=9.1.1",    # automatic tests (tests/)
@@ -39,7 +35,7 @@ dev = [
 ]
 
 [tool.uv]
-default-groups = ["dev", "panel"]  # `uv sync` on a laptop or in CI installs both
+default-groups = ["dev"]  # `uv sync` on a laptop or in CI installs it
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -50,10 +46,8 @@ pythonpath = ["src"]
 
 [tool.coverage.run]
 source = ["helpdesk"]
-# Not measured: the old Streamlit panel (to be retired, roadmap 12) and a manual script that calls the
-# real model (now tools/try_one_ticket.py, outside the package). Everything else counts, including the
-# eval scripts' main() functions.
-omit = ["*/helpdesk/panel.py"]
+# Everything in the package counts, including the eval scripts' main() functions; the manual script that
+# calls the real model lives outside it (tools/try_one_ticket.py).
 
 [tool.coverage.report]
 fail_under = 80  # a ratchet: raise it when coverage rises, never lower it to get green

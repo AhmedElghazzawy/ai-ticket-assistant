@@ -23,7 +23,7 @@ ENV UV_COMPILE_BYTECODE=1 \
 WORKDIR /app
 
 # Libraries first (this layer is reused until uv.lock changes): exactly uv.lock, runtime only
-# (no dev tools, no Streamlit panel), using this image's own Python.
+# (no dev tools), using this image's own Python.
 COPY pyproject.toml uv.lock ./
 RUN uv sync --locked --no-default-groups --no-install-project
 

@@ -4,7 +4,7 @@
 # The package lives in src/helpdesk. It is installed in editable mode, but on macOS the .pth file
 # that points there can get the "hidden" flag, which Python 3.12 skips; naming src/ is the fix.
 export PYTHONPATH := src
-.PHONY: help install db up down serve panel lint format typecheck test api-drift web-check check api-client context \
+.PHONY: help install db up down serve lint format typecheck test api-drift web-check check api-client context \
 	data index eval
 
 help: ## List the targets
@@ -26,8 +26,6 @@ down: ## Stop the containers (the database volume is kept)
 serve: ## API with auto-reload at http://127.0.0.1:8000 (frontend dev server: cd frontend && npm run dev)
 	uv run uvicorn helpdesk.api.app:create_app --factory --reload
 
-panel: ## The old Streamlit panel (dataset and eval results)
-	uv run streamlit run src/helpdesk/panel.py
 
 lint: ## ruff lint + format check
 	uv run ruff check
