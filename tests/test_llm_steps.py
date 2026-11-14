@@ -71,7 +71,7 @@ def test_gemini_provider_asks_for_the_schema_with_function_calling_off(
             candidates=[types.Candidate(content=types.Content(parts=[part]))]
         )
 
-    settings = SimpleNamespace(gemini_model="main-model", gemini_fallback_model=None)
+    settings = SimpleNamespace(gemini_model="main-model")
     monkeypatch.setattr(gemini, "get_gemini_settings", lambda: settings)
     monkeypatch.setattr(gemini, "generate", fake_generate)
     labels = GeminiProvider().generate_json("classify", "SYSTEM", "TICKET", Classification, "low")

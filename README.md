@@ -37,7 +37,7 @@ a quiet period takes about a minute).
   reported with its sample size and a 95% Wilson confidence interval.
 - **Production habits:** layered code with the layer rules enforced by a test, an append-only audit
   trail of every ticket change, typed settings, mypy strict, 298 tests on a real Postgres, browser
-  tests, CodeQL, Dependabot, Docker, structured logs with no student text, 17 architecture decision
+  tests, CodeQL, Dependabot, Docker, structured logs with no student text, 18 architecture decision
   records.
 
 ## How it works
@@ -168,7 +168,7 @@ See [SECURITY.md](SECURITY.md) to report a vulnerability.
 
 | Layer | Tools |
 |---|---|
-| LLM | Google Gemini, free tier: live `gemini-3.1-flash-lite` with `gemini-3.5-flash-lite` as backup (ADR 0015; scores below were measured on 3.5-flash-lite), `gemini-embedding-2` |
+| LLM | Google Gemini, free tier: live chain `gemini-3.5-flash-lite` → `gemini-4-hydrogen` → `gemini-3.1-flash-lite`, hedged after 9 s, 25 s limit (ADR 0018; scores below were measured on 3.5-flash-lite), `gemini-embedding-2` |
 | Backend | Python 3.12, FastAPI, pydantic-settings, structlog, psycopg 3 |
 | Database | PostgreSQL 18 + pgvector (Neon in production) |
 | Frontend | React 19, TypeScript, Vite, Tailwind CSS, shadcn/ui, TanStack Router + Query; the API client is generated from the OpenAPI schema |

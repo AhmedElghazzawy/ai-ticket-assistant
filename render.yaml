@@ -17,13 +17,9 @@ services:
         sync: false # secret: typed into Render's dashboard
       - key: DATABASE_URL
         sync: false # secret: Neon's connection string (free Postgres, EU), typed into Render's dashboard
-      # Measured on the 80 dev tickets (ADR 0015): 0 missed escalations, as accurate as
-      # gemini-3.5-flash-lite within the 95% intervals, and it answered while that one was overloaded.
+      # Evals and scripts only. The live API asks a chain of models (ADR 0018): settings.py
+      # gemini_live_models, hedged after 9 s, never more than 25 s. Override with GEMINI_LIVE_MODELS.
       - key: GEMINI_MODEL
-        value: gemini-3.1-flash-lite
-      # The live time limit (12 s, one try, then the backup) is in code: LIVE_LIMITS in ai/gemini.py.
-      # When the main model is overloaded (503 "high demand"), ask this one instead. Free tier.
-      - key: GEMINI_FALLBACK_MODEL
         value: gemini-3.5-flash-lite
       - key: PORT
         value: "8000" # the port our container listens on

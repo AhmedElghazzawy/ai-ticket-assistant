@@ -6,6 +6,11 @@ Every individual change, with its reason and measured result, is in the engineer
 
 ## [Unreleased]
 
+### Changed
+- **Faster, steadier live answers:** a chain of three free Gemini models replaces the single backup;
+  a busy model hands over at once, a slow one is raced after 9 s, nobody waits past 25 s, and the
+  question's embedding has an 8 s limit (ADR 0018, replaces 0014 and 0015).
+
 ### Added
 - **"Send to a specialist"**: a student can send an automatic answer on to the right office with one
   click; staff see it marked, Insights count it (ADR 0016).

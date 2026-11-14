@@ -9,7 +9,7 @@ from psycopg_pool import ConnectionPool
 
 from helpdesk.core.paths import DATA_DIR
 from helpdesk.domain.knowledge import Chunk
-from helpdesk.retrieval.embeddings import DIMENSIONS, EMBED_MODEL, document_text, embed, query_text
+from helpdesk.retrieval.embeddings import DIMENSIONS, EMBED_MODEL, document_text, embed, embed_query
 from helpdesk.retrieval.knowledge_base import load_chunks
 from helpdesk.storage.db import Connection, Database, open_pool
 
@@ -108,7 +108,7 @@ def search(
 ) -> list[tuple[float, Chunk]]:
     """The k chunks most similar to the ticket, best first. The AI call comes first, so a
     database connection is borrowed only for the quick SQL query."""
-    query = embed([query_text(ticket)])[0]
+    query = embed_query(ticket)
     with database() as connection:
         hits = nearest(connection, query, k, language)
     if not hits:  # the decision needs a best match; an empty table is a setup error, not "no match"

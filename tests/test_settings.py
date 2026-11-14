@@ -10,7 +10,7 @@ VARIABLES = (
     "GEMINI_MODEL",
     "GEMINI_TIMEOUT_SECONDS",
     "GEMINI_RETRY_ATTEMPTS",
-    "GEMINI_FALLBACK_MODEL",
+    "GEMINI_LIVE_MODELS",
     "DATABASE_URL",
     "LOG_FORMAT",
     "COOKIE_SECURE",
@@ -47,15 +47,26 @@ def test_reads_settings_and_defaults(monkeypatch: pytest.MonkeyPatch) -> None:
     assert settings.gemini_timeout_seconds == 60
 
 
-def test_the_backup_model_works_without_any_hosting_setting(
+def test_the_live_model_chain_works_without_any_hosting_setting(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    # 2026-11-05: the main model was overloaded for hours; the backup must not depend on someone
-    # copying a variable into the hosting dashboard. Evals never use it (GeminiProvider default).
+    # The hosting dashboard kept old model values more than once: the live chain is in code
+    # (docs/decisions/0018), three different models measured on 2026-11-14. Evals use GEMINI_MODEL.
     settings = load_gemini(monkeypatch, GEMINI_API_KEY="k", GEMINI_MODEL="m")
-    assert settings.gemini_fallback_model == "gemini-3.1-flash-lite"
-    off = load_gemini(monkeypatch, GEMINI_API_KEY="k", GEMINI_MODEL="m", GEMINI_FALLBACK_MODEL="")
-    assert not off.gemini_fallback_model  # an empty value switches the backup off
+    assert settings.gemini_live_models == [
+        "gemini-3.5-flash-lite",
+        "gemini-4-hydrogen",
+        "gemini-3.1-flash-lite",
+    ]
+    custom = load_gemini(
+        monkeypatch, GEMINI_API_KEY="k", GEMINI_MODEL="m", GEMINI_LIVE_MODELS='["x", "y"]'
+    )
+    assert custom.gemini_live_models == ["x", "y"]
+
+
+def test_an_empty_live_chain_is_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
+    with pytest.raises(ValidationError, match="gemini_live_models"):
+        load_gemini(monkeypatch, GEMINI_API_KEY="k", GEMINI_MODEL="m", GEMINI_LIVE_MODELS="[]")
 
 
 def test_missing_key_is_a_clear_error(monkeypatch: pytest.MonkeyPatch) -> None:

@@ -17,9 +17,10 @@ Projedeki önemli seçimler, her biri kısa bir dosyada: bağlam, karar, sonuçl
 | [0011](0011-agent-instructions-and-guardrails.md) | Claude Code için tek, kısa talimat dosyası (CLAUDE.md), kurallar kod olarak (hook'lar) | Kabul edildi |
 | [0012](0012-package-factory-llm-provider.md) | Katmanlı paket, app factory ve LLMProvider arayüzü | Kabul edildi |
 | [0013](0013-direct-answer-and-general-help.md) | Doğrudan cevap ve etiketli "genel bilgi" (resmî ve genel bilgi ayrı alanlarda) | Kabul edildi |
-| [0014](0014-fallback-model.md) | Ana model aşırı yüklenince yedek model (yalnızca canlı API, eval'lerde asla) | Kabul edildi |
-| [0015](0015-main-model-3-1-flash-lite.md) | Canlı ana model gemini-3.1-flash-lite (dev setinde ölçülerek seçildi) | Kabul edildi |
+| [0014](0014-fallback-model.md) | Ana model aşırı yüklenince yedek model (yalnızca canlı API, eval'lerde asla) | 0018 ile değiştirildi |
+| [0015](0015-main-model-3-1-flash-lite.md) | Canlı ana model gemini-3.1-flash-lite (dev setinde ölçülerek seçildi) | 0018 ile değiştirildi |
 | [0016](0016-student-can-ask-for-a-person.md) | Öğrenci otomatik cevaptan sonra bir uzman isteyebilir ("Bir uzmana gönder") | Kabul edildi |
 | [0017](0017-ticket-audit-trail.md) | Talep geçmişi: değiştirilemeyen bir denetim kaydı (kim, ne zaman, ne yaptı) | Kabul edildi |
+| [0018](0018-live-model-chain.md) | Canlı API için model zinciri, hedged request ve 25 sn süre sınırı | Kabul edildi |
 
 Yeni bir önemli karar alındığında bir sonraki numarayla yeni dosya eklenir. Bir karar değişirse eski dosya silinmez: durumu "Yerini aldı: 00XX" olur.

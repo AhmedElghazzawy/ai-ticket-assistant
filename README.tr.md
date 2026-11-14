@@ -38,7 +38,7 @@ olmazsa ilk açılış yaklaşık 1 dakika sürer).
 - **Üretim alışkanlıkları:** katman kuralları bir testle zorunlu tutulan katmanlı kod, her talep
   değişikliğinin değiştirilemeyen geçmişi (audit trail), tipli ayarlar, mypy strict, gerçek Postgres
   üzerinde 298 test, tarayıcı testleri, CodeQL, Dependabot, Docker, öğrenci metni içermeyen
-  yapılandırılmış loglar, 17 karar kaydı (ADR).
+  yapılandırılmış loglar, 18 karar kaydı (ADR).
 
 ## Nasıl çalışır
 
@@ -169,7 +169,7 @@ Güvenlik açığı bildirmek için: [SECURITY.md](SECURITY.md).
 
 | Katman | Araçlar |
 |---|---|
-| LLM | Google Gemini, ücretsiz katman: canlıda `gemini-3.1-flash-lite`, yedek `gemini-3.5-flash-lite` (ADR 0015; aşağıdaki skorlar 3.5-flash-lite ile ölçüldü), `gemini-embedding-2` |
+| LLM | Google Gemini, ücretsiz katman: canlıda model zinciri `gemini-3.5-flash-lite` → `gemini-4-hydrogen` → `gemini-3.1-flash-lite`, 9 sn sonra hedge, 25 sn sınır (ADR 0018; aşağıdaki skorlar 3.5-flash-lite ile ölçüldü), `gemini-embedding-2` |
 | Backend | Python 3.12, FastAPI, pydantic-settings, structlog, psycopg 3 |
 | Veritabanı | PostgreSQL 18 + pgvector (üretimde Neon) |
 | Frontend | React 19, TypeScript, Vite, Tailwind CSS, shadcn/ui, TanStack Router + Query; API istemcisi OpenAPI şemasından üretilir |

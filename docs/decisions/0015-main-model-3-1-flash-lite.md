@@ -1,6 +1,6 @@
 # 0015: Canlı ana model gemini-3.1-flash-lite
 
-**Durum:** Kabul edildi (2026-11-05). ADR 0001'in canlı model seçimini değiştirir; ADR 0014'teki
+**Durum:** ADR 0018 ile değiştirildi (2026-11-14). İlk hali: kabul edildi (2026-11-05). ADR 0001'in canlı model seçimini değiştirir; ADR 0014'teki
 yedek mekanizması aynen kalır, yalnızca iki modelin yeri değişir.
 
 ## Bağlam

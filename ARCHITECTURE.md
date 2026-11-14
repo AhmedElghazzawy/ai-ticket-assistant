@@ -4,7 +4,7 @@ How the BŞEÜ helpdesk assistant is built and why. Written for engineers, revie
 The product overview is in [README.md](README.md) (Turkish: [README.tr.md](README.tr.md)); the
 reasons behind each major choice are in [docs/decisions/](docs/decisions/) (ADRs, in Turkish).
 
-Describes `main` as of 2026-11-14: database schema version 6, 17 ADRs.
+Describes `main` as of 2026-11-14: database schema version 6, 18 ADRs.
 
 **Contents:** 1 [Goals](#1-goals-and-constraints) · 2 [Context](#2-system-context) ·
 3 [Containers](#3-containers-and-deployment) · 4 [Layers](#4-code-layers) ·
@@ -155,9 +155,9 @@ sequenceDiagram
 ```
 
 The classifier does not need the answer and the answer does not need the labels, so the student waits
-for the slower of the two model calls, not for both. A failing model call is retried, then sent to a
-backup model (ADR 0014, 0015); if the pipeline still fails, the student gets a 503 and the log gets
-only the error type.
+for the slower of the two model calls, not for both. Each model call goes through the live model chain
+(ADR 0018): a busy model hands over at once, a slow one is raced by the next after 9 s, and nobody waits
+past 25 s; then the student gets a 503 and the log gets only the error type.
 
 ### Ask for a person, then a staff reply
 

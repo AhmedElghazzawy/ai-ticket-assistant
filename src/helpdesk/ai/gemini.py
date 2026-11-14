@@ -7,8 +7,10 @@ from functools import lru_cache
 import httpx
 from google import genai
 from google.genai import errors, types
+from pydantic import ValidationError
 
 from helpdesk.ai.provider import Output, Thinking
+from helpdesk.ai.resilience import ModelHealth, first_answer
 from helpdesk.core.logs import get_logger
 from helpdesk.core.settings import get_gemini_settings
 
@@ -101,29 +103,28 @@ def ask(prompt: str) -> str:
 THINKING_LEVELS = {"low": types.ThinkingLevel.LOW, "high": types.ThinkingLevel.HIGH}
 
 
-# Google's side is busy or slow, or the main model's quota is used up: another model can still answer.
+# Google's side is busy or slow, or this model's quota is used up: another model can still answer.
 # A 400 is not here: it means our request is wrong, and another model would not fix that.
 OVERLOADED = {429, 500, 503, 504}
 
-
-# After an overload the main model is skipped for a while: Google takes ~20 s to answer "busy", so
-# asking a model we know is down first made every answer take ~60 s (live, 2026-11-05).
-SKIP_MAIN_SECONDS = 300
-clock = time.monotonic  # a function, so tests can move time forward
-main_down_until = 0.0  # clock time until which the live API goes straight to the backup
-
-
-# The live API's own limits, in code so they never depend on a hosting dashboard (Render kept the old
-# 25 s x 2 and one live answer took 64 s, 2026-11-05). A healthy call takes 2-8 s; a stuck one goes to
-# the backup after 12 s, without a retry. Evals keep the patient client limits (GEMINI_TIMEOUT_SECONDS).
+# The live API's timing (docs/decisions/0018), in code so it never depends on a hosting dashboard.
+# A healthy answer takes 2-8 s (measured 2026-11-14); after 9 s the next model races the slow one,
+# and nobody waits more than 25 s for one step. One try per model: the next model beats a retry.
+LIVE_HEDGE_SECONDS = 9.0
+LIVE_DEADLINE_SECONDS = 25.0
 LIVE_LIMITS = types.HttpOptions(
-    timeout=12_000,  # milliseconds
+    timeout=int(LIVE_DEADLINE_SECONDS * 1000),  # milliseconds: an abandoned call ends by itself
     retry_options=types.HttpRetryOptions(attempts=1),
 )
+# A model that failed is asked last for 2 minutes: Google's overloads usually pass within minutes.
+HEALTH = ModelHealth(skip_seconds=120)
 
 
-def is_overloaded(error: Exception) -> bool:
-    if isinstance(error, httpx.TimeoutException):
+def is_retryable(error: Exception) -> bool:
+    """Another model may succeed: busy, slow, out of quota, or a broken answer."""
+    if isinstance(error, httpx.TimeoutException | ValidationError):
+        return True
+    if isinstance(error, RuntimeError) and "returned no text" in str(error):
         return True
     return isinstance(error, errors.APIError) and error.code in OVERLOADED
 
@@ -133,11 +134,12 @@ class GeminiProvider:
     no function calling. Temperature is NOT set: Gemini 3 should stay at its default 1.0 (Google's
     advice); consistency comes from the schema and clear rules, and is measured by running twice.
 
-    With `use_fallback` (the live API only), a call that fails because the main model is overloaded
-    is asked once more on GEMINI_FALLBACK_MODEL, so a busy model does not take the site down."""
+    `live=True` (the live API only) asks the GEMINI_LIVE_MODELS chain with short limits and hedging,
+    so a busy or slow model does not fail the student. Otherwise (evals, tools) exactly one model is
+    measured, with the client's patient limits."""
 
-    def __init__(self, use_fallback: bool = False, model: str | None = None) -> None:
-        self.use_fallback = use_fallback
+    def __init__(self, live: bool = False, model: str | None = None) -> None:
+        self.live = live
         self.chosen_model = model  # e.g. for a model comparison; None: GEMINI_MODEL
 
     @property
@@ -153,27 +155,22 @@ class GeminiProvider:
             response_json_schema=schema.model_json_schema(),  # Gemini must answer in this shape
             thinking_config=types.ThinkingConfig(thinking_level=THINKING_LEVELS[thinking]),
             automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
-            http_options=LIVE_LIMITS if self.use_fallback else None,  # None: the client's limits
+            http_options=LIVE_LIMITS if self.live else None,  # None: the client's limits
         )
-        fallback = get_gemini_settings().gemini_fallback_model if self.use_fallback else None
-        if fallback and clock() < main_down_until:
-            response = generate(stage, contents, config, fallback)  # the main model is resting
-        else:
-            try:
-                response = generate(stage, contents, config, self.model)
-            except Exception as error:
-                if not (fallback and is_overloaded(error)):
-                    raise
-                mark_main_down()
-                logger.warning(
-                    "gemini_fallback", stage=stage, error_type=type(error).__name__, model=fallback
-                )
-                response = generate(stage, contents, config, fallback)
-        return schema.model_validate_json(response_text(response))
 
+        def answer_from(model: str) -> Output:
+            # Parsing inside: a broken answer from one model hands over to the next one.
+            return schema.model_validate_json(
+                response_text(generate(stage, contents, config, model))
+            )
 
-def mark_main_down() -> None:
-    """Skip the main model for SKIP_MAIN_SECONDS. A plain float write: the worst a race between the
-    two pipeline threads can do is set almost the same time twice."""
-    global main_down_until
-    main_down_until = clock() + SKIP_MAIN_SECONDS
+        if not self.live:
+            return answer_from(self.model)
+        return first_answer(
+            get_gemini_settings().gemini_live_models,
+            answer_from,
+            retryable=is_retryable,
+            hedge_after=LIVE_HEDGE_SECONDS,
+            deadline=LIVE_DEADLINE_SECONDS,
+            health=HEALTH,
+        )

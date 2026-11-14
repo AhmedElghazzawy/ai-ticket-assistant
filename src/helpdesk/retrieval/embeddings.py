@@ -27,9 +27,26 @@ def document_text(title: str, text: str) -> str:
     return f"title: {title} | text: {text}"
 
 
-def embed(texts: list[str]) -> list[list[float]]:
-    """Return one vector per text. Each text is its own Content, so it gets its own vector."""
-    config = types.EmbedContentConfig(output_dimensionality=DIMENSIONS)
+# A student waits for the question's embedding: 8 s per try, three quick tries (0.5 s, then 1 s
+# apart), instead of the client's patient 60 s x 5 meant for indexing and evals (docs/decisions/0018).
+# There is no other model to hand over to: the index was built with this one.
+QUERY_LIMITS = types.HttpOptions(
+    timeout=8_000,  # milliseconds
+    retry_options=types.HttpRetryOptions(
+        attempts=3, initial_delay=0.5, http_status_codes=[429, 500, 503, 504]
+    ),
+)
+
+
+def embed_query(ticket: str) -> list[float]:
+    """The search vector for one student question, with the short limits."""
+    return embed([query_text(ticket)], QUERY_LIMITS)[0]
+
+
+def embed(texts: list[str], http_options: types.HttpOptions | None = None) -> list[list[float]]:
+    """Return one vector per text. Each text is its own Content, so it gets its own vector.
+    `http_options` None: the client's patient limits (indexing, evals)."""
+    config = types.EmbedContentConfig(output_dimensionality=DIMENSIONS, http_options=http_options)
     vectors: list[list[float]] = []
     for start in range(0, len(texts), BATCH_SIZE):
         if start > 0:

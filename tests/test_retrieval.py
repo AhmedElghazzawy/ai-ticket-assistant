@@ -101,11 +101,11 @@ def test_search_holds_no_connection_during_the_ai_call(
     database, events = borrow_counter(db)
     vector = retrieval.load_index()[0][1]
 
-    def fake_embed(texts: list[str]) -> list[list[float]]:
+    def fake_embed(ticket: str) -> list[float]:
         events.append("embed")  # the slow AI call: no connection may be borrowed yet
-        return [vector]
+        return vector
 
-    monkeypatch.setattr(retrieval, "embed", fake_embed)
+    monkeypatch.setattr(retrieval, "embed_query", fake_embed)
     hits = retrieval.search("ticket", database, language="tr")
     assert events == ["embed", "borrow", "return"]
     assert len(hits) == 3
@@ -115,7 +115,7 @@ def test_search_on_an_empty_knowledge_base_fails_loudly(
     db: Connection, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     database, _ = borrow_counter(db)  # never synced: kb_chunks is empty
-    monkeypatch.setattr(retrieval, "embed", lambda texts: [[0.0] * DIMENSIONS])
+    monkeypatch.setattr(retrieval, "embed_query", lambda ticket: [0.0] * DIMENSIONS)
     with pytest.raises(RuntimeError, match="knowledge base is empty"):
         retrieval.search("ticket", database)
 

@@ -1,6 +1,6 @@
 # 0014: Ana model aşırı yüklenince yedek model
 
-**Durum:** Kabul edildi (2026-11-05). ADR 0001'i (gemini-3.5-flash-lite) değiştirmez, tamamlar.
+**Durum:** ADR 0018 ile değiştirildi (2026-11-14). İlk hali: kabul edildi (2026-11-05). ADR 0001'i (gemini-3.5-flash-lite) değiştirmez, tamamlar.
 
 ## Bağlam
 2026-11-05'te canlı site hiç cevap veremedi: `gemini-3.5-flash-lite` tek kelimelik bir isteğe bile
