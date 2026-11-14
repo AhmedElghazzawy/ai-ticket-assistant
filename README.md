@@ -27,7 +27,7 @@ a quiet period takes about a minute).
 
 - **Safety first:** on a locked set of 40 realistic tickets, **0 of 11** tickets that needed a human
   were missed, and **0** replies were sent automatically when they should not have been.
-- **The AI never makes the final call.** The send-or-forward decision is six explicit checks in
+- **The AI never makes the final call.** The send-or-forward decision is seven explicit checks in
   [`decision.py`](src/helpdesk/domain/decision.py), each covered by tests.
 - **Grounded answers:** every quoted rule must appear word for word in the retrieved document, checked
   by code; source cards are built from verified chunk IDs, never written by the model.
@@ -35,8 +35,10 @@ a quiet period takes about a minute).
   the student right away ("first help"), but never on sensitive tickets.
 - **Honest evaluation:** two locked test sets that were never used for tuning, and every metric
   reported with its sample size and a 95% Wilson confidence interval.
-- **Production habits:** typed settings, mypy strict, 201 tests on a real Postgres, browser tests,
-  CodeQL, Dependabot, Docker, structured logs with no student text, 12 architecture decision records.
+- **Production habits:** layered code with the layer rules enforced by a test, an append-only audit
+  trail of every ticket change, typed settings, mypy strict, 298 tests on a real Postgres, browser
+  tests, CodeQL, Dependabot, Docker, structured logs with no student text, 17 architecture decision
+  records.
 
 ## How it works
 
@@ -45,7 +47,7 @@ flowchart LR
     T[Student ticket<br/>TR / EN] --> C[Classify<br/>category · priority · escalate]
     C --> R[Retrieve - RAG<br/>pgvector, top 3 chunks]
     R --> A[Grounded draft<br/>quote first, then answer]
-    A --> D{Decide<br/>plain code, 6 checks}
+    A --> D{Decide<br/>plain code, 7 checks}
     D -->|all pass| S[Auto-reply to student]
     D -->|any fails| H[Office queue<br/>draft + reasons]
     H -.->|not escalated, source verified| F[First help<br/>the grounded part of the answer]
@@ -61,14 +63,16 @@ flowchart LR
    the question, then writes the reply.
 4. **Decide.** The reply is sent automatically only if **all** of these hold: the category is not
    `other`, no escalation, the priority is not `urgent`, the best match scores ≥ 0.65, the documents
-   cover the question, and the reply cites a document that was really retrieved. Otherwise the ticket
+   cover the question, the reply cites a document that was really retrieved, and the quoted evidence
+   is really in it. Otherwise the ticket
    goes to the office's queue with the draft and the reasons.
 
 Escalation covers safety threats, harassment or signs of crisis, possibly compromised accounts, rule
 exceptions, money or record errors, grade and exam disputes, legal threats and disciplinary cases.
 Being angry alone is not a reason.
 
-More detail, diagrams and invariants: [ARCHITECTURE.md](ARCHITECTURE.md).
+More detail, diagrams, use cases and invariants: [ARCHITECTURE.md](ARCHITECTURE.md). Every document:
+[docs/README.md](docs/README.md).
 
 ## Results
 
@@ -208,21 +212,21 @@ tuned on.
 ## Project structure
 
 ```
-src/helpdesk/        Backend package; layers depend only inward (core <- domain <- the rest)
+src/helpdesk/        Backend package; a layer imports only the layers below it (tests/test_architecture.py)
   core/              Settings (validated at startup), paths, structured logs
-  domain/            Pure rules: decision, offices, labels and dataset, output schemas, grounding
-  ai/                Gemini client (retries, timeouts, cost), classifier, grounded answer, injection fence
+  domain/            Pure rules and data: decision, grounding, offices, labels, saved ticket, output schemas
+  ai/                Gemini client (retries, timeouts, backup model), classifier, grounded answer, injection fence
+  storage/           The only SQL: connection pool, append-only migrations, tickets and history, staff
   retrieval/         Chunking, embeddings, index sync and pgvector search
-  storage/           Connection pool, versioned migrations, ticket table
-  api/               FastAPI app factory and routers (students, auth, staff)
+  services/          Use cases: the pipeline, student tickets, the staff desk, auth, insights
+  api/               FastAPI app factory and thin routers (students, auth, staff)
   evals/             Classifier, retrieval, pipeline and security evals; Wilson intervals
-  pipeline.py        One ticket end to end
 frontend/            React app (student chat, Taleplerim, staff console) and Playwright tests
 data/knowledge_base/ The 28 official-source documents (TR + EN)
 data/tickets/        Labelled tickets: dev (80), locked test (40), locked realistic (40)
 eval/                Saved evaluation results
-docs/                Label rulebook, decision records, roadmap, problem catalogue, changelog
-tests/               201 pytest tests against a real Postgres; every AI call is faked
+docs/                Index, label rulebook, decision records, roadmap, problem catalogue, journal
+tests/               298 pytest tests against a real Postgres; every AI call is faked
 tools/               Staff accounts, demo data, OpenAPI export, dataset audit
 ```
 

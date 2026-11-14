@@ -28,15 +28,17 @@ olmazsa ilk açılış yaklaşık 1 dakika sürer).
 - **Önce güvenlik:** 40 gerçekçi talepten oluşan kilitli sette, insana gitmesi gereken **11 talepten
   hiçbiri kaçırılmadı** ve gönderilmemesi gereken **hiçbir cevap otomatik gönderilmedi**.
 - **Son kararı yapay zekâ vermez.** Gönder / yönlendir kararı [`decision.py`](src/helpdesk/domain/decision.py)
-  içinde altı açık kontroldür ve her biri testlidir.
+  içinde yedi açık kontroldür ve her biri testlidir.
 - **Kaynaklı cevaplar:** alıntılanan her kural, bulunan belgede kodla **birebir** aranır; kaynak kartları
   model tarafından yazılmaz, doğrulanmış parça (chunk) kimliklerinden kodla oluşturulur.
 - **Yönlendirilen talepte de yardım:** talep personele gitse bile belgelerin cevapladığı kısım öğrenciye
   hemen "ön bilgi" olarak gösterilir; hassas taleplerde asla.
 - **Dürüst değerlendirme:** ayar için hiç kullanılmayan iki kilitli test seti; her ölçüt örnek sayısı ve
   %95 Wilson güven aralığıyla.
-- **Üretim alışkanlıkları:** tipli ayarlar, mypy strict, gerçek Postgres üzerinde 201 test, tarayıcı
-  testleri, CodeQL, Dependabot, Docker, öğrenci metni içermeyen yapılandırılmış loglar, 12 karar kaydı (ADR).
+- **Üretim alışkanlıkları:** katman kuralları bir testle zorunlu tutulan katmanlı kod, her talep
+  değişikliğinin değiştirilemeyen geçmişi (audit trail), tipli ayarlar, mypy strict, gerçek Postgres
+  üzerinde 298 test, tarayıcı testleri, CodeQL, Dependabot, Docker, öğrenci metni içermeyen
+  yapılandırılmış loglar, 17 karar kaydı (ADR).
 
 ## Nasıl çalışır
 
@@ -45,7 +47,7 @@ flowchart LR
     T[Öğrenci talebi<br/>TR / EN] --> C[Sınıflandırma<br/>kategori · öncelik · escalation]
     C --> R[Belge arama - RAG<br/>pgvector, ilk 3 parça]
     R --> A[Kaynaklı taslak<br/>önce alıntı, sonra cevap]
-    A --> D{Karar<br/>sade kod, 6 kontrol}
+    A --> D{Karar<br/>sade kod, 7 kontrol}
     D -->|hepsi geçti| S[Öğrenciye otomatik cevap]
     D -->|biri bile kaldı| H[Birimin kuyruğu<br/>taslak + nedenler]
     H -.->|escalation yok, kaynak doğrulandı| F[Ön bilgi<br/>cevabın kaynaklı kısmı]
@@ -61,14 +63,15 @@ flowchart LR
    cevaplamadığını söyler, sonra cevabı yazar.
 4. **Karar.** Cevap yalnızca şunların **hepsi** sağlanırsa otomatik gönderilir: kategori `other` değil,
    escalation yok, öncelik `urgent` değil, en iyi eşleşme ≥ 0,65, belgeler soruyu cevaplıyor ve cevap
-   gerçekten bulunan bir belgeyi kaynak gösteriyor. Aksi hâlde talep, taslak ve nedenlerle birlikte
+   gerçekten bulunan bir belgeyi kaynak gösteriyor ve alıntı o belgede gerçekten var. Aksi hâlde talep, taslak ve nedenlerle birlikte
    birimin kuyruğuna gider.
 
 Escalation şunları kapsar: güvenlik tehdidi, taciz veya kriz belirtisi, ele geçirilmiş olabilecek hesap,
 kural istisnası, para veya resmî kayıt hatası, not ve sınav itirazı, hukuki tehdit ve disiplin süreci.
 Sadece sinirli olmak bir neden değildir.
 
-Ayrıntılar, diyagramlar ve değişmez kurallar: [ARCHITECTURE.md](ARCHITECTURE.md) (İngilizce).
+Ayrıntılar, diyagramlar, kullanım senaryoları ve değişmez kurallar: [ARCHITECTURE.md](ARCHITECTURE.md)
+(İngilizce). Tüm belgeler: [docs/README.md](docs/README.md).
 
 ## Sonuçlar
 
@@ -210,21 +213,21 @@ asla ayar yapılmaz.
 ## Proje yapısı
 
 ```
-src/helpdesk/        Backend paketi; katmanlar yalnızca içe doğru bağımlıdır (core <- domain <- diğerleri)
+src/helpdesk/        Backend paketi; her katman yalnızca altındaki katmanları import eder (tests/test_architecture.py)
   core/              Ayarlar (başlangıçta doğrulanır), dosya yolları, yapılandırılmış loglar
-  domain/            Saf kurallar: karar, birimler, etiketler ve veri seti, çıktı şemaları, alıntı kontrolü
-  ai/                Gemini istemcisi (retry, timeout, maliyet), sınıflandırıcı, kaynaklı cevap, injection çiti
+  domain/            Saf kurallar ve veri: karar, alıntı kontrolü, birimler, etiketler, kayıtlı talep, çıktı şemaları
+  ai/                Gemini istemcisi (retry, timeout, yedek model), sınıflandırıcı, kaynaklı cevap, injection çiti
+  storage/           Tek SQL katmanı: bağlantı havuzu, eklemeli migration'lar, talepler ve geçmişi, personel
   retrieval/         Parçalara bölme, embedding, index senkronu ve pgvector araması
-  storage/           Bağlantı havuzu, sürümlü migration'lar, talep tablosu
-  api/               FastAPI uygulama fabrikası ve router'lar (öğrenci, giriş, personel)
+  services/          Kullanım senaryoları (use case): akış, öğrenci talepleri, personel masası, giriş, istatistik
+  api/               FastAPI uygulama fabrikası ve ince router'lar (öğrenci, giriş, personel)
   evals/             Sınıflandırma, arama, tüm akış ve güvenlik değerlendirmeleri; Wilson aralıkları
-  pipeline.py        Bir talep için baştan sona akış
 frontend/            React uygulaması (öğrenci sohbeti, Taleplerim, personel paneli) ve Playwright testleri
 data/knowledge_base/ Resmî kaynaklı 28 belge (TR + EN)
 data/tickets/        Etiketli talepler: dev (80), kilitli test (40), kilitli gerçekçi set (40)
 eval/                Kayıtlı değerlendirme sonuçları
-docs/                Etiket kural kitabı, karar kayıtları, yol haritası, sorun kataloğu, değişiklik günlüğü
-tests/               Gerçek Postgres üzerinde 201 pytest testi; her AI çağrısı taklit edilir
+docs/                Dizin, etiket kural kitabı, karar kayıtları, yol haritası, sorun kataloğu, günlük
+tests/               Gerçek Postgres üzerinde 298 pytest testi; her AI çağrısı taklit edilir
 tools/               Personel hesapları, demo verisi, OpenAPI dışa aktarma, veri seti denetimi
 ```
 
