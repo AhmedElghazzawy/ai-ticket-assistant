@@ -14,7 +14,11 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { usePreferences } from "@/app/preferences";
 import { staffReply } from "@/client";
-import { staffGetOptions, staffReassignMutation } from "@/client/@tanstack/react-query.gen";
+import {
+  staffGetOptions,
+  staffHistoryOptions,
+  staffReassignMutation,
+} from "@/client/@tanstack/react-query.gen";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -25,7 +29,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
-import type { OfficeId, StoredSource, StoredTicket } from "@/lib/types";
+import type { OfficeId, StoredSource, StoredTicket, TicketEvent } from "@/lib/types";
 import { PriorityBadge, ReasonList, timeAgo } from "./parts";
 
 function Panel({ title, children }: { title: string; children: React.ReactNode }) {
@@ -36,6 +40,38 @@ function Panel({ title, children }: { title: string; children: React.ReactNode }
       </h2>
       {children}
     </section>
+  );
+}
+
+/** Who did what, oldest first: the append-only audit trail (docs/decisions/0017). */
+function TicketHistory({ ticketId }: { ticketId: number }) {
+  const { t, language } = usePreferences();
+  const query = useQuery(staffHistoryOptions({ path: { ticket_id: ticketId } }));
+  const who = (event: TicketEvent) =>
+    event.staff_name ?? (event.kind === "human_requested" ? t.staff.byStudent : t.staff.bySystem);
+  return (
+    <Panel title={t.staff.history}>
+      {query.isPending ? (
+        <Skeleton className="h-16 w-full" />
+      ) : (
+        <ol className="space-y-3 border-l pl-4">
+          {(query.data ?? []).map((event) => (
+            <li key={`${event.at}-${event.kind}`} className="relative text-sm">
+              <span className="absolute top-1.5 -left-[1.3rem] size-2 rounded-full bg-muted-foreground" />
+              <p className="font-medium">
+                {t.staff.historyEvents[event.kind]}
+                {event.kind === "reassigned" && event.from_office && event.to_office
+                  ? `: ${t.offices[event.from_office]} → ${t.offices[event.to_office]}`
+                  : ""}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {who(event)} · {timeAgo(event.at, language)}
+              </p>
+            </li>
+          ))}
+        </ol>
+      )}
+    </Panel>
   );
 }
 
@@ -242,6 +278,7 @@ export function TicketPage() {
               <footer className="mt-1 text-xs not-italic">{t.staff.aiReasonNote}</footer>
             </blockquote>
           </Panel>
+          <TicketHistory ticketId={ticket.id} />
         </div>
         <div className="space-y-6">
           <ReplyEditor key={ticket.id} ticket={ticket} />

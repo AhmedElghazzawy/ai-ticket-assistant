@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 from helpdesk.api.deps import CurrentStaff, ServicesDep
 from helpdesk.api.security import same_origin
 from helpdesk.domain.offices import OfficeId
-from helpdesk.domain.records import Status, StoredTicket
+from helpdesk.domain.records import Status, StoredTicket, TicketEvent
 from helpdesk.services import staff_desk
 from helpdesk.services.insights import Insights
 
@@ -45,6 +45,15 @@ def staff_insights(staff_member: CurrentStaff, services: ServicesDep) -> Insight
 def staff_get(ticket_id: int, staff_member: CurrentStaff, services: ServicesDep) -> StoredTicket:
     with services.pool.connection() as db:
         return staff_desk.visible_ticket(db, staff_member, ticket_id)
+
+
+@router.get("/tickets/{ticket_id}/history")
+def staff_history(
+    ticket_id: int, staff_member: CurrentStaff, services: ServicesDep
+) -> list[TicketEvent]:
+    """The ticket's audit trail: every change, when, and which staff member made it."""
+    with services.pool.connection() as db:
+        return staff_desk.history(db, staff_member, ticket_id)
 
 
 @router.post("/tickets/{ticket_id}/reply")

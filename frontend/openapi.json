@@ -588,6 +588,82 @@
         "title": "StoredTicket",
         "type": "object"
       },
+      "TicketEvent": {
+        "description": "One step in a ticket's history (append-only, docs/decisions/0017).",
+        "properties": {
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "from_office": {
+            "anyOf": [
+              {
+                "enum": [
+                  "it",
+                  "student_affairs",
+                  "fees",
+                  "sks",
+                  "duty"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "From Office"
+          },
+          "kind": {
+            "enum": [
+              "created",
+              "human_requested",
+              "replied",
+              "reassigned"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "staff_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Staff Name"
+          },
+          "to_office": {
+            "anyOf": [
+              {
+                "enum": [
+                  "it",
+                  "student_affairs",
+                  "fees",
+                  "sks",
+                  "duty"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "To Office"
+          }
+        },
+        "required": [
+          "at",
+          "kind",
+          "staff_name",
+          "from_office",
+          "to_office"
+        ],
+        "title": "TicketEvent",
+        "type": "object"
+      },
       "TicketIn": {
         "description": "What the page sends: the student's message and the page language.",
         "properties": {
@@ -1211,6 +1287,53 @@
           }
         },
         "summary": "Staff Reassign",
+        "tags": [
+          "staff"
+        ]
+      }
+    },
+    "/api/staff/tickets/{ticket_id}/history": {
+      "get": {
+        "description": "The ticket's audit trail: every change, when, and which staff member made it.",
+        "operationId": "staff_history",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ticket_id",
+            "required": true,
+            "schema": {
+              "title": "Ticket Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TicketEvent"
+                  },
+                  "title": "Response Staff History",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Staff History",
         "tags": [
           "staff"
         ]

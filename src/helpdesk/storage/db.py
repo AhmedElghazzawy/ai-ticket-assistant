@@ -103,6 +103,36 @@ ALTER TABLE tickets ADD COLUMN general_help TEXT NOT NULL DEFAULT '';
 -- docs/decisions/0016). NULL: they never asked (and in every older row).
 ALTER TABLE tickets ADD COLUMN human_requested_at TIMESTAMPTZ;
 """,
+    6: """
+-- Every change to a ticket, who made it and when: an append-only audit trail (docs/decisions/0017).
+-- Written in the same statement as the change, so a change never exists without its event.
+CREATE TABLE ticket_events (
+    id        BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    ticket_id BIGINT NOT NULL REFERENCES tickets (id) ON DELETE CASCADE,  -- demo resets delete
+    at        TIMESTAMPTZ NOT NULL DEFAULT now(),
+    kind      TEXT NOT NULL CHECK (kind IN ('created', 'human_requested', 'replied', 'reassigned')),
+    staff_id  BIGINT REFERENCES staff (id),          -- NULL: the system or the student
+    detail    JSONB NOT NULL DEFAULT '{}'            -- {"from", "to"}: office ids, never student text
+);
+CREATE INDEX ticket_events_by_ticket ON ticket_events (ticket_id, at, id);
+
+-- History is never rewritten: refused in the database, whatever the code does.
+CREATE FUNCTION ticket_events_append_only() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+    RAISE EXCEPTION 'ticket_events is append-only';
+END $$;
+CREATE TRIGGER ticket_events_no_update BEFORE UPDATE ON ticket_events
+    FOR EACH ROW EXECUTE FUNCTION ticket_events_append_only();
+
+-- Older tickets: rebuild what their columns already know (who replied was never stored).
+INSERT INTO ticket_events (ticket_id, at, kind, detail)
+    SELECT id, created_at, 'created', jsonb_build_object('to', office) FROM tickets;
+INSERT INTO ticket_events (ticket_id, at, kind)
+    SELECT id, human_requested_at, 'human_requested' FROM tickets
+    WHERE human_requested_at IS NOT NULL;
+INSERT INTO ticket_events (ticket_id, at, kind)
+    SELECT id, handled_at, 'replied' FROM tickets WHERE handled_at IS NOT NULL;
+""",
 }
 SCHEMA_VERSION = max(MIGRATIONS)
 

@@ -8,7 +8,14 @@ from psycopg.types.json import Jsonb
 
 from helpdesk.core.paths import DATA_DIR
 from helpdesk.domain.offices import OFFICE_OF, OfficeId
-from helpdesk.domain.records import Feedback, Status, StoredSource, StoredTicket, TicketResult
+from helpdesk.domain.records import (
+    Feedback,
+    Status,
+    StoredSource,
+    StoredTicket,
+    TicketEvent,
+    TicketResult,
+)
 from helpdesk.domain.tickets import Language
 from helpdesk.storage.db import Connection, token_hash
 
@@ -38,9 +45,15 @@ def save_ticket(
         if i in cited  # a cited id that was never retrieved is not shown (the decision flags it)
     ]
     row = connection.execute(
-        "INSERT INTO tickets (language, text, category, priority, escalate, ai_reason, office,"
-        " auto_send, reasons, top_score, draft, covered, sources, general_help, status, access_hash)"
-        " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id",
+        "WITH ticket AS (INSERT INTO tickets (language, text, category, priority, escalate,"
+        " ai_reason, office, auto_send, reasons, top_score, draft, covered, sources, general_help,"
+        " status, access_hash)"
+        " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        " RETURNING id, created_at, office)"
+        # The first history event, in the same statement: a ticket never exists without it.
+        " INSERT INTO ticket_events (ticket_id, at, kind, detail)"
+        " SELECT id, created_at, 'created', jsonb_build_object('to', office) FROM ticket"
+        " RETURNING ticket_id AS id",
         (
             language,
             text,
@@ -123,8 +136,11 @@ def request_human(connection: Connection, ticket_id: int, code: str) -> Status |
     has the staff reply, so those stay as they are. Returns the status afterwards, or None if the
     number or code is wrong."""
     moved = connection.execute(
-        "UPDATE tickets SET status = 'open', human_requested_at = now()"
-        " WHERE id = %s AND access_hash = %s AND NOT demo AND status = 'auto_sent' RETURNING id",
+        "WITH moved AS (UPDATE tickets SET status = 'open', human_requested_at = now()"
+        " WHERE id = %s AND access_hash = %s AND NOT demo AND status = 'auto_sent'"
+        " RETURNING id, human_requested_at)"
+        " INSERT INTO ticket_events (ticket_id, at, kind)"
+        " SELECT id, human_requested_at, 'human_requested' FROM moved RETURNING ticket_id",
         (ticket_id, token_hash(code)),
     ).fetchone()
     if moved is not None:
@@ -133,20 +149,45 @@ def request_human(connection: Connection, ticket_id: int, code: str) -> Status |
     return found.status if found else None
 
 
-def mark_handled(connection: Connection, ticket_id: int, final_reply: str) -> bool:
-    """Staff finished this ticket. Returns False if it was not open any more. One atomic UPDATE:
-    if two staff members send at the same moment, exactly one of them wins."""
+def mark_handled(connection: Connection, ticket_id: int, final_reply: str, staff_id: int) -> bool:
+    """Staff finished this ticket. Returns False if it was not open any more. One atomic statement:
+    if two staff members send at the same moment, exactly one of them wins, and only the winner's
+    reply is in the history."""
     row = connection.execute(
-        "UPDATE tickets SET status = 'handled', final_reply = %s, handled_at = now()"
-        " WHERE id = %s AND status = 'open' RETURNING id",
-        (final_reply, ticket_id),
+        "WITH handled AS (UPDATE tickets SET status = 'handled', final_reply = %s, handled_at = now()"
+        " WHERE id = %s AND status = 'open' RETURNING id, handled_at)"
+        " INSERT INTO ticket_events (ticket_id, at, kind, staff_id)"
+        " SELECT id, handled_at, 'replied', %s FROM handled RETURNING ticket_id",
+        (final_reply, ticket_id, staff_id),
     ).fetchone()
     return row is not None
 
 
-def reassign(connection: Connection, ticket_id: int, office: OfficeId) -> None:
-    """Staff moved the ticket to another office."""
-    connection.execute("UPDATE tickets SET office = %s WHERE id = %s", (office, ticket_id))
+def reassign(connection: Connection, ticket_id: int, office: OfficeId, staff_id: int) -> None:
+    """Staff moved the ticket to another office (moving it to the office it is in records nothing).
+    Every part of one statement sees the same snapshot, so `old` is the office before the move."""
+    connection.execute(
+        "WITH old AS (SELECT id, office FROM tickets WHERE id = %(id)s),"
+        " moved AS (UPDATE tickets SET office = %(office)s"
+        " WHERE id = %(id)s AND office <> %(office)s RETURNING id)"
+        " INSERT INTO ticket_events (ticket_id, kind, staff_id, detail)"
+        " SELECT id, 'reassigned', %(staff_id)s,"
+        " jsonb_build_object('from', old.office, 'to', %(office)s::text)"
+        " FROM moved JOIN old USING (id)",
+        {"id": ticket_id, "office": office, "staff_id": staff_id},
+    )
+
+
+def list_events(connection: Connection, ticket_id: int) -> list[TicketEvent]:
+    """The ticket's history, oldest first, with the staff member's name where staff acted."""
+    rows = connection.execute(
+        "SELECT e.at, e.kind, s.name AS staff_name,"
+        " e.detail ->> 'from' AS from_office, e.detail ->> 'to' AS to_office"
+        " FROM ticket_events e LEFT JOIN staff s ON s.id = e.staff_id"
+        " WHERE e.ticket_id = %s ORDER BY e.at, e.id",
+        (ticket_id,),
+    ).fetchall()
+    return [TicketEvent.model_validate(row) for row in rows]
 
 
 def reset_demo_tickets(connection: Connection) -> int:
@@ -181,4 +222,9 @@ def reset_demo_tickets(connection: Connection) -> int:
                     for t in samples
                 ],
             )
+        connection.execute(  # each sample starts its history, like a real ticket
+            "INSERT INTO ticket_events (ticket_id, at, kind, detail)"
+            " SELECT id, created_at, 'created', jsonb_build_object('to', office)"
+            " FROM tickets WHERE demo"
+        )
     return len(samples)

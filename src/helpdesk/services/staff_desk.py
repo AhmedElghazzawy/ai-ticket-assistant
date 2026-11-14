@@ -9,7 +9,7 @@ from typing import get_args
 
 from helpdesk.core.logs import get_logger
 from helpdesk.domain.offices import OfficeId
-from helpdesk.domain.records import Status, StoredTicket
+from helpdesk.domain.records import Status, StoredTicket, TicketEvent
 from helpdesk.domain.staff import Staff
 from helpdesk.services import auth
 from helpdesk.services.errors import Conflict, NotFound
@@ -53,11 +53,19 @@ def insights(connection: Connection, staff_member: Staff) -> Insights:
     return summarize(tickets, datetime.now(UTC))
 
 
+def history(connection: Connection, staff_member: Staff, ticket_id: int) -> list[TicketEvent]:
+    """Who did what on this ticket, oldest first (docs/decisions/0017); same access rule."""
+    visible_ticket(connection, staff_member, ticket_id)
+    return store.list_events(connection, ticket_id)
+
+
 def reply(connection: Connection, staff_member: Staff, ticket_id: int, text: str) -> StoredTicket:
     """Send the staff reply and close the ticket. Conflict if someone already handled it."""
     visible_ticket(connection, staff_member, ticket_id)
     text = text.strip()
-    if not store.mark_handled(connection, ticket_id, text):  # atomic: only one sender wins
+    if not store.mark_handled(
+        connection, ticket_id, text, staff_member.id
+    ):  # atomic: only one sender wins
         raise Conflict("This ticket is already handled.")
     logger.info(
         "staff_reply", ticket_id=ticket_id, staff_id=staff_member.id, reply_length=len(text)
@@ -71,7 +79,7 @@ def reassign(
     """Move the ticket to another office (it then leaves this staff member's queue). Read back
     without the office check: the staff member who moved it still gets the result."""
     visible_ticket(connection, staff_member, ticket_id)
-    store.reassign(connection, ticket_id, office)
+    store.reassign(connection, ticket_id, office, staff_member.id)
     logger.info("staff_reassign", ticket_id=ticket_id, staff_id=staff_member.id, office=office)
     moved = store.get_ticket(connection, ticket_id)
     if moved is None:  # it existed a moment ago; checked so the type is exact

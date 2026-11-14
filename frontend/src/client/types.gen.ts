@@ -346,6 +346,34 @@ export type StoredTicket = {
 };
 
 /**
+ * TicketEvent
+ *
+ * One step in a ticket's history (append-only, docs/decisions/0017).
+ */
+export type TicketEvent = {
+    /**
+     * At
+     */
+    at: string;
+    /**
+     * From Office
+     */
+    from_office: 'it' | 'student_affairs' | 'fees' | 'sks' | 'duty' | null;
+    /**
+     * Kind
+     */
+    kind: 'created' | 'human_requested' | 'replied' | 'reassigned';
+    /**
+     * Staff Name
+     */
+    staff_name: string | null;
+    /**
+     * To Office
+     */
+    to_office: 'it' | 'student_affairs' | 'fees' | 'sks' | 'duty' | null;
+};
+
+/**
  * TicketIn
  *
  * What the page sends: the student's message and the page language.
@@ -725,6 +753,38 @@ export type StaffReassignResponses = {
 };
 
 export type StaffReassignResponse = StaffReassignResponses[keyof StaffReassignResponses];
+
+export type StaffHistoryData = {
+    body?: never;
+    path: {
+        /**
+         * Ticket Id
+         */
+        ticket_id: number;
+    };
+    query?: never;
+    url: '/api/staff/tickets/{ticket_id}/history';
+};
+
+export type StaffHistoryErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type StaffHistoryError = StaffHistoryErrors[keyof StaffHistoryErrors];
+
+export type StaffHistoryResponses = {
+    /**
+     * Response Staff History
+     *
+     * Successful Response
+     */
+    200: Array<TicketEvent>;
+};
+
+export type StaffHistoryResponse = StaffHistoryResponses[keyof StaffHistoryResponses];
 
 export type StaffReplyData = {
     body: ReplyIn;

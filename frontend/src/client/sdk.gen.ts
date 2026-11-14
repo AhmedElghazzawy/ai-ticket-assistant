@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { AskForAPersonData, AskForAPersonErrors, AskForAPersonResponses, CreateTicketData, CreateTicketErrors, CreateTicketResponses, DemoLogInData, DemoLogInResponses, GiveFeedbackData, GiveFeedbackErrors, GiveFeedbackResponses, HealthData, HealthResponses, LogInData, LogInErrors, LoginOptionsData, LoginOptionsResponses, LogInResponses, LogOutData, LogOutResponses, LookupTicketData, LookupTicketErrors, LookupTicketResponses, MeData, MeResponses, StaffGetData, StaffGetErrors, StaffGetResponses, StaffInsightsData, StaffInsightsResponses, StaffListData, StaffListErrors, StaffListResponses, StaffReassignData, StaffReassignErrors, StaffReassignResponses, StaffReplyData, StaffReplyErrors, StaffReplyResponses } from './types.gen';
+import type { AskForAPersonData, AskForAPersonErrors, AskForAPersonResponses, CreateTicketData, CreateTicketErrors, CreateTicketResponses, DemoLogInData, DemoLogInResponses, GiveFeedbackData, GiveFeedbackErrors, GiveFeedbackResponses, HealthData, HealthResponses, LogInData, LogInErrors, LoginOptionsData, LoginOptionsResponses, LogInResponses, LogOutData, LogOutResponses, LookupTicketData, LookupTicketErrors, LookupTicketResponses, MeData, MeResponses, StaffGetData, StaffGetErrors, StaffGetResponses, StaffHistoryData, StaffHistoryErrors, StaffHistoryResponses, StaffInsightsData, StaffInsightsResponses, StaffListData, StaffListErrors, StaffListResponses, StaffReassignData, StaffReassignErrors, StaffReassignResponses, StaffReplyData, StaffReplyErrors, StaffReplyResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -96,6 +96,13 @@ export const staffReassign = <ThrowOnError extends boolean = false>(options: Opt
         ...options.headers
     }
 });
+
+/**
+ * Staff History
+ *
+ * The ticket's audit trail: every change, when, and which staff member made it.
+ */
+export const staffHistory = <ThrowOnError extends boolean = false>(options: Options<StaffHistoryData, ThrowOnError>): RequestResult<StaffHistoryResponses, StaffHistoryErrors, ThrowOnError> => (options.client ?? client).get<StaffHistoryResponses, StaffHistoryErrors, ThrowOnError>({ url: '/api/staff/tickets/{ticket_id}/history', ...options });
 
 /**
  * Staff Reply

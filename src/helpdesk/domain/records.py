@@ -65,3 +65,16 @@ class StoredTicket(BaseModel):
     feedback: Feedback | None = None  # the student's thumbs up / down, if they gave one
     # When the student sent the automatic answer on to a person; None if they never asked.
     human_requested_at: datetime | None = None
+
+
+EventKind = Literal["created", "human_requested", "replied", "reassigned"]
+
+
+class TicketEvent(BaseModel):
+    """One step in a ticket's history (append-only, docs/decisions/0017)."""
+
+    at: datetime
+    kind: EventKind
+    staff_name: str | None  # who did it; None: the system (created) or the student
+    from_office: OfficeId | None  # reassigned: the office it left
+    to_office: OfficeId | None  # created: the first office; reassigned: the new one

@@ -3,8 +3,8 @@
 import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { askForAPerson, createTicket, demoLogIn, giveFeedback, health, logIn, loginOptions, logOut, lookupTicket, me, type Options, staffGet, staffInsights, staffList, staffReassign, staffReply } from '../sdk.gen';
-import type { AskForAPersonData, AskForAPersonError, AskForAPersonResponse, CreateTicketData, CreateTicketError, CreateTicketResponse, DemoLogInData, DemoLogInResponse, GiveFeedbackData, GiveFeedbackError, GiveFeedbackResponse, HealthData, HealthResponse, LogInData, LogInError, LoginOptionsData, LoginOptionsResponse, LogInResponse, LogOutData, LogOutResponse, LookupTicketData, LookupTicketError, LookupTicketResponse, MeData, MeResponse, StaffGetData, StaffGetError, StaffGetResponse, StaffInsightsData, StaffInsightsResponse, StaffListData, StaffListError, StaffListResponse, StaffReassignData, StaffReassignError, StaffReassignResponse, StaffReplyData, StaffReplyError, StaffReplyResponse } from '../types.gen';
+import { askForAPerson, createTicket, demoLogIn, giveFeedback, health, logIn, loginOptions, logOut, lookupTicket, me, type Options, staffGet, staffHistory, staffInsights, staffList, staffReassign, staffReply } from '../sdk.gen';
+import type { AskForAPersonData, AskForAPersonError, AskForAPersonResponse, CreateTicketData, CreateTicketError, CreateTicketResponse, DemoLogInData, DemoLogInResponse, GiveFeedbackData, GiveFeedbackError, GiveFeedbackResponse, HealthData, HealthResponse, LogInData, LogInError, LoginOptionsData, LoginOptionsResponse, LogInResponse, LogOutData, LogOutResponse, LookupTicketData, LookupTicketError, LookupTicketResponse, MeData, MeResponse, StaffGetData, StaffGetError, StaffGetResponse, StaffHistoryData, StaffHistoryError, StaffHistoryResponse, StaffInsightsData, StaffInsightsResponse, StaffListData, StaffListError, StaffListResponse, StaffReassignData, StaffReassignError, StaffReassignResponse, StaffReplyData, StaffReplyError, StaffReplyResponse } from '../types.gen';
 
 /**
  * Demo Log In
@@ -229,6 +229,26 @@ export const staffReassignMutation = (options?: Partial<Options<StaffReassignDat
     };
     return mutationOptions;
 };
+
+export const staffHistoryQueryKey = (options: Options<StaffHistoryData>) => createQueryKey('staffHistory', options);
+
+/**
+ * Staff History
+ *
+ * The ticket's audit trail: every change, when, and which staff member made it.
+ */
+export const staffHistoryOptions = (options: Options<StaffHistoryData>) => queryOptions<StaffHistoryResponse, StaffHistoryError, StaffHistoryResponse, ReturnType<typeof staffHistoryQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await staffHistory({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: staffHistoryQueryKey(options)
+});
 
 /**
  * Staff Reply

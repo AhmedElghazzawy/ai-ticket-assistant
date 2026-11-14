@@ -192,6 +192,15 @@ const tr = {
     notFound: "Bu numarada bir talep yok.",
     escalated: "İnsan incelemesi gerekli",
     humanRequested: "Otomatik cevaptan sonra öğrenci uzman istedi",
+    history: "Geçmiş",
+    historyEvents: {
+      created: "Talep oluşturuldu",
+      human_requested: "Öğrenci bir uzman istedi",
+      replied: "Personel yanıtladı",
+      reassigned: "Başka birime aktarıldı",
+    },
+    bySystem: "sistem",
+    byStudent: "öğrenci",
     received: "Alındı",
     handled: "Yanıtlandı",
     reasons: {
@@ -420,6 +429,15 @@ const en: Texts = {
     notFound: "There is no ticket with this number.",
     escalated: "Needs human review",
     humanRequested: "Student asked for a person after the automatic answer",
+    history: "History",
+    historyEvents: {
+      created: "Ticket created",
+      human_requested: "Student asked for a person",
+      replied: "Staff replied",
+      reassigned: "Moved to another office",
+    },
+    bySystem: "system",
+    byStudent: "student",
     received: "Received",
     handled: "Handled",
     reasons: {

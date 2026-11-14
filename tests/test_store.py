@@ -15,6 +15,7 @@ from helpdesk.domain.records import StoredSource, TicketResult
 from helpdesk.domain.tickets import Priority
 from helpdesk.storage import db as store
 from helpdesk.storage.db import Connection
+from helpdesk.storage.staff import insert_staff
 from helpdesk.storage.tickets import (
     get_ticket,
     list_tickets,
@@ -57,6 +58,12 @@ def result(auto_send: bool, priority: Priority = "low") -> TicketResult:
             else [SimpleReason(code="escalation"), WeakMatch(score=0.6497, min=0.65)],
         ),
     )
+
+
+@pytest.fixture
+def clerk(db: Connection) -> int:
+    """A staff member's id: every reply and move is recorded with who made it."""
+    return insert_staff(db, "ayse@bilecik.edu.tr", "Ayşe", "staff", "fees", "hash").id
 
 
 def test_save_returns_increasing_ticket_numbers(db: Connection) -> None:
@@ -119,20 +126,20 @@ def test_queue_shows_urgent_first(db: Connection) -> None:
     assert list_tickets(db, "open")[0].text == "urgent one"
 
 
-def test_mark_handled_moves_ticket_out_of_the_queue(db: Connection) -> None:
+def test_mark_handled_moves_ticket_out_of_the_queue(db: Connection, clerk: int) -> None:
     number = save_ticket(db, "q", "tr", result(False))
-    assert mark_handled(db, number, "final answer from staff")
+    assert mark_handled(db, number, "final answer from staff", clerk)
     assert list_tickets(db, "open") == []
     handled = list_tickets(db, "handled")[0]
     assert handled.final_reply == "final answer from staff" and handled.handled_at
 
 
-def test_only_one_reply_can_close_a_ticket(db: Connection) -> None:
+def test_only_one_reply_can_close_a_ticket(db: Connection, clerk: int) -> None:
     # One atomic UPDATE ... WHERE status = 'open': if two staff members send at the same
     # moment, exactly one wins and the other is told (no lost reply, no double answer).
     number = save_ticket(db, "q", "tr", result(False))
-    assert mark_handled(db, number, "first") is True
-    assert mark_handled(db, number, "second") is False
+    assert mark_handled(db, number, "first", clerk) is True
+    assert mark_handled(db, number, "second", clerk) is False
     ticket = get_ticket(db, number)
     assert ticket is not None and ticket.final_reply == "first"
 
@@ -155,21 +162,21 @@ def test_asking_for_a_person_needs_the_code(db: Connection) -> None:
     assert list_tickets(db, "open") == []
 
 
-def test_asking_again_or_on_a_forwarded_ticket_changes_nothing(db: Connection) -> None:
+def test_asking_again_or_on_a_forwarded_ticket_changes_nothing(db: Connection, clerk: int) -> None:
     # A forwarded ticket is already with a person; a handled one already has the staff reply.
     forwarded = save_ticket(db, "f", "tr", result(False), access_hash=store.token_hash(CODE))
     assert request_human(db, forwarded, CODE) == "open"
     handled = save_ticket(db, "h", "tr", result(False), access_hash=store.token_hash(CODE))
-    mark_handled(db, handled, "staff reply")
+    mark_handled(db, handled, "staff reply", clerk)
     assert request_human(db, handled, CODE) == "handled"
     for number in (forwarded, handled):
         ticket = get_ticket(db, number)
         assert ticket is not None and ticket.human_requested_at is None
 
 
-def test_reassign_changes_the_office(db: Connection) -> None:
+def test_reassign_changes_the_office(db: Connection, clerk: int) -> None:
     number = save_ticket(db, "q", "tr", result(False))
-    reassign(db, number, "student_affairs")
+    reassign(db, number, "student_affairs", clerk)
     ticket = get_ticket(db, number)
     assert ticket is not None and ticket.office == "student_affairs"
 

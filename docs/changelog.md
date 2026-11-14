@@ -1860,3 +1860,12 @@ Decision record: ADR 0016.
 - **Enforced:** `tests/test_architecture.py` parses every module's imports and fails if a layer imports a layer above it, or if a loose module appears at the package top. It caught one more leak on its first run (`routers/login.py` imported storage for a type hint; fixed).
 - **Behaviour unchanged:** the OpenAPI schema is byte-identical (`make api-drift` passes with no diff), all 238 earlier tests pass unchanged except their import lines.
 - **Checks:** `make check` green, 290 tests (52 new per-module layer checks), coverage 86.9%.
+
+## Senior-level cleanup, part C: ticket history (audit trail) (2026-11-14)
+Decision record: ADR 0017.
+- **Why:** when staff replied or reassigned a ticket, the database did not record who did it, and a reassignment lost the old office. That lived only in logs (short-lived, hard to search, not guaranteed to match the data). A helpdesk must answer "who did what on this ticket, and when?".
+- **Database:** migration 6 adds `ticket_events` (`created`, `human_requested`, `replied`, `reassigned`; `staff_id`; `detail` with office ids `from`/`to`, never student text), an index on `(ticket_id, at, id)`, and a trigger that refuses every UPDATE ("append-only"). Older tickets get their history rebuilt from `created_at`, `human_requested_at` and `handled_at` (who replied was never stored).
+- **Atomic by construction:** each change and its event are one SQL statement (a data-modifying CTE), so with autocommit a change never exists without its event, and a refused change (second reply, request on a handled ticket, move to the same office) writes none. `mark_handled` and `reassign` now take the staff member's id; the demo reset starts each sample's history.
+- **API and page:** `GET /api/staff/tickets/{id}/history` (same office rule as the ticket; `services.staff_desk.history`), `TicketEvent` in `domain/records.py`; a "Geçmiş / History" timeline on the staff ticket page (TR/EN), checked on a desktop screenshot.
+- **Tests first:** `tests/test_ticket_history.py` (6: created event, reply and move with the staff name and offices, refused changes leave no event, the student's request, UPDATE refused by the trigger, history rebuilt for pre-migration rows), 2 API tests (who did what; login and office rule), 1 Playwright test (timeline). They failed first (ImportError `list_events`, then the missing route).
+- **Checks:** `make check` green, 298 tests, coverage 87.0%; Playwright 30/30.

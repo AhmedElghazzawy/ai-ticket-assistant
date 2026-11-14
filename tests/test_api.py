@@ -303,6 +303,25 @@ def test_reply_closes_the_ticket_and_a_second_reply_is_refused(
     assert again.status_code == 409  # two staff members cannot both answer one ticket
 
 
+def test_staff_see_who_did_what_on_a_ticket(api: Api) -> None:
+    number = forwarded_ticket(api)
+    fees = api.staff(role="staff", office="fees")
+    fees.post(f"/api/staff/tickets/{number}/reply", json={"reply": "Dilekçe verin."})
+    events = fees.get(f"/api/staff/tickets/{number}/history").json()
+    assert [(e["kind"], e["staff_name"]) for e in events] == [
+        ("created", None),
+        ("replied", "Test"),
+    ]
+    assert events[0]["to_office"] == "fees"
+
+
+def test_ticket_history_follows_the_office_rule(api: Api) -> None:
+    number = forwarded_ticket(api)  # office "fees"
+    assert api.client.get(f"/api/staff/tickets/{number}/history").status_code == 401
+    it_staff = api.staff(role="staff", office="it")
+    assert it_staff.get(f"/api/staff/tickets/{number}/history").status_code == 404
+
+
 def test_empty_reply_is_rejected(api: Api) -> None:
     number = forwarded_ticket(api)
     response = api.staff().post(f"/api/staff/tickets/{number}/reply", json={"reply": ""})

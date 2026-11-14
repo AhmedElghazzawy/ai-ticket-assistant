@@ -20,5 +20,6 @@ Projedeki önemli seçimler, her biri kısa bir dosyada: bağlam, karar, sonuçl
 | [0014](0014-fallback-model.md) | Ana model aşırı yüklenince yedek model (yalnızca canlı API, eval'lerde asla) | Kabul edildi |
 | [0015](0015-main-model-3-1-flash-lite.md) | Canlı ana model gemini-3.1-flash-lite (dev setinde ölçülerek seçildi) | Kabul edildi |
 | [0016](0016-student-can-ask-for-a-person.md) | Öğrenci otomatik cevaptan sonra bir uzman isteyebilir ("Bir uzmana gönder") | Kabul edildi |
+| [0017](0017-ticket-audit-trail.md) | Talep geçmişi: değiştirilemeyen bir denetim kaydı (kim, ne zaman, ne yaptı) | Kabul edildi |
 
 Yeni bir önemli karar alındığında bir sonraki numarayla yeni dosya eklenir. Bir karar değişirse eski dosya silinmez: durumu "Yerini aldı: 00XX" olur.
