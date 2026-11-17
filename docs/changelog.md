@@ -1891,3 +1891,8 @@ Decision record: ADR 0018 (replaces 0014 and 0015).
 - **Found while testing:** with a slow first model, the hedge saved the ticket in ~14 s, but the next ticket waited 14 s again because a slow model never "fails". Now the losers of a race rest too (test first).
 - **Local end-to-end (5 dev-style questions, real calls, 3 s pause between tickets):** 5/5 automatic answers in 3.6–7.1 s, embedding ~0.5 s.
 - **Honest limits:** live answers may come from a model that the dev set has not measured (`gemini-4-hydrogen`); every answer still passes the same source, quote and decision checks. Health is per process (fine for one Render instance).
+
+## Live check of the model chain, and why the site still sleeps (2026-11-16)
+- **Live measurement after deploying ce2e4a3** (8 dev-style tickets with curl, 4 s pause, not a locked set): every ticket answered, no 503. Times: 18.2 s, 16.1 s, then 7.9, 4.2, 2.7, 2.8, 5.7 s. The first two are slow, then it is fast: consistent with the first model being slow right after a wake-up, the hedge answering, and the slow model resting. The 8th request got 429 from our own per-IP rate limit (working as designed). Before the fix: 503 after 12.26 s.
+- **Problem found:** `/api/health` took 32 s: the app was asleep. The keep-awake workflow (cron every 10 min) really ran only every 4–7 hours (GitHub's run list, 2026-11-12 to 16): GitHub runs schedules best effort. So Render's free plan sleeps after 15 min and the next student waits ~30 s.
+- **Change:** the workflow comment and ROADMAP now say what really happens. Fix (needs the user's account, free): an external monitor such as UptimeRobot calling `https://bseu-helpdesk.onrender.com/api/health` every 5 minutes. The workflow stays as a backup.
