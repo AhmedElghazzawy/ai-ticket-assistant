@@ -1,33 +1,43 @@
-# Roadmap and status
+# Roadmap
 
-Where the project stands and what comes next. Moved here from CLAUDE.md (2026-10-24); the roadmap text is unchanged. The engineering upgrade plan (phases A-F, 2026-10-24) is at the end and maps onto roadmap items 9, 11, 13 and 14.
+What is built, what is next, and the known gaps. Every change and its measured result is in the
+engineering journal ([dev-notes/journal.md](dev-notes/journal.md)); releases in
+[CHANGELOG.md](../CHANGELOG.md).
 
-## Roadmap to production (from 2026-10-11)
-Phases 1-6 are done.
-Status key: [DONE], [PARTIAL] (what is done / what is left), [IN PROGRESS], [TODO]. Updated 2026-10-23.
-7.  [DONE] Foundation: ruff + mypy, pydantic-settings config, structured logging, GitHub Actions CI, Docker (docker compose).
-8.  [PARTIAL] Data: richer and more realistic tickets (multi-issue, typos, mixed TR/EN), a second person labels a sample (agreement score, Cohen's kappa), real tickets from classmates as a new unseen test set. Done: tools/audit_data.py and its findings (changelog, "Phase 8"); research on real student problems; 40 realistic tickets as a second locked set (data/tickets/phase8_tickets.jsonl, Claude drafted, I labeled every one) and its first run (2026-10-23). No second labeler or classmates' tickets are available: plan is realistic synthetic tickets, my own re-labeling a few days later (intra-rater agreement) and Claude-vs-me agreement, reported as exactly that. Left: re-label a sample a few days later, agreement scores; a small set of NEW tickets to measure first help fairly.
-9.  [PARTIAL] Evaluation: confidence intervals, LLM-as-judge for reply quality checked against my own ratings, one command that runs every eval and saves a versioned report; model comparison: the same locked evaluation on 3-4 LLMs (bigger Gemini, Claude, GPT, an open-weight model for KVKK / on-premise), choosing by accuracy, missed escalations, cost per 1,000 tickets and latency. Done: Wilson 95% intervals in the classifier eval (src/stats.py, src/evaluate.py, 2026-10-23). Left: intervals in the retrieval and pipeline evals, LLM-as-judge, one-command versioned report, model comparison.
-10. [PARTIAL] Retrieval: Postgres + pgvector, hybrid search (keyword + embedding), reranking; measure each against the current hit@3. Done: Postgres + pgvector for tickets and knowledge-base search (same hit@3). Left: hybrid search, reranking (hit@3 is already 100%, so harder tickets from Phase 8 are needed first to see any gain).
-11. [PARTIAL] Security and stress tests: prompt injection, empty or huge input, two problems in one ticket, PII handling, rate limiting; ONE final run on the locked test set. Done: rate limits (per visitor + daily cap; lookup/feedback limit), login limit, CSRF, fake-IP protection verified live, no student text in logs, input length limits, stress tests (blank text and NUL no longer reach the paid model; exact length limit; HTML stays plain text); prompt-injection defence (fenced ticket + evidence checked word for word in code, ADR 0010) and 12 attack probes (12/12 safe, 2026-10-24). Left: a bigger attack set, PII handling, the one final locked-test run.
-12. [PARTIAL] Staff product: a real staff dashboard (login, queue, edit and send), the reply actually reaches the student, ticket status the student can see. Done: login, per-office queue, edit and send, reassign, demo mode, safe first help (ADR 0008), the student sees status and the staff reply on "Taleplerim" via a secret code (ADR 0009), working feedback buttons, the "Nasıl karar verildi?" decision trace, Insights page with charts (dataviz-validated colors), "Send to a specialist" after an automatic answer (ADR 0016, 2026-11-14). Left: better "what you can do" advice with who to contact, finer specialists (only official unit names), follow-up messages, e-mail notification, student login (SSO). The old Streamlit panel was retired (2026-11-14).
-13. [PARTIAL] Deployment: live demo URL, monitoring of cost and errors. Done: live at https://bseu-helpdesk.onrender.com (Render free, Frankfurt + Neon Postgres, Frankfurt), verified live. Left: monitoring of cost and errors; Render setting "deploy only after CI checks pass" (dashboard); the free plan sleeps after 15 min (GitHub's scheduled keep-awake runs only every 4-7 h; an external free monitor on /api/health is needed).
-14. [PARTIAL] Showcase: README with diagram and metrics, decision records, 5-minute demo video, v1.0 tag. Done: English README.md + Turkish README.tr.md with an MIT license (2026-11-04); earlier the Turkish README (demo link, screenshots, diagram, metrics with sample sizes and intervals), docs/decisions/ (9 records), release v0.9, BŞEÜ-red UI from the official site's colors with a not-official notice, Playwright browser tests in CI (desktop + phone), dark and premium redesign (my choice). Left: Turkish report, 5-minute demo, official logo (only with the university's OK), v1.0 tag.
+## Current status (2026-11-17)
+Live at https://bseu-helpdesk.onrender.com (Render free + Neon, Frankfurt). 314 backend tests
+(coverage 88%) and 30 Playwright runs, CI green, 18 ADRs. Latest measured scores (details and intervals
+in the README):
+- Locked test set (n=40): all three labels right 73.8% (mean of 2 runs; per-run 95% CI about 57–86%),
+  0 of 14 missed escalations.
+- Locked realistic set (n=40): all three labels right 72.5% (57–84%), 0 of 11 missed escalations;
+  pipeline 0 unsafe auto-sends, 15/40 answered automatically.
+- Retrieval: hit@3 100% on dev (n=47, 92–100%) and realistic (n=30, 89–100%); hit@1 91% on dev.
+- Prompt injection: 12/12 attack probes safe.
 
-## Current status
-(2026-11-04) **Start here next session:** the repo is a professional side project: English README.md + Turkish README.tr.md, MIT license, no course or presentation material in the repo. PR #8 (knowledge-base expansion, 180 chunks, 26 documents) is merged and live. Next: (1) measure the KB expansion: one dev-set pipeline eval (before: 17/80 auto-answered, 28/80 helped now), only if I allow API use; (2) more official sources for docs/knowledge_gaps.md; (3) Dependabot PRs one at a time (#2 Python 3.15 image: close; #5 frontend group failed CI); (4) finish Phase C: manual eval workflow in CI (needs the Gemini key as a GitHub secret, my step) and a 3-4 model comparison (paid calls, my OK). The single `make eval` command and versioned results are done. Untracked `.agents/` and `.codex/` folders come from another AI tool, not from Claude Code: never commit or delete them without asking me. Phases 1-7 done (Phase 6 without the LangGraph rebuild); engineering upgrade A (foundations) and B (package, app factory, settings, LLMProvider; PR #7, `5147dac`) done and live; Phases 8-14 partly done (see the roadmap above). Live demo: https://bseu-helpdesk.onrender.com (BŞEÜ-red UI, not-official notice; staff console via "Demo olarak dene"). Scores: old locked test 73.8% all three (mean of 2 runs: 72.5% and 75.0%, per-run 95% CI about 57-86%, n=40), 0 missed escalations of 14. Phase 8 locked realistic set (40): all three 72.5% (57-84%), 0/11 missed escalations, pipeline 0 unsafe auto-sends, 15/40 auto-resolved. First help on forwarded tickets (ADR 0008): dev students helped right away 15/79 -> 27/80, 0 on escalated tickets; checked live (ticket #23). Citations built by code (per-section sources; KYK marked non-official). Dark and premium UI (my choice); student "Taleplerim" with the staff reply (secret code, ADR 0009), feedback, decision trace, staff Insights page. Phase 8 retrieval hit@3 100% (89-100%, n=30). 201 pytest tests (coverage 85%, CI gate 80%) + 18 Playwright runs, CI green; CodeQL and Dependabot on. Prompt-injection defence: 12/12 attack probes safe. Open items, in order: (1) the official BŞEÜ logo is not used without the university's permission; (2) Render dashboard: bseu-helpdesk -> Settings -> Build & Deploy -> Auto-Deploy -> "After CI Checks Pass" (my click; on 2026-10-23 a push went live while CI was red); (3) new tickets to measure first help fairly, Phase 8 re-label for agreement. Deploy note: Claude Code's permission check blocks Claude from deploy commands (render/neonctl); the working way is one `!` command that I run (see changelog "Deployment, part 2"). Update this line at the end of each session, after asking me.
+## Milestones
 
-## Engineering upgrade (from 2026-10-24)
-Goal: the code base should read like work from a strong industry team. Six phases, each closed by a gate
-that can be checked. Full reasoning and diagrams: ARCHITECTURE.md and the plan document shared in the
-project thread.
+| Milestone | Status | What it delivered |
+|---|---|---|
+| Ticket classifier | Done | 7 categories, 4 priorities, escalation rules ([labels.md](labels.md)); structured output; dev set and a locked test set (ADR 0003); Wilson 95% intervals |
+| Grounded answers | Done | 28 official documents (190 chunks, TR + EN); pgvector search; replies that cite their sections; evidence checked word for word in code; auto-send decided in plain code (ADR 0002, 0010, 0013) |
+| Platform | Done | FastAPI app factory, typed settings, structured logs without student text, Docker, CI (lint, types, tests, frontend, build), CodeQL, Dependabot; layered package with an enforced import rule (ADR 0012) |
+| Staff console | Done | Login, per-office queue, edit and send, reassign, demo mode (ADR 0006), first help on forwarded tickets (ADR 0008), Insights page, append-only ticket history (ADR 0017) |
+| Student follow-up | Done | "Taleplerim" with a secret code (ADR 0009), feedback, the decision trace, "Send to a specialist" (ADR 0016) |
+| Security | Done | Prompt-injection fence and 12 probes (ADR 0010), rate limits and a daily cap, CSRF, trusted client-IP header (ADR 0007), Argon2id logins with lockout |
+| Live deployment | Done | Render + Neon (ADR 0005), deploy only after CI; hedged chain of free Gemini models with a 25 s limit (ADR 0018) |
+| Evaluation platform | Partial | Done: one command (`make eval`), versioned results (commit, prompt, dataset and KB hashes). Next: eval workflow in CI, model comparison |
+| Hybrid retrieval | Next | Postgres full-text search + pgvector with reciprocal rank fusion; hit@1 and MRR before/after |
+| Larger evaluation set | Next | 200+ labelled dev tickets (LLM-drafted candidates, every label reviewed by the maintainer); model comparison incl. a local open model |
+| Tracing | Next | OpenTelemetry spans per ticket (classify, embed, search, answer, which model answered), local Jaeger |
+| Better advice | Next | "What you can do" steps that end with who to contact; needs a dev eval |
+| Follow-up questions | Later | Ask the student for missing details; only if the loop earns its complexity |
 
-| Phase | Deliverables | Gate | Roadmap item |
-|---|---|---|---|
-| A. Foundations [DONE] | ARCHITECTURE.md, this file, docs/PROJECT_BRIEF.md, lean CLAUDE.md, `.claude/` (skills, subagents, hooks, permissions), Makefile, coverage, Dependabot, CodeQL, CONTRIBUTING.md, SECURITY.md | CI green, app behaviour unchanged | 7, 14 |
-| B. Package restructure [DONE] | `src/helpdesk/` package, `create_app()` factory + routers, one typed settings tree (no `os.getenv` in modules), `LLMProvider` protocol | same tests pass, same eval scores | 7 |
-| B2. Senior-level cleanup [DONE] | (2026-11-14) Streamlit panel retired; `services/` use-case layer, SQL only in `storage/`, layer rules enforced by `tests/test_architecture.py`; append-only `ticket_events` audit trail (ADR 0017); ARCHITECTURE.md rewritten (C4 views, use cases, lifecycle, invariants), docs index, release CHANGELOG.md | the layer test passes in CI; OpenAPI byte-identical through the refactor | 7, 12, 14 |
-| C. Evaluation platform [PARTIAL] | Done (2026-11-04): one command `make eval SUITE=... SET=...` (`python -m helpdesk.evals`), every saved result has a `run` block (git commit + dirty flag, prompt hashes, dataset and knowledge-base hashes, model). Left: manual eval workflow in CI, 3-4 model comparison | every metric has n and a 95% CI | 9 |
-| D. Observability [TODO] | `llm_calls` table (tokens, cost, latency), cost on the Insights page, error tracking, readiness check | cost per 1,000 tickets is known | 13 |
-| E. Security hardening [TODO] | bigger injection set, PII redaction tests, rate limits shared in Postgres, secret scanning | one final locked-test run | 11 |
-| F. Showcase and v1.0 [TODO] | English README + README.tr.md (done), retire the Streamlit panel (done, 2026-11-14), 5-minute demo, v1.0 tag | v1.0 tagged and demoed | 12, 14 |
+## Known gaps
+- **Free hosting sleeps** after 15 minutes; the first visitor waits ~30 s. GitHub's scheduled
+  keep-awake job runs only every 4–7 hours; a free external monitor on `/api/health` fixes it.
+- **One labeller:** every label is the maintainer's; no second-rater agreement score yet.
+- **Synthetic data:** tickets are written from real BŞEÜ systems and common problems, not collected
+  from real students.
+- **Brand:** the official BŞEÜ logo is not used without the university's permission.
+- **Release:** no v1.0 tag or demo video yet.

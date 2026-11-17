@@ -35,4 +35,4 @@ that changes results, a security trade-off, a data or hosting decision, or rever
 5. If it replaces an older ADR, do not delete the old one: set its status to `Yerini aldı: NNNN`.
 6. Link the ADR from the code that implements it (a short comment) and from ARCHITECTURE.md if it
    changes the architecture.
-7. Mention it in docs/changelog.md.
+7. Mention it in docs/dev-notes/journal.md.

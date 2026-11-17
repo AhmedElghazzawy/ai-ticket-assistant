@@ -20,7 +20,7 @@ Her geçiş `gemini_fallback` uyarısıyla loglanır; her çağrının log satı
 ## Sonuçlar
 - Bir modelin yoğunluğu siteyi kapatmaz. İlk gerçek test: ana model iki adımda da 503 verdi, yedek
   9,8 saniyede doğru, kaynaklı GPA cevabını verdi (otomatik gönderildi).
-- Risk: yedek modelin bizim taleplerimizdeki doğruluğu henüz ölçülmedi. Phase C model karşılaştırması
+- Risk: yedek modelin bizim taleplerimizdeki doğruluğu henüz ölçülmedi. Model karşılaştırması
   (dev seti) onu da ölçecek; özellikle kaçırılan escalation sayısı.
 - Kayıtlı talep hangi modelin cevapladığını saklamaz, yalnızca loglar yazar. Gerekirse ileride bir
   migration ile eklenir.

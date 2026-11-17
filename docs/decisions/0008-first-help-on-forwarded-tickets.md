@@ -3,7 +3,7 @@
 **Durum:** Kabul edildi (2026-10-23).
 
 ## Bağlam
-Phase 8 ölçümünde 40 talepten yalnızca 15'i (%37,5) insana gitmeden cevaplandı. Yönlendirilen taleplerde öğrenci yalnızca "İlgili birime iletildi" mesajını görüyordu; belgeler sorunun bir kısmını cevaplasa bile (ör. en-p17: sınav programı belgede var, servis yok). Daha önce taslak, yönlendirilen talepte öğrenciye hiç gösterilmiyordu, çünkü kontrolden geçmemişti.
+Gerçekçi kilitli setin ölçümünde 40 talepten yalnızca 15'i (%37,5) insana gitmeden cevaplandı. Yönlendirilen taleplerde öğrenci yalnızca "İlgili birime iletildi" mesajını görüyordu; belgeler sorunun bir kısmını cevaplasa bile (ör. en-p17: sınav programı belgede var, servis yok). Daha önce taslak, yönlendirilen talepte öğrenciye hiç gösterilmiyordu, çünkü kontrolden geçmemişti.
 
 ## Karar
 Yönlendirilen bir talepte taslak, öğrenciye **"Ön bilgi"** olarak gösterilir; ancak yalnızca şu koşulların hepsi sağlanırsa (`src/decision.py`, `show_first_help`):

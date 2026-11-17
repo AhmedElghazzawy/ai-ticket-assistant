@@ -18,7 +18,7 @@ procedure, even when the user is in a hurry. Use simple English.
 5. **Run it and show the real output.** Not a summary of what it would print.
 6. **Check understanding.** Ask 2-3 short questions about this step. Wait for the answers. If one is
    wrong, correct it kindly and explain it another way (analogy, tiny example).
-7. **Record.** Add the change, its reason, the commands run and their results to docs/changelog.md, then
+7. **Record.** Add the change, its reason, the commands run and their results to docs/dev-notes/journal.md, then
    run `uv run python tools/make_context.py`.
 8. **Commit.** Suggest a commit message. Commit only when the user says so; then push.
 
