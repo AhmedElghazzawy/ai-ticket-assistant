@@ -7,6 +7,11 @@ Every individual change, with its reason and measured result, is in the engineer
 ## [Unreleased]
 
 ### Changed
+- **README:** a one-line pitch, a "Design decisions" table (why no LangChain, plain-code decisions,
+  code-checked citations, pgvector, locked sets, the model chain), results dated by the system version
+  they measured, and a coverage badge fed by CI (no third-party service).
+- Issue forms, a pull-request template, private vulnerability reporting switched on (SECURITY.md
+  pointed to it), and the branch + pull-request workflow in CONTRIBUTING.md.
 - **Docs read as a product, not a course:** the product brief and the roadmap describe the system
   and its milestones; the engineering journal moved to `docs/dev-notes/journal.md`; `CLAUDE.md` holds
   only agent and contributor guidance.
