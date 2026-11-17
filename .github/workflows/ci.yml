@@ -21,6 +21,8 @@ jobs:
     name: Python (lint, types, tests)
     runs-on: ubuntu-24.04 # pinned: ubuntu-latest moves to 26 on 2026-10-19; upgrade on purpose
     timeout-minutes: 10
+    outputs:
+      coverage: ${{ steps.tests.outputs.coverage }}
     # Tests run against a real Postgres, the same image (pinned by digest) as compose.yaml.
     services:
       postgres:
@@ -61,10 +63,38 @@ jobs:
         run: uv run mypy
 
       - name: Tests (pytest, coverage at least the threshold in pyproject.toml)
-        run: uv run pytest --cov --cov-report=term-missing:skip-covered
+        id: tests
+        run: |
+          uv run pytest --cov --cov-report=term-missing:skip-covered --cov-report=json:coverage.json
+          python3 -c "import json; print(f\"coverage={json.load(open('coverage.json'))['totals']['percent_covered']:.0f}\")" >> "$GITHUB_OUTPUT"
 
       - name: API schema is up to date (frontend/openapi.json)
         run: uv run python tools/export_openapi.py && git diff --exit-code frontend/openapi.json
+
+  # The README's coverage badge, from the real number of the latest main run: shields.io reads one
+  # small JSON file on the `badges` branch. Only this job may write, and it runs no third-party code.
+  coverage-badge:
+    name: Coverage badge
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: python
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    permissions:
+      contents: write
+    steps:
+      - name: Publish coverage.json to the badges branch
+        env:
+          PERCENT: ${{ needs.python.outputs.coverage }}
+          TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [ "$PERCENT" -ge 85 ]; then color=brightgreen; elif [ "$PERCENT" -ge 80 ]; then color=green; else color=orange; fi
+          mkdir badge && cd badge && git init -q -b badges
+          printf '{"schemaVersion":1,"label":"coverage","message":"%s%%","color":"%s"}\n' "$PERCENT" "$color" > coverage.json
+          git add coverage.json
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -qm "Coverage ${PERCENT}%"
+          # One commit, replaced on every run: the branch never grows.
+          git push -qf "https://x-access-token:${TOKEN}@github.com/${REPO}.git" badges
 
   frontend:
     name: Frontend (lint, types, build, browser tests)

@@ -1,0 +1,41 @@
+name: Bug report
+description: Something does not work as described.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Security problems: please do not open an issue, see SECURITY.md.
+        Never paste a real student's message, an e-mail address or an API key here.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: The page or endpoint, the language (TR/EN) and a made-up ticket text that shows it.
+      placeholder: |
+        1. Open /
+        2. Send "..."
+        3. See ...
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where
+      options:
+        - Live demo (bseu-helpdesk.onrender.com)
+        - Local (make up / make serve)
+        - Evals or tooling
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Commit or date
+      placeholder: e.g. bb9f802, or "live on 2026-11-17"

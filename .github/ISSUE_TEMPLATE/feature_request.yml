@@ -1,0 +1,22 @@
+name: Feature request
+description: An idea that would make the assistant more useful to students or staff.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: Who has it (student, staff, maintainer) and what they cannot do today.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Proposed change
+    validations:
+      required: true
+  - type: textarea
+    id: measure
+    attributes:
+      label: How would we know it helps?
+      description: An eval metric, a test, or a check on the live site.
