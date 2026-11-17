@@ -12,7 +12,7 @@ Evals make real, paid Gemini calls. Run one only when the user asks, and say how
 |---|---|---|
 | dev | data/tickets/tickets.jsonl | Tuning prompts and reading mistakes |
 | test | data/tickets/test_tickets.jsonl | LOCKED: final score only, never tune on it |
-| phase8 | data/tickets/phase8_tickets.jsonl | LOCKED realistic set: final score only |
+| realistic | data/tickets/realistic_tickets.jsonl | LOCKED realistic set: final score only |
 
 Never change a prompt, a rule or a threshold after looking at locked-set results (ADR 0003). If a locked
 run shows a problem, write it down; fixing it needs NEW tickets to measure the fix.
@@ -20,9 +20,9 @@ run shows a problem, write it down; fixing it needs NEW tickets to measure the f
 ## Commands
 | Eval | Command | Calls |
 |---|---|---|
-| Classifier | `make eval SUITE=classifier [SET=test\|phase8] [LEVEL=low]` | 2 runs per ticket |
+| Classifier | `make eval SUITE=classifier [SET=test\|realistic] [LEVEL=low]` | 2 runs per ticket |
 | Retrieval (hit@3) | `make eval SUITE=retrieval` | embeddings only, every set |
-| Pipeline (unsafe auto-sends) | `make eval SUITE=pipeline [SET=test\|phase8]` | 2 per ticket |
+| Pipeline (unsafe auto-sends) | `make eval SUITE=pipeline [SET=test\|realistic]` | 2 per ticket |
 | Prompt injection | `make eval SUITE=security` | 12 probes |
 
 The scripts already wait between calls and retry on 429; never wrap them in a faster loop.
@@ -39,5 +39,5 @@ The scripts already wait between calls and retry on 429; never wrap them in a fa
 - For a deeper reading, the `eval-analyst` subagent can review the saved JSON.
 
 ## Record
-docs/changelog.md: command, dataset, number of calls, errors, results with intervals, what changed and
+docs/dev-notes/journal.md: command, dataset, number of calls, errors, results with intervals, what changed and
 what it does NOT prove. Update README and docs/ROADMAP.md numbers only from a saved result file.

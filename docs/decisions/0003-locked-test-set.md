@@ -1,6 +1,6 @@
 # 0003: Kilitli test seti
 
-**Durum:** Kabul edildi (Phase 2).
+**Durum:** Kabul edildi (2026-10-09).
 
 ## Bağlam
 Kural kitabı ve prompt 80 dev talebine bakılarak düzeltildi. Aynı talepler üzerinde ölçülen skor iyimserdir (ilk denemede %85 böyle bir skordu).

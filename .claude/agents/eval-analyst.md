@@ -9,7 +9,7 @@ run an eval: you read the saved JSON in `eval/` and the code that produced it (`
 `src/helpdesk/evals/stats.py`).
 
 For each result you are asked about, report:
-- The dataset (dev, test, phase8) and whether it is locked (test and phase8 are, ADR 0003).
+- The dataset (dev, test, realistic) and whether it is locked (test and realistic are, ADR 0003).
 - Each headline number as "value (low-high, n=N)" using the Wilson 95% interval from `src/helpdesk/evals/stats.py`.
 - Missed escalations first: a ticket that needed a human and was not escalated.
 - Unsafe auto-sends from the pipeline eval.

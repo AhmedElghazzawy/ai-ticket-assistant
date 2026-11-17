@@ -2,11 +2,17 @@
 
 Notable changes per release, following [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Every individual change, with its reason and measured result, is in the engineering journal
-[docs/changelog.md](docs/changelog.md).
+[docs/dev-notes/journal.md](docs/dev-notes/journal.md).
 
 ## [Unreleased]
 
 ### Changed
+- **Docs read as a product, not a course:** the product brief and the roadmap describe the system
+  and its milestones; the engineering journal moved to `docs/dev-notes/journal.md`; `CLAUDE.md` holds
+  only agent and contributor guidance.
+- The second locked set is now `realistic` (`SET=realistic`); its content is byte-identical
+  (SHA-256 checked), and a test fails if any locked dataset is not guarded.
+- Code comments explain why; tutorial-style and phase-numbered comments were rewritten.
 - **Faster, steadier live answers:** a chain of three free Gemini models replaces the single backup;
   a busy model hands over at once, a slow one is raced after 9 s, nobody waits past 25 s, and the
   question's embedding has an 8 s limit (ADR 0018, replaces 0014 and 0015).

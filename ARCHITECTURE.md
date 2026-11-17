@@ -319,7 +319,7 @@ erDiagram
 - **Evals** (`src/helpdesk/evals/`, `make eval SUITE=...`) make real calls and save versioned JSON in
   `eval/` (git commit, prompt, dataset and knowledge-base hashes, model) with Wilson 95% intervals.
 - **Records:** every decision has an ADR; every change has a changelog entry
-  ([docs/changelog.md](docs/changelog.md)); releases are summarised in [CHANGELOG.md](CHANGELOG.md).
+  ([docs/dev-notes/journal.md](docs/dev-notes/journal.md)); releases are summarised in [CHANGELOG.md](CHANGELOG.md).
 
 ## 12. Invariants
 
@@ -338,9 +338,9 @@ A change that breaks one of these needs a new ADR.
 
 | Today (demo-grade) | Production-grade |
 |---|---|
-| Rate-limit counters live in process memory (correct for one instance) | shared counters in Postgres or Redis (roadmap phase E) |
+| Rate-limit counters live in process memory (correct for one instance) | shared counters in Postgres or Redis (roadmap) |
 | Students have no login; a ticket is reachable from one browser via its code | university SSO and e-mail notifications |
 | One category per ticket | split multi-issue tickets, or route to several offices |
 | Knowledge base updated by hand | an owner per document, review dates, change alerts |
-| Cost and latency are logged per call, not yet stored | an `llm_calls` table and a cost panel (roadmap phase D) |
+| Cost and latency are logged per call, not yet stored | an `llm_calls` table and a cost panel (roadmap: tracing) |
 | Free hosting sleeps after 15 minutes | a paid instance with health-based restarts |

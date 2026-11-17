@@ -2,7 +2,7 @@
   "date": "2026-10-23T22:14:09",
   "model": "gemini-3.5-flash-lite",
   "thinking_level": "HIGH",
-  "dataset": "phase8",
+  "dataset": "realistic",
   "runs": 2,
   "score_run1": {
     "n": 40,

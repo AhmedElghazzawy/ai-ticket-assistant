@@ -51,7 +51,7 @@ SOURCE_NOTE = re.compile(
 
 def strip_source_note(reply: str) -> str:
     """Remove a source note the model wrote anyway: source names come from the chunk data, never
-    from the model (Phase 8: a model-written name mixed up a document's sources)."""
+    from the model (a model-written name once mixed up a document's sources)."""
     return SOURCE_NOTE.sub("", reply).strip()
 
 

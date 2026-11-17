@@ -1,7 +1,7 @@
 # Bilgi tabanı boşlukları (knowledge gaps)
 
 Tarih: 2026-10-27. Kaynak: `eval/pipeline_results_dev.json` (yalnızca dev set, 80 ticket). Kilitli test
-setlerine (`test_tickets.jsonl`, `phase8_tickets.jsonl`) bakılmadı.
+setlerine (`test_tickets.jsonl`, `realistic_tickets.jsonl`) bakılmadı.
 
 ## Neden bu belge
 Dev setteki son pipeline eval'de 80 ticket'ın yalnızca 17'si otomatik cevaplandı. İnsana gitme

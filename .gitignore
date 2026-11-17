@@ -15,6 +15,7 @@ __pycache__/
 
 # Generated bundle of the whole project (rebuild with tools/make_context.py)
 claude_context.md
+CLAUDE.local.md
 
 # Student tickets (personal data): never commit
 data/helpdesk.db

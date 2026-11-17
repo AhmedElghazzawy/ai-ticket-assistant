@@ -205,7 +205,7 @@ uv run python tools/add_staff.py name@bilecik.edu.tr "Full Name" --office it   #
 OpenAPI drift check and the frontend checks. `make help` lists every command.
 
 **Evaluations** call the model: `make eval SUITE=classifier|pipeline|retrieval|security`, with `SET=dev`
-(default), `SET=test` or `SET=phase8`. Every saved result records the git commit, prompt hashes, dataset
+(default), `SET=test` or `SET=realistic`. Every saved result records the git commit, prompt hashes, dataset
 and knowledge-base hashes and the model that produced it. The locked sets are only ever measured, never
 tuned on.
 
@@ -254,7 +254,7 @@ tools/               Staff accounts, demo data, OpenAPI export, dataset audit
 | Cost and error monitoring, larger attack set, e-mail notifications, SSO | ⏳ Planned |
 
 Details: [docs/ROADMAP.md](docs/ROADMAP.md). Every change and the reason for it:
-[docs/changelog.md](docs/changelog.md).
+[docs/dev-notes/journal.md](docs/dev-notes/journal.md).
 
 ## How it was built
 

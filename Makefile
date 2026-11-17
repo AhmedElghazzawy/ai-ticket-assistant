@@ -63,7 +63,7 @@ data: ## Check the dev tickets and print a summary (no AI calls)
 index: ## Rebuild data/kb_index.json after a knowledge-base change (paid embedding calls)
 	uv run python -m helpdesk.retrieval.search
 
-# Evals call the paid model. SET: dev (default), test or phase8 (locked: measure only, never tune).
+# Evals call the paid model. SET: dev (default), test or realistic (locked: measure only, never tune).
 SUITE ?=
 SET ?=
 LEVEL ?=

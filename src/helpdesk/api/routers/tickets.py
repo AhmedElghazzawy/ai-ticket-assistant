@@ -26,7 +26,7 @@ class TicketIn(BaseModel):
     @classmethod
     def clean_text(cls, text: str) -> str:
         """Trimmed; blank text and NUL characters (Postgres cannot store them) are refused here,
-        before any Gemini call is paid for (Phase 11 stress tests)."""
+        before any Gemini call is paid for (found by stress tests)."""
         text = text.strip()
         if not text:
             raise ValueError("the message is blank")

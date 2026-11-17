@@ -1,8 +1,8 @@
-"""Phase 4 evaluation: run the whole pipeline and count tickets auto-sent that should not have been.
+"""Pipeline evaluation: run the whole pipeline and count tickets auto-sent that should not have been.
 
 Run: make eval SUITE=pipeline              (dev tickets)
      make eval SUITE=pipeline SET=test     (the locked test tickets: measure only)
-     make eval SUITE=pipeline SET=phase8   (the locked Phase 8 tickets: measure only)
+     make eval SUITE=pipeline SET=realistic   (locked realistic tickets: measure only)
 """
 
 import json

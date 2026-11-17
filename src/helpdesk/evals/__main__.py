@@ -1,6 +1,6 @@
 """One command for every eval. Each result in eval/ records what produced it (evals/report.py).
 
-Run: make eval SUITE=classifier|pipeline|retrieval|security [SET=dev|test|phase8] [LEVEL=low|high]
+Run: make eval SUITE=classifier|pipeline|retrieval|security [SET=dev|test|realistic] [LEVEL=low|high]
      [MODEL=gemini-...] [RUNS=1|2]   (classifier only: compare another model; own result file)
 (or: uv run python -m helpdesk.evals classifier --model gemini-3.6-flash --runs 1)
 

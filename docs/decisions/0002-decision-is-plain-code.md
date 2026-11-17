@@ -1,6 +1,6 @@
 # 0002: Otomatik gönderim kararı sade kod
 
-**Durum:** Kabul edildi (Phase 4; "acil → insan" kuralı sonradan eklendi).
+**Durum:** Kabul edildi (2026-10-09; "acil → insan" kuralı 2026-10-10 eklendi).
 
 ## Bağlam
 En tehlikeli hata, bir insanın görmesi gereken bir talebe otomatik cevap gitmesidir. LLM hata yapabilir ve kararını tam açıklayamaz. Benzerlik puanları tek başına yeterli değildir: cevabı olmayan bir talep 0,730, cevaplanabilir bir talep 0,635 alabildi.

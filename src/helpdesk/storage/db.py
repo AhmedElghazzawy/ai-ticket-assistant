@@ -15,7 +15,7 @@ from psycopg_pool import ConnectionPool
 
 from helpdesk.core.settings import get_app_settings
 
-Connection = psycopg.Connection[DictRow]  # rows come back as dictionaries
+Connection = psycopg.Connection[DictRow]
 # A way to borrow a connection briefly (e.g. pool.connection), so slow AI calls never hold one.
 Database = Callable[[], AbstractContextManager[Connection]]
 

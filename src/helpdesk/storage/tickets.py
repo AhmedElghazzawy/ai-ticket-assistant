@@ -72,7 +72,7 @@ def save_ticket(
             "auto_sent" if decision.auto_send else "open",
             access_hash,
         ),
-    ).fetchone()  # %s placeholders: psycopg sends the values separately (no SQL injection)
+    ).fetchone()
     if row is None:  # RETURNING always gives the new row; checked so the type is a plain int
         raise RuntimeError("Postgres did not return the new ticket number.")
     return int(row["id"])

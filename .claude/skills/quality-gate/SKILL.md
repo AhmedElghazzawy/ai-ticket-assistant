@@ -26,4 +26,4 @@ runs the same checks; a red check here is a red check there.
 `uv run ruff format` and `uv run ruff check --fix` may be run to fix style. Tell the user what changed.
 
 ## Done means
-All steps green, the new behaviour has a test, docs/changelog.md has an entry with the reason.
+All steps green, the new behaviour has a test, docs/dev-notes/journal.md has an entry with the reason.

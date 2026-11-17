@@ -24,14 +24,14 @@ Tests never call Gemini, so `make check` works without a key. Evals do call it; 
 4. API change: `make api-client` regenerates `frontend/openapi.json` and the TypeScript client.
 5. Schema change: append a step to `MIGRATIONS` in `src/helpdesk/storage/db.py`; never edit a released one.
 6. A significant choice gets a decision record in `docs/decisions/` (Turkish, next number).
-7. Add an entry to `docs/changelog.md`: what changed, why, the commands run and their results.
+7. Add an entry to `docs/dev-notes/journal.md`: what changed, why, the commands run and their results.
 8. `make check` is green, then commit and push to `main`. CI runs again on every push and Render deploys
    only after it passes; if `main` turns red, fixing it comes before anything else.
 
 ## Commits
 - One topic per commit; the summary line says what changed, the body says why.
 - Eval results are committed together with the change that produced them, with sample sizes and
-  intervals. Never tune a prompt on `data/tickets/test_tickets.jsonl` or `phase8_tickets.jsonl`.
+  intervals. Never tune a prompt on `data/tickets/test_tickets.jsonl` or `realistic_tickets.jsonl`.
 
 ## Data and privacy
 Student messages are personal data. Never log ticket text or e-mail addresses, never commit real

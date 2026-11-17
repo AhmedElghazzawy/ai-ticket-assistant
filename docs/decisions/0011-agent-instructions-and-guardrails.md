@@ -7,7 +7,7 @@ Proje terminalde Claude Code ile geliştiriliyor (seçilen araç budur; Codex ku
 
 ## Karar
 1. **Tek dosya:** bütün kurallar CLAUDE.md'de. Kullanılmayan bir araç için tutulan kopya (AGENTS.md) kaldırıldı.
-2. **Kısa talimat, ayrıntı bağlantıda:** yol haritası ve durum `docs/ROADMAP.md`'ye, kurs ve tasarım bilgisi `docs/PROJECT_BRIEF.md`'ye, mimari `ARCHITECTURE.md`'ye taşındı (metinler değiştirilmeden). Claude bunları görev gerektirdiğinde okur. CLAUDE.md'ye açık bir çalışma döngüsü (keşfet, planla, önce test, uygula, doğrula, kaydet, gönder) ve "bitti" tanımı eklendi.
+2. **Kısa talimat, ayrıntı bağlantıda:** yol haritası ve durum `docs/ROADMAP.md`'ye, ürün ve tasarım bilgisi `docs/PROJECT_BRIEF.md`'ye, mimari `ARCHITECTURE.md`'ye taşındı (metinler değiştirilmeden). Claude bunları görev gerektirdiğinde okur. CLAUDE.md'ye açık bir çalışma döngüsü (keşfet, planla, önce test, uygula, doğrula, kaydet, gönder) ve "bitti" tanımı eklendi.
 3. **Kurallar kod olarak (`.claude/`):** `settings.json` `.env` dosyasını okumayı ve kilitli setleri düzenlemeyi reddeder; `hooks/guard_files.py` her araç çağrısından önce çalışır ve `.env`'e dokunan ya da kilitli seti değiştiren komutları engeller (tests/test_guard_files.py ile test edilir). Bulut oturumlarında `hooks/session_start.sh` testler için Postgres + pgvector başlatır.
 4. **Tekrarlanan işler skill olarak:** quality-gate, teach-step, run-evals, new-adr, add-api-endpoint, db-migration. **Dar görevli alt ajanlar:** code-reviewer, test-writer, eval-analyst, security-auditor (çoğu salt okunur).
 

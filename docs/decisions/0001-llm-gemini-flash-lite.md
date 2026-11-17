@@ -1,6 +1,6 @@
 # 0001: LLM olarak Gemini Flash-Lite
 
-**Durum:** Kabul edildi (2026-10-06). Phase 9'da yeniden değerlendirilecek.
+**Durum:** Kabul edildi (2026-10-06). Model karşılaştırmasında yeniden değerlendirilecek. Canlı model seçimi: ADR 0018.
 
 ## Bağlam
 Sistem iki yerde LLM kullanır: talebi sınıflandırmak ve kaynaklı cevap yazmak. Gereksinimler: iyi Türkçe, JSON şemasına uyan çıktı (structured output), aynı sağlayıcıdan embedding, öğrenci projesi için ücretsiz katman. İlk seçilen `gemini-3.8-flash`, ücretsiz katmanda günde yaklaşık 20 istekle sınırlıydı; 80 talebi iki kez değerlendirmek mümkün değildi.
@@ -18,5 +18,5 @@ Sistem iki yerde LLM kullanır: talebi sınıflandırmak ve kaynaklı cevap yazm
 - Kişisel veri Google'a gider; KVKK açısından gerçek bir üniversite kurulumunda yerinde (on-premise) bir model gerekebilir.
 
 ## Alternatifler
-- Daha büyük Gemini, Claude, GPT, açık ağırlıklı bir model: Phase 9'da aynı kilitli test üzerinde doğruluk, kaçırılan escalation, 1.000 talep başına maliyet ve gecikmeye göre karşılaştırılacak.
+- Daha büyük Gemini, Claude, GPT, açık ağırlıklı bir model: model karşılaştırmasında aynı kilitli test üzerinde doğruluk, kaçırılan escalation, 1.000 talep başına maliyet ve gecikmeye göre karşılaştırılacak.
 - Düşük temperature: Google'ın Gemini 3 önerisine aykırı olduğu için seçilmedi.

@@ -4,11 +4,13 @@ or changing a locked test set, and let normal work through."""
 import json
 import subprocess
 import sys
-from pathlib import Path
 
 import pytest
 
-HOOK = Path(__file__).resolve().parent.parent / ".claude" / "hooks" / "guard_files.py"
+from helpdesk.core.paths import ROOT
+from helpdesk.domain.tickets import DATASETS
+
+HOOK = ROOT / ".claude" / "hooks" / "guard_files.py"
 
 
 def run_hook(tool: str, **tool_input: str) -> int:
@@ -27,9 +29,9 @@ def run_hook(tool: str, **tool_input: str) -> int:
         ("Bash", {"command": "cat .env"}),
         ("Bash", {"command": "grep KEY ./.env"}),
         ("Edit", {"file_path": "/repo/data/tickets/test_tickets.jsonl"}),
-        ("Write", {"file_path": "/repo/data/tickets/phase8_tickets.jsonl"}),
+        ("Write", {"file_path": "/repo/data/tickets/realistic_tickets.jsonl"}),
         ("Bash", {"command": "echo '{}' >> data/tickets/test_tickets.jsonl"}),
-        ("Bash", {"command": "sed -i 's/low/high/' data/tickets/phase8_tickets.jsonl"}),
+        ("Bash", {"command": "sed -i 's/low/high/' data/tickets/realistic_tickets.jsonl"}),
     ],
 )
 def test_blocked(tool: str, tool_input: dict[str, str]) -> None:
@@ -42,10 +44,18 @@ def test_blocked(tool: str, tool_input: dict[str, str]) -> None:
         ("Read", {"file_path": "/repo/.env.example"}),
         ("Edit", {"file_path": "/repo/src/decision.py"}),
         ("Read", {"file_path": "/repo/data/tickets/test_tickets.jsonl"}),  # reading is fine
-        ("Bash", {"command": "wc -l data/tickets/phase8_tickets.jsonl"}),
+        ("Bash", {"command": "wc -l data/tickets/realistic_tickets.jsonl"}),
         ("Bash", {"command": "uv run pytest"}),
         ("Edit", {"file_path": "/repo/data/tickets/tickets.jsonl"}),  # the dev set is editable
     ],
 )
 def test_allowed(tool: str, tool_input: dict[str, str]) -> None:
     assert run_hook(tool, **tool_input) == 0
+
+
+@pytest.mark.parametrize("name", ["test", "realistic"])
+def test_every_locked_dataset_is_guarded(name: str) -> None:
+    # Renaming a locked set must move its guard too, or the new file would be editable.
+    path = DATASETS[name].relative_to(ROOT).as_posix()
+    assert DATASETS[name].exists()
+    assert run_hook("Write", file_path=f"/repo/{path}") == 2

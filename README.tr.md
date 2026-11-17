@@ -206,7 +206,7 @@ uv run python tools/add_staff.py ad@bilecik.edu.tr "Ad Soyad" --office it   # it
 üzerinde pytest, OpenAPI uyumu ve frontend kontrolleri. `make help` tüm komutları listeler.
 
 **Değerlendirmeler** modeli çağırır: `make eval SUITE=classifier|pipeline|retrieval|security`; `SET=dev`
-(varsayılan), `SET=test` veya `SET=phase8` ile. Kayıtlı her sonuç, onu üreten git commit'ini, prompt
+(varsayılan), `SET=test` veya `SET=realistic` ile. Kayıtlı her sonuç, onu üreten git commit'ini, prompt
 hash'lerini, veri seti ve bilgi tabanı hash'lerini ve modeli içerir. Kilitli setlerde yalnızca ölçülür,
 asla ayar yapılmaz.
 
@@ -254,7 +254,7 @@ tools/               Personel hesapları, demo verisi, OpenAPI dışa aktarma, v
 | Maliyet ve hata izleme, daha büyük saldırı seti, e-posta bildirimi, SSO | ⏳ Planlandı |
 
 Ayrıntılar: [docs/ROADMAP.md](docs/ROADMAP.md). Her değişiklik ve nedeni:
-[docs/changelog.md](docs/changelog.md) (İngilizce).
+[docs/dev-notes/journal.md](docs/dev-notes/journal.md) (İngilizce).
 
 ## Nasıl geliştirildi
 

@@ -41,10 +41,10 @@ export const EXAMPLES: Record<Language, ShowcaseExample> = {
   },
 };
 
-// Measured results (README "Gerçekçi talepler (Phase 8)"; eval/*_phase8.json, eval/retrieval_results.json).
+// Measured results on the locked realistic set (README "Results"; eval/*_realistic.json, eval/retrieval_results.json).
 export const RESULTS = {
   missedEscalations: { missed: 0, of: 11 }, // locked realistic set, both runs
-  rightDocumentTop3: { hits: 30, of: 30 }, // Phase 8 retrieval, hit@3
-  unsafeAutoSends: { unsafe: 0, of: 40 }, // Phase 8 pipeline
+  rightDocumentTop3: { hits: 30, of: 30 }, // realistic set, retrieval hit@3
+  unsafeAutoSends: { unsafe: 0, of: 40 }, // realistic set, pipeline
   documents: 28, // data/knowledge_base: 14 topics x TR + EN
 };
