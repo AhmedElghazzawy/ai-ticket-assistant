@@ -55,7 +55,7 @@ def test_unknown_language_is_rejected(api: Api) -> None:
     assert api.ask(language="de").status_code == 422
 
 
-# Stress tests (Phase 11): bad input is refused BEFORE any Gemini call is paid for.
+# Stress tests: bad input is refused BEFORE any Gemini call is paid for.
 def count_pipeline_calls(api: Api) -> list[str]:
     calls: list[str] = []
 

@@ -52,7 +52,7 @@ class GeminiSettings(BaseSettings):
 
     model_config = ENV
 
-    gemini_api_key: SecretStr  # SecretStr prints as '**********', so the key never lands in logs
+    gemini_api_key: SecretStr  # masked when printed, so the key never lands in logs
     gemini_model: str
     gemini_timeout_seconds: float = Field(default=60, gt=0)  # one request once hung for 30+ min
     gemini_retry_attempts: int = Field(default=5, ge=1)  # tries in total, counting the first

@@ -1,16 +1,15 @@
 """The one thing the assistant needs from a language model: an answer in a given JSON shape.
 
-A Protocol is an interface: any class with these members fits, without inheriting from it. Gemini
-fits today (ai/gemini.py). For the roadmap's model comparison (item 9), another model (Claude, GPT,
-an open-weight model for on-premise use) only needs this one method; the prompts, the steps and
-the decision stay exactly the same, so the comparison measures the model and nothing else.
+Structural (a Protocol), so providers need no shared base class. Gemini implements it today
+(ai/gemini.py). Another model only needs this one method; the prompts, the steps and the decision
+stay the same, so a model comparison measures the model and nothing else.
 """
 
 from typing import Literal, Protocol, TypeVar
 
 from pydantic import BaseModel
 
-# How much the model may think before answering. Step 5: "high" was more accurate and consistent.
+# How much the model may think before answering (eval/results_low.json vs results_high.json).
 Thinking = Literal["low", "high"]
 Output = TypeVar("Output", bound=BaseModel)
 

@@ -18,7 +18,7 @@ def test_answerable_ticket_should_be_sent() -> None:
 
 
 def test_urgent_is_never_sent() -> None:
-    # Same rule as domain/decision.py: a person must act today (bug found on tr-p03, Phase 8).
+    # Same rule as domain/decision.py: a person must act today (bug found on ticket tr-p03).
     assert not should_auto_send(ticket(priority="urgent"), "bilisim_hesaplar")
 
 

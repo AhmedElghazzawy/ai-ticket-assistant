@@ -14,8 +14,7 @@ import { cn } from "@/lib/utils";
 
 const THEME_ICONS = { light: Sun, dark: Moon, system: Monitor } satisfies Record<Theme, unknown>;
 
-/** BŞEÜ mark: the initials on a red tile, NOT the official logo (that needs the university's OK;
- *  docs/changelog.md, Stage 1). */
+/** BŞEÜ mark: the initials on a red tile, NOT the official logo (that needs the university's OK). */
 export function BrandMark() {
   return (
     <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary font-heading text-[0.58rem] font-bold tracking-tight text-primary-foreground glow-soft">

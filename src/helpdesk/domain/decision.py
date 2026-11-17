@@ -10,8 +10,9 @@ from pydantic import BaseModel, ConfigDict, Field
 from helpdesk.domain.grounding import is_grounded
 from helpdesk.domain.outputs import Answer, Classification
 
-# Retrieval scores of answerable and unanswerable tickets overlap (Phase 3), so the score is only a weak
-# floor; the main check is that the model found the answer in the rules (`covered`) and cited them.
+# Retrieval scores of answerable and unanswerable tickets overlap (eval/retrieval_results.json), so
+# the score is only a weak floor; the main check is that the model found the answer in the rules
+# (`covered`) and cited them.
 MIN_SCORE = 0.65
 
 
@@ -35,7 +36,6 @@ class WeakMatch(BaseModel):
     min: float
 
 
-# pydantic picks the right class by looking at `code` (a "discriminated union").
 Reason = Annotated[SimpleReason | WeakMatch, Field(discriminator="code")]
 
 

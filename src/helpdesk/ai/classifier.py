@@ -21,7 +21,8 @@ RULEBOOK:
 {LABELS_PATH.read_text(encoding="utf-8")}"""
 
 
-# Step 5 compared LOW and HIGH on 2 runs each: HIGH was better (all three 84% vs 71%, more consistent).
+# HIGH beat LOW on the dev set, 2 runs each: all three labels right 84% vs 71%, and more consistent
+# (eval/results_high.json, eval/results_low.json).
 THINKING: Thinking = "high"
 
 

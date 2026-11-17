@@ -32,8 +32,7 @@ def get_client() -> genai.Client:
 def new_client() -> genai.Client:
     """Build the client once; only called through get_client, under the lock."""
     settings = get_gemini_settings()
-    # If Google answers "too busy" (429) or has a server error (500, 503),
-    # wait and try again: 2s, then 4s, 8s, 16s (each wait doubles).
+    # Patient limits for indexing and evals: exponential backoff on 429/500/503, starting at 2 s.
     retry = types.HttpRetryOptions(
         attempts=settings.gemini_retry_attempts,
         initial_delay=2.0,
@@ -41,7 +40,6 @@ def new_client() -> genai.Client:
     )
     return genai.Client(
         api_key=settings.gemini_api_key.get_secret_value(),
-        # give up on a request after the timeout; the retry logic then tries again
         http_options=types.HttpOptions(
             timeout=int(settings.gemini_timeout_seconds * 1000),  # Google wants milliseconds
             retry_options=retry,
@@ -49,7 +47,7 @@ def new_client() -> genai.Client:
     )
 
 
-# We never let the model call Python functions, so switch that feature off.
+# The model only returns JSON; it never calls our code.
 NO_AFC = types.GenerateContentConfig(
     automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
 )
