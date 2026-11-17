@@ -2,7 +2,7 @@
 
 Run: make eval SUITE=classifier                 (dev tickets, thinking level high)
      make eval SUITE=classifier SET=test        (the LOCKED test tickets: measure only, never tune on them)
-     make eval SUITE=classifier SET=phase8      (the LOCKED Phase 8 tickets: measure only)
+     make eval SUITE=classifier SET=realistic   (LOCKED realistic tickets: measure only)
 """
 
 import json

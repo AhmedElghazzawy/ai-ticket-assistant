@@ -9,7 +9,7 @@ import re
 import sys
 from typing import NoReturn
 
-LOCKED = ("data/tickets/test_tickets.jsonl", "data/tickets/phase8_tickets.jsonl")
+LOCKED = ("data/tickets/test_tickets.jsonl", "data/tickets/realistic_tickets.jsonl")
 # A path ending in ".env" (not ".env.example"): the file that holds the API key.
 SECRETS = re.compile(r"(^|[\s/'\"=])\.env($|[\s'\";|&)])")
 # Shell commands that write, move or delete files.

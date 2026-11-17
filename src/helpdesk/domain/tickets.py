@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from helpdesk.core.paths import DATA_DIR
 
-# The only allowed values. Anything else (e.g. a typo like "billng") is an error.
+# A label typo ("billng") fails loudly instead of silently becoming a new class.
 Category = Literal[
     "account_access",
     "it_support",
@@ -22,20 +22,18 @@ Priority = Literal["low", "medium", "high", "urgent"]
 Language = Literal["tr", "en"]
 
 TICKETS_PATH = DATA_DIR / "tickets" / "tickets.jsonl"
-TEST_PATH = (
-    TICKETS_PATH.parent / "test_tickets.jsonl"
-)  # LOCKED test set (Phase 2): measure only, never tune on it
-PHASE8_PATH = (
-    TICKETS_PATH.parent / "phase8_tickets.jsonl"
-)  # second LOCKED set (Phase 8): realistic tickets, measure only
-DATASETS = {"dev": TICKETS_PATH, "test": TEST_PATH, "phase8": PHASE8_PATH}
+# The two LOCKED sets (ADR 0003): measure only, never tune a prompt on them.
+TEST_PATH = TICKETS_PATH.parent / "test_tickets.jsonl"
+REALISTIC_PATH = (
+    TICKETS_PATH.parent / "realistic_tickets.jsonl"
+)  # typos, mixed TR/EN, several issues
+DATASETS = {"dev": TICKETS_PATH, "test": TEST_PATH, "realistic": REALISTIC_PATH}
 
 
 class Ticket(BaseModel):
     """One labeled support ticket."""
 
-    # extra="forbid": unknown fields (e.g. "categroy") are errors.
-    # strict=True: no silent conversions (e.g. the text "yes" is not accepted as True).
+    # A misspelt field ("categroy") or a string "yes" for a bool would silently corrupt a score.
     model_config = ConfigDict(extra="forbid", strict=True)
 
     id: str

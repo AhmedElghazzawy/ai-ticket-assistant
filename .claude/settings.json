@@ -24,8 +24,8 @@
       "Write(./.env)",
       "Edit(./data/tickets/test_tickets.jsonl)",
       "Write(./data/tickets/test_tickets.jsonl)",
-      "Edit(./data/tickets/phase8_tickets.jsonl)",
-      "Write(./data/tickets/phase8_tickets.jsonl)",
+      "Edit(./data/tickets/realistic_tickets.jsonl)",
+      "Write(./data/tickets/realistic_tickets.jsonl)",
       "Bash(git push --force:*)",
       "Bash(git push -f:*)"
     ]

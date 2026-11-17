@@ -18,7 +18,7 @@ def test_another_model_can_be_compared() -> None:
 
 
 def test_a_locked_set_can_be_chosen() -> None:
-    assert cli.parse(["pipeline", "--set", "phase8"]).dataset == "phase8"
+    assert cli.parse(["pipeline", "--set", "realistic"]).dataset == "realistic"
 
 
 @pytest.mark.parametrize(
@@ -61,7 +61,7 @@ def test_each_suite_runs_its_own_eval(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_each_compared_model_gets_its_own_result_file() -> None:
     # Comparing models must never overwrite the main model's saved scores.
     assert classifier.result_path("high", "dev", None).name == "results_high.json"
-    assert classifier.result_path("high", "phase8", None).name == "results_high_phase8.json"
+    assert classifier.result_path("high", "realistic", None).name == "results_high_realistic.json"
     assert classifier.result_path("high", "dev", "gemini-3.6-flash").name == (
         "results_high_gemini-3.6-flash.json"
     )

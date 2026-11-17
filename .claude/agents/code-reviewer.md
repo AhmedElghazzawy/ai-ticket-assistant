@@ -18,7 +18,7 @@ Check, in this order, and only report real problems:
 3. **Security and privacy.** No student text or e-mail in logs; staff routes check login and office;
    changing routes behind the same-origin check; rate limits on public routes; secrets only from
    settings; prompt text keeps the `<ticket>` fence (ADR 0010).
-4. **Locked sets.** No change to `data/tickets/test_tickets.jsonl` or `phase8_tickets.jsonl`, and no
+4. **Locked sets.** No change to `data/tickets/test_tickets.jsonl` or `realistic_tickets.jsonl`, and no
    prompt change justified by locked-set results.
 5. **Design.** One job per module, settings from `config.py`, no new `os.getenv`, no dead code,
    migrations append-only, OpenAPI and client regenerated after API changes.
