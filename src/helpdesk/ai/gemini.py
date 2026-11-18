@@ -119,8 +119,9 @@ HEALTH = ModelHealth(skip_seconds=120)
 
 
 def is_retryable(error: Exception) -> bool:
-    """Another model may succeed: busy, slow, out of quota, or a broken answer."""
-    if isinstance(error, httpx.TimeoutException | ValidationError):
+    """Another model may succeed: busy, slow, out of quota, a dropped connection, or a broken answer."""
+    # TransportError covers timeouts, dropped connections (RemoteProtocolError) and refused ones.
+    if isinstance(error, httpx.TransportError | ValidationError):
         return True
     if isinstance(error, RuntimeError) and "returned no text" in str(error):
         return True

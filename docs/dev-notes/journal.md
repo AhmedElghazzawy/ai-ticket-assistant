@@ -1916,3 +1916,10 @@ Branch `docs/readme`, phase 2 of the portfolio plan. PR #14 (production voice) w
 - **Not committed:** the partial run would replace a full 80-ticket result with a 52-ticket one whose failures cluster in the English tickets: misleading. It is kept outside the repo; `eval/pipeline_results_dev.json` stays the 2026-10-24 full run. The README now says which version each number measures and that a full re-run is pending.
 - **Found, a live bug:** `is_retryable` in `ai/gemini.py` does not cover `httpx.RemoteProtocolError` (a dropped connection), so the live chain would show a student "can't respond" instead of asking the next model. Fixed in the next PR, test first, together with the two-issue auto-send.
 - **Postponed:** a GIF of the real app needs one live model call; Gemini was overloaded, so the README keeps its real screenshots for now.
+
+## Fix: the live chain hands over when Google drops the connection (2026-11-18)
+PR #15 was merged first. Branch `fix/handover-on-dropped-connection`.
+- **Bug (found by the 2026-11-17 dev eval):** `is_retryable` in `ai/gemini.py` accepted only `httpx.TimeoutException` among network errors. Google dropping the connection (`httpx.RemoteProtocolError: Server disconnected without sending a response.`, 12 of the 28 eval failures) or refusing it (`ConnectError`) was treated like our own bug: the live chain stopped and the student saw "can't respond right now", although two more models were waiting.
+- **Test first:** two new cases in `test_a_failing_live_model_hands_over_to_the_next` (`RemoteProtocolError`, `ConnectError`); they failed (2 failed, 13 passed).
+- **Fix:** `httpx.TransportError`, the parent class of timeouts, protocol and connection errors. 15 passed. ADR 0018's handover list says so.
+- **Split on purpose:** the two-issue auto-send (en-013) needs an answer-prompt change, which needs a full dev eval first; it gets its own branch, so this small fix can go live before a demo without an unmeasured prompt.

@@ -106,6 +106,9 @@ def ask(live: bool) -> Classification:
         errors.ServerError(500, {"error": {"code": 500}}),
         errors.ClientError(429, {"error": {"code": 429}}),  # this model's free quota is used up
         httpx.ReadTimeout("no answer in time"),
+        # Google dropped the connection (12 times in the 2026-11-17 dev eval) or refused it.
+        httpx.RemoteProtocolError("Server disconnected without sending a response."),
+        httpx.ConnectError("connection refused"),
         "not json",  # a broken answer: another model may answer properly
     ],
 )
