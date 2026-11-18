@@ -6,6 +6,11 @@ Every individual change, with its reason and measured result, is in the engineer
 
 ## [Unreleased]
 
+### Fixed
+- The live model chain now hands over to the next model when Google drops or refuses the connection
+  (`httpx.RemoteProtocolError`, `ConnectError`); before, the student saw "can't respond right now"
+  although another model could answer (seen 12 times in the 2026-11-17 dev eval).
+
 ### Changed
 - **README:** a one-line pitch, a "Design decisions" table (why no LangChain, plain-code decisions,
   code-checked citations, pgvector, locked sets, the model chain), results dated by the system version

@@ -27,8 +27,9 @@ Canlı API (`GeminiProvider(live=True)`) tek model yerine sıralı bir zincir ku
 `gemini_live_models` = `gemini-3.5-flash-lite`, `gemini-4-hydrogen`, `gemini-3.1-flash-lite`
 (`core/settings.py`, `GEMINI_LIVE_MODELS` ile değiştirilebilir). Orkestrasyon `ai/resilience.py`'dedir
 ve Gemini'den habersizdir, sahte modellerle test edilir.
-- **Meşgul model işi hemen devreder:** 429/500/503/504, zaman aşımı, boş veya şemaya uymayan cevap
-  gelirse sıradaki model beklemeden başlar.
+- **Meşgul model işi hemen devreder:** 429/500/503/504, zaman aşımı, kopan veya kurulamayan bağlantı
+  (`httpx.TransportError`; 2026-11-18'de eklendi), boş veya şemaya uymayan cevap gelirse sıradaki model
+  beklemeden başlar.
 - **Yavaş modele eşlik edilir (hedged request, Google'ın "The Tail at Scale" makalesi):** 9 saniye
   içinde cevap yoksa sıradaki model de başlar; ilk gelen cevap kazanır, diğeri yok sayılır.
 - **Süre sınırı:** hiçbir öğrenci 25 saniyeden fazla beklemez; sonra 503 ve yalnızca hata türü loglanır.
