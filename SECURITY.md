@@ -1,6 +1,6 @@
 # Security policy
 
-This is a student project and not an official BŞEÜ service. It still handles messages that can contain
+This is a personal project and not an official BŞEÜ service. It still handles messages that can contain
 personal data, so security reports are welcome and taken seriously.
 
 ## Reporting a vulnerability

@@ -98,7 +98,7 @@ const tr = {
   error: "Şu anda cevap veremiyoruz. Lütfen biraz sonra tekrar deneyin.",
   tooMany: "Kısa sürede çok fazla soru gönderdiniz. Lütfen bir dakika bekleyin.",
   notice:
-    "Öğrenci projesidir, resmî bir BŞEÜ hizmeti değildir. TC kimlik no, şifre gibi kişisel bilgilerinizi yazmayın.",
+    "Kişisel bir projedir, resmî bir BŞEÜ hizmeti değildir. TC kimlik no, şifre gibi kişisel bilgilerinizi yazmayın.",
   howTitle: "Nasıl çalışır?",
   howSteps: [
     { title: "Sorunuzu yazın", text: "Türkçe veya İngilizce, kendi cümlelerinizle." },
@@ -331,7 +331,7 @@ const en: Texts = {
   error: "We can't answer right now. Please try again in a moment.",
   tooMany: "You sent many questions in a short time. Please wait a minute.",
   notice:
-    "A student project, not an official BŞEÜ service. Do not write personal data such as your ID number or passwords.",
+    "A personal project, not an official BŞEÜ service. Do not write personal data such as your ID number or passwords.",
   howTitle: "How it works",
   howSteps: [
     { title: "Write your question", text: "In Turkish or English, in your own words." },

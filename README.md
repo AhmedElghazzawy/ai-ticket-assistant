@@ -2,11 +2,15 @@
 
 [![CI](https://github.com/AhmedElghazzawy/ai-ticket-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/AhmedElghazzawy/ai-ticket-assistant/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/AhmedElghazzawy/ai-ticket-assistant/actions/workflows/codeql.yml/badge.svg)](https://github.com/AhmedElghazzawy/ai-ticket-assistant/actions/workflows/codeql.yml)
+[![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/AhmedElghazzawy/ai-ticket-assistant/badges/coverage.json)](https://github.com/AhmedElghazzawy/ai-ticket-assistant/actions/workflows/ci.yml?query=branch%3Amain)
 ![Python 3.12](https://img.shields.io/badge/python-3.12-3776AB)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Live demo](https://img.shields.io/badge/demo-live-c8102e)](https://bseu-helpdesk.onrender.com)
 
 🇹🇷 [Türkçe](README.tr.md)
+
+**A student helpdesk that answers from official documents with verified citations, and lets tested
+code, not the model, decide when a person must take over.**
 
 An AI assistant for a university helpdesk. It reads a student's support ticket (Turkish or English),
 labels it, looks up the answer in official university documents (RAG), drafts a reply that cites its
@@ -26,7 +30,8 @@ a quiet period takes about a minute).
 ## Highlights
 
 - **Safety first:** on a locked set of 40 realistic tickets, **0 of 11** tickets that needed a human
-  were missed, and **0** replies were sent automatically when they should not have been.
+  were missed, and **0** replies were sent automatically when they should not have been (measured
+  2026-10-23; see [Results](#results) for what changed since).
 - **The AI never makes the final call.** The send-or-forward decision is seven explicit checks in
   [`decision.py`](src/helpdesk/domain/decision.py), each covered by tests.
 - **Grounded answers:** every quoted rule must appear word for word in the retrieved document, checked
@@ -36,7 +41,7 @@ a quiet period takes about a minute).
 - **Honest evaluation:** two locked test sets that were never used for tuning, and every metric
   reported with its sample size and a 95% Wilson confidence interval.
 - **Production habits:** layered code with the layer rules enforced by a test, an append-only audit
-  trail of every ticket change, typed settings, mypy strict, 298 tests on a real Postgres, browser
+  trail of every ticket change, typed settings, mypy strict, 314 tests on a real Postgres, browser
   tests, CodeQL, Dependabot, Docker, structured logs with no student text, 18 architecture decision
   records.
 
@@ -74,10 +79,31 @@ Being angry alone is not a reason.
 More detail, diagrams, use cases and invariants: [ARCHITECTURE.md](ARCHITECTURE.md). Every document:
 [docs/README.md](docs/README.md).
 
+## Design decisions
+
+Each one has a decision record (Turkish) in [`docs/decisions/`](docs/decisions/).
+
+| Decision | Why | Record |
+|---|---|---|
+| **No LangChain or LangGraph** | The system needs one thing from a model: JSON in a given schema. A one-method `LLMProvider` protocol and a plain pipeline function cover that; a framework would add a large dependency and hide the prompts. A framework is reconsidered only if the flow gains real loops. | [0012](docs/decisions/0012-package-factory-llm-provider.md) |
+| **The model never makes the final call** | Sending or forwarding is seven explicit checks in plain code, each unit-tested; the model only supplies labels and a draft. | [0002](docs/decisions/0002-decision-is-plain-code.md) |
+| **Citations are checked by code** | A cited quote must appear word for word in the retrieved section, and source cards are built from verified chunk ids; this also defeats rules planted in a ticket. | [0010](docs/decisions/0010-prompt-injection-defence.md) |
+| **Postgres + pgvector, no separate vector DB** | Tickets, history and vectors in one database with transactions; 190 chunks do not need a dedicated store. | [0004](docs/decisions/0004-postgres-pgvector.md) |
+| **Two locked test sets** | Prompts are developed on the dev set only; the locked sets give scores that were never tuned on, and a hook blocks any edit to them. | [0003](docs/decisions/0003-locked-test-set.md) |
+| **A hedged chain of free models** | Free-tier models are often busy: a busy model hands over at once, a slow one is raced after 9 s, and no student waits more than 25 s. | [0018](docs/decisions/0018-live-model-chain.md) |
+| **Official and general help kept apart** | The official answer and labeled general advice are separate fields; the page, not the model, adds the "not official" label. | [0013](docs/decisions/0013-direct-answer-and-general-help.md) |
+
 ## Results
 
 All numbers come from saved runs in [`eval/`](eval/). Intervals in brackets are 95% Wilson
 confidence intervals; the samples are small, so the intervals are wide.
+
+> **Which version these measure.** The classifier and retrieval numbers match the current code. The
+> pipeline numbers (auto-sends, first help) were measured on 2026-10-23/24, **before** the answer step
+> was changed to give direct answers and general help (2026-11-05, ADR 0013). A dev re-run on
+> 2026-11-17 was cut short by Gemini overload (52 of 80 tickets scored) and found **one unsafe
+> auto-send** on a two-issue ticket (a printer fault plus a GPA question: the GPA part was answered,
+> the printer part never reached IT). That is being fixed; the table will be updated from a full run.
 
 **Realistic locked set** (40 tickets, 20 TR + 20 EN, never used for tuning): long and messy
 messages, typos, Turkish without Turkish characters, mixed languages, two problems in one ticket,
@@ -111,7 +137,8 @@ word in the documents [86–99.5%].
 - 0 / 11 missed escalations does not prove the true rate is zero: the upper bound is about 26%.
 - The development set was used to write the prompts, so its scores are optimistic (about 10 points
   higher than the locked set on the first run).
-- The October 2026 knowledge-base expansion has not been measured on new tickets yet.
+- The current answer step (ADR 0013) and the larger knowledge base have no complete pipeline run yet
+  (see the note above).
 
 ## Features
 
@@ -215,7 +242,7 @@ tuned on.
 src/helpdesk/        Backend package; a layer imports only the layers below it (tests/test_architecture.py)
   core/              Settings (validated at startup), paths, structured logs
   domain/            Pure rules and data: decision, grounding, offices, labels, saved ticket, output schemas
-  ai/                Gemini client (retries, timeouts, backup model), classifier, grounded answer, injection fence
+  ai/                Gemini client, hedged live model chain, classifier, grounded answer, injection fence
   storage/           The only SQL: connection pool, append-only migrations, tickets and history, staff
   retrieval/         Chunking, embeddings, index sync and pgvector search
   services/          Use cases: the pipeline, student tickets, the staff desk, auth, insights
@@ -226,7 +253,7 @@ data/knowledge_base/ The 28 official-source documents (TR + EN)
 data/tickets/        Labelled tickets: dev (80), locked test (40), locked realistic (40)
 eval/                Saved evaluation results
 docs/                Index, label rulebook, decision records, roadmap, problem catalogue, journal
-tests/               298 pytest tests against a real Postgres; every AI call is faked
+tests/               314 pytest tests against a real Postgres; every AI call is faked
 tools/               Staff accounts, demo data, OpenAPI export, dataset audit
 ```
 
@@ -247,11 +274,12 @@ tools/               Staff accounts, demo data, OpenAPI export, dataset audit
 
 | Area | Status |
 |---|---|
-| Classification, locked test sets, RAG, grounded answers, decision rules, API, review queue | ✅ Done |
-| Infrastructure, package structure, typed settings, CI, Docker, live deployment | ✅ Done |
-| Realistic data set, confidence intervals, prompt-injection defence, staff product | 🟡 Mostly done |
-| One-command versioned eval report, model comparison, LLM-as-judge | ⏳ Next |
-| Cost and error monitoring, larger attack set, e-mail notifications, SSO | ⏳ Planned |
+| Classifier, grounded answers, decision rules, staff console, student follow-up, security, live deployment | ✅ Done |
+| Versioned one-command evals | ✅ Done (eval workflow in CI and model comparison next) |
+| Hybrid retrieval (full-text + pgvector, rank fusion), measured | ⏳ Next |
+| Larger labelled dev set, model comparison including a local open model | ⏳ Next |
+| Tracing per ticket (OpenTelemetry) | ⏳ Next |
+| E-mail notifications, student SSO | ⏳ Later |
 
 Details: [docs/ROADMAP.md](docs/ROADMAP.md). Every change and the reason for it:
 [docs/dev-notes/journal.md](docs/dev-notes/journal.md).
@@ -259,7 +287,7 @@ Details: [docs/ROADMAP.md](docs/ROADMAP.md). Every change and the reason for it:
 ## How it was built
 
 Built by Ahmed Elghazzawy, with [Claude Code](https://claude.com/claude-code) as a pair programmer under written
-rules: [CLAUDE.md](CLAUDE.md) defines the workflow (test first, explain every step, record every
+rules: [CLAUDE.md](CLAUDE.md) defines the workflow (explore, plan, test first, verify, record every
 decision), and [`.claude/`](.claude/) holds the skills, review subagents and hooks, one of which blocks
 any edit to the locked test sets ([ADR 0011](docs/decisions/0011-agent-instructions-and-guardrails.md)).
 Contributions: see [CONTRIBUTING.md](CONTRIBUTING.md).

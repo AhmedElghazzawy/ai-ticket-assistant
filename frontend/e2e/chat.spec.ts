@@ -34,7 +34,7 @@ async function askWithAnswer(page: Page, answer: Partial<TicketOut>) {
   await page.getByRole("textbox").press("Enter");
 }
 
-test("the page says it is a student project, not an official service", async ({ page }) => {
+test("the page says it is not an official BŞEÜ service", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByText("resmî bir BŞEÜ hizmeti değildir").first()).toBeVisible();
 });

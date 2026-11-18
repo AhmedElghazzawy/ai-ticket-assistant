@@ -2,11 +2,15 @@
 
 [![CI](https://github.com/AhmedElghazzawy/ai-ticket-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/AhmedElghazzawy/ai-ticket-assistant/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/AhmedElghazzawy/ai-ticket-assistant/actions/workflows/codeql.yml/badge.svg)](https://github.com/AhmedElghazzawy/ai-ticket-assistant/actions/workflows/codeql.yml)
+[![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/AhmedElghazzawy/ai-ticket-assistant/badges/coverage.json)](https://github.com/AhmedElghazzawy/ai-ticket-assistant/actions/workflows/ci.yml?query=branch%3Amain)
 ![Python 3.12](https://img.shields.io/badge/python-3.12-3776AB)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Canlı demo](https://img.shields.io/badge/demo-canl%C4%B1-c8102e)](https://bseu-helpdesk.onrender.com)
 
 🇬🇧 [English](README.md)
+
+**Resmî belgelerden, doğrulanmış kaynaklarla cevap veren bir öğrenci yardım masası; bir insanın ne
+zaman devralacağına model değil, testli kod karar verir.**
 
 Üniversite yardım masası için bir AI asistanı. Öğrencinin yazdığı talebi (ticket, Türkçe veya
 İngilizce) okur, etiketler, cevabı üniversitenin resmî belgelerinde arar (RAG), kaynağını gösteren bir
@@ -26,7 +30,8 @@ olmazsa ilk açılış yaklaşık 1 dakika sürer).
 ## Öne çıkanlar
 
 - **Önce güvenlik:** 40 gerçekçi talepten oluşan kilitli sette, insana gitmesi gereken **11 talepten
-  hiçbiri kaçırılmadı** ve gönderilmemesi gereken **hiçbir cevap otomatik gönderilmedi**.
+  hiçbiri kaçırılmadı** ve gönderilmemesi gereken **hiçbir cevap otomatik gönderilmedi** (2026-10-23
+  ölçümü; o zamandan beri değişenler için [Sonuçlar](#sonuçlar)).
 - **Son kararı yapay zekâ vermez.** Gönder / yönlendir kararı [`decision.py`](src/helpdesk/domain/decision.py)
   içinde yedi açık kontroldür ve her biri testlidir.
 - **Kaynaklı cevaplar:** alıntılanan her kural, bulunan belgede kodla **birebir** aranır; kaynak kartları
@@ -37,7 +42,7 @@ olmazsa ilk açılış yaklaşık 1 dakika sürer).
   %95 Wilson güven aralığıyla.
 - **Üretim alışkanlıkları:** katman kuralları bir testle zorunlu tutulan katmanlı kod, her talep
   değişikliğinin değiştirilemeyen geçmişi (audit trail), tipli ayarlar, mypy strict, gerçek Postgres
-  üzerinde 298 test, tarayıcı testleri, CodeQL, Dependabot, Docker, öğrenci metni içermeyen
+  üzerinde 314 test, tarayıcı testleri, CodeQL, Dependabot, Docker, öğrenci metni içermeyen
   yapılandırılmış loglar, 18 karar kaydı (ADR).
 
 ## Nasıl çalışır
@@ -73,10 +78,31 @@ Sadece sinirli olmak bir neden değildir.
 Ayrıntılar, diyagramlar, kullanım senaryoları ve değişmez kurallar: [ARCHITECTURE.md](ARCHITECTURE.md)
 (İngilizce). Tüm belgeler: [docs/README.md](docs/README.md).
 
+## Tasarım kararları
+
+Her birinin bir karar kaydı var: [`docs/decisions/`](docs/decisions/).
+
+| Karar | Neden | Kayıt |
+|---|---|---|
+| **LangChain veya LangGraph yok** | Sistemin bir modelden tek ihtiyacı belirli bir şemada JSON. Tek metotluk bir `LLMProvider` protokolü ve sade bir pipeline fonksiyonu bunu karşılar; bir framework büyük bir bağımlılık ekler ve prompt'ları gizler. Akışta gerçek döngüler olursa yeniden değerlendirilir. | [0012](docs/decisions/0012-package-factory-llm-provider.md) |
+| **Son kararı model vermez** | Göndermek ya da yönlendirmek sade kodda yedi açık kontroldür, her biri test edilir; model yalnızca etiketleri ve taslağı verir. | [0002](docs/decisions/0002-decision-is-plain-code.md) |
+| **Kaynaklar kodla kontrol edilir** | Alıntı, getirilen bölümde kelimesi kelimesine geçmelidir; kaynak kartları doğrulanmış parça kimliklerinden oluşturulur. Bu, talebin içine yerleştirilen sahte kuralları da etkisiz kılar. | [0010](docs/decisions/0010-prompt-injection-defence.md) |
+| **Postgres + pgvector, ayrı vektör veritabanı yok** | Talepler, geçmiş ve vektörler tek veritabanında, transaction'larla; 190 parça için ayrı bir depo gerekmez. | [0004](docs/decisions/0004-postgres-pgvector.md) |
+| **İki kilitli test seti** | Prompt'lar yalnızca dev setinde geliştirilir; kilitli setler hiç ayar yapılmamış skorlar verir ve bir hook onlarda her değişikliği engeller. | [0003](docs/decisions/0003-locked-test-set.md) |
+| **Ücretsiz modellerden hedge'li bir zincir** | Ücretsiz katmandaki modeller sık sık meşgul: meşgul model işi hemen devreder, yavaş olanla 9 sn sonra yarışılır, hiçbir öğrenci 25 sn'den fazla beklemez. | [0018](docs/decisions/0018-live-model-chain.md) |
+| **Resmî bilgi ve genel bilgi ayrı** | Resmî cevap ve etiketli genel tavsiye ayrı alanlardır; "resmî değildir" etiketini model değil sayfa koyar. | [0013](docs/decisions/0013-direct-answer-and-general-help.md) |
+
 ## Sonuçlar
 
 Bütün sayılar [`eval/`](eval/) klasöründeki kayıtlı çalıştırmalardan gelir. Köşeli parantezler %95
 Wilson güven aralığıdır; örnekler küçük olduğu için aralıklar geniştir.
+
+> **Hangi sürümü ölçüyorlar.** Sınıflandırıcı ve arama sayıları güncel kodla aynıdır. Pipeline sayıları
+> (otomatik gönderim, ön bilgi) 2026-10-23/24'te, cevap adımı doğrudan cevap ve genel bilgi verecek
+> şekilde değiştirilmeden (2026-11-05, ADR 0013) **önce** ölçüldü. 2026-11-17'deki dev tekrarı Gemini
+> yoğunluğu yüzünden yarım kaldı (80 talepten 52'si ölçüldü) ve iki sorunlu bir talepte **bir güvensiz
+> otomatik gönderim** buldu (yazıcı arızası ve GPA sorusu: GPA kısmı cevaplandı, yazıcı sorunu Bilgi
+> İşlem'e hiç ulaşmadı). Bu düzeltiliyor; tablo tam bir çalıştırmayla güncellenecek.
 
 **Gerçekçi kilitli set** (40 talep, 20 TR + 20 EN, ayar için hiç kullanılmadı): uzun ve dağınık
 mesajlar, yazım hataları, Türkçe karakter kullanılmayan metinler, karışık dil, iki sorunlu talepler, takip
@@ -111,7 +137,8 @@ escalation gerektiren hiçbir talepte gösterilmedi.
 - 0 / 11 kaçırılan escalation, gerçek oranın sıfır olduğunu kanıtlamaz: üst sınır yaklaşık %26'dır.
 - Prompt'lar dev setiyle yazıldı, bu yüzden dev skorları iyimserdir (ilk çalıştırmada kilitli setten
   yaklaşık 10 puan yüksek).
-- Ekim 2026 bilgi tabanı genişletmesi henüz yeni taleplerle ölçülmedi.
+- Güncel cevap adımı (ADR 0013) ve büyüyen bilgi tabanı için henüz tam bir pipeline çalıştırması yok
+  (yukarıdaki nota bakın).
 
 ## Özellikler
 
@@ -216,7 +243,7 @@ asla ayar yapılmaz.
 src/helpdesk/        Backend paketi; her katman yalnızca altındaki katmanları import eder (tests/test_architecture.py)
   core/              Ayarlar (başlangıçta doğrulanır), dosya yolları, yapılandırılmış loglar
   domain/            Saf kurallar ve veri: karar, alıntı kontrolü, birimler, etiketler, kayıtlı talep, çıktı şemaları
-  ai/                Gemini istemcisi (retry, timeout, yedek model), sınıflandırıcı, kaynaklı cevap, injection çiti
+  ai/                Gemini istemcisi, hedge'li canlı model zinciri, sınıflandırıcı, kaynaklı cevap, injection çiti
   storage/           Tek SQL katmanı: bağlantı havuzu, eklemeli migration'lar, talepler ve geçmişi, personel
   retrieval/         Parçalara bölme, embedding, index senkronu ve pgvector araması
   services/          Kullanım senaryoları (use case): akış, öğrenci talepleri, personel masası, giriş, istatistik
@@ -227,7 +254,7 @@ data/knowledge_base/ Resmî kaynaklı 28 belge (TR + EN)
 data/tickets/        Etiketli talepler: dev (80), kilitli test (40), kilitli gerçekçi set (40)
 eval/                Kayıtlı değerlendirme sonuçları
 docs/                Dizin, etiket kural kitabı, karar kayıtları, yol haritası, sorun kataloğu, günlük
-tests/               Gerçek Postgres üzerinde 298 pytest testi; her AI çağrısı taklit edilir
+tests/               Gerçek Postgres üzerinde 314 pytest testi; her AI çağrısı taklit edilir
 tools/               Personel hesapları, demo verisi, OpenAPI dışa aktarma, veri seti denetimi
 ```
 
@@ -247,11 +274,12 @@ tools/               Personel hesapları, demo verisi, OpenAPI dışa aktarma, v
 
 | Alan | Durum |
 |---|---|
-| Sınıflandırma, kilitli test setleri, RAG, kaynaklı cevap, karar kuralları, API, inceleme kuyruğu | ✅ Tamamlandı |
-| Altyapı, paket yapısı, tipli ayarlar, CI, Docker, canlıya alma | ✅ Tamamlandı |
-| Gerçekçi veri seti, güven aralıkları, prompt injection savunması, personel ürünü | 🟡 Büyük ölçüde |
-| Tek komutla sürümlü değerlendirme raporu, model karşılaştırması, LLM-as-judge | ⏳ Sırada |
-| Maliyet ve hata izleme, daha büyük saldırı seti, e-posta bildirimi, SSO | ⏳ Planlandı |
+| Sınıflandırıcı, kaynaklı cevaplar, karar kuralları, personel konsolu, öğrenci takibi, güvenlik, canlıya alma | ✅ Tamamlandı |
+| Tek komutla sürümlü eval'ler | ✅ Tamamlandı (CI'da eval workflow'u ve model karşılaştırması sırada) |
+| Hibrit arama (tam metin + pgvector, rank fusion), ölçülerek | ⏳ Sırada |
+| Daha büyük etiketli dev seti, yerel açık bir model dahil model karşılaştırması | ⏳ Sırada |
+| Talep başına tracing (OpenTelemetry) | ⏳ Sırada |
+| E-posta bildirimi, öğrenci SSO | ⏳ Sonra |
 
 Ayrıntılar: [docs/ROADMAP.md](docs/ROADMAP.md). Her değişiklik ve nedeni:
 [docs/dev-notes/journal.md](docs/dev-notes/journal.md) (İngilizce).
@@ -260,7 +288,7 @@ Ayrıntılar: [docs/ROADMAP.md](docs/ROADMAP.md). Her değişiklik ve nedeni:
 
 Ahmed Elghazzawy tarafından, yazılı kurallar altında eşli programcı olarak
 [Claude Code](https://claude.com/claude-code) ile geliştirildi: [CLAUDE.md](CLAUDE.md) çalışma şeklini
-tanımlar (önce test, her adımı açıklama, her kararı kaydetme); [`.claude/`](.claude/) klasöründe
+tanımlar (keşfet, planla, önce test, doğrula, her kararı kaydet); [`.claude/`](.claude/) klasöründe
 skill'ler, inceleme ajanları ve kilitli test setlerinde her değişikliği engelleyen bir hook bulunur
 ([ADR 0011](docs/decisions/0011-agent-instructions-and-guardrails.md)). Katkı için:
 [CONTRIBUTING.md](CONTRIBUTING.md).
