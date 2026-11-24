@@ -22,18 +22,14 @@ her karar öğrenciye ve personele gerekçesiyle açıklanabilmektedir.
 \section{Karşılaşılan Zorluklar}
 
 \begin{itemize}
-  \item \textbf{Ücretsiz katman sınırları:} İlk kullanılan model günde yalnızca 20 isteğe izin
-        verdiği için değerlendirmeler yarım kalmış, daha yüksek kotalı bir modele geçilmiştir.
-        Canlı sistemde modellerin sık sık meşgul olması, üç modelli dayanıklı zincirle çözülmüştür.
-  \item \textbf{Eşik seçimi:} Benzerlik skorunun cevaplanabilir ve cevaplanamaz talepleri ayırmadığı
-        görülmüş (Şekil~\ref{fig:skor}), karar tek bir eşik yerine birden çok kontrole dayandırılmıştır.
-  \item \textbf{Bilgi tabanındaki boşluklar:} İlk kilitli test çalıştırmasında bir SOFRA şifresi
-        sorusu yanlış belgeyle cevaplanmıştır. Resmî Bilişim Hesapları belgesi eklenerek ve ``acil talep
-        her zaman insana gider'' kuralı yazılarak bu boşluk kapatılmıştır.
-  \item \textbf{İki sorun içeren talepler:} Bir talepte iki ayrı sorun olduğunda biri atlanabilmektedir
-        (Bölüm~\ref{ch:bulgular}). Bu sorun kendi testlerimde bulunmuş ve düzeltme sıraya alınmıştır.
-  \item \textbf{Ücretsiz barındırma:} Sunucu 15 dakika ziyaretçi olmazsa uyumakta, ilk açılış
-        yaklaşık 30 saniye sürmektedir.
+  \item \textbf{Ücretsiz katman sınırları:} Günde 20 istekle sınırlı ilk model yerine daha yüksek
+        kotalı bir modele geçilmiş; canlıdaki model yoğunluğu üç modelli zincirle çözülmüştür.
+  \item \textbf{Eşik seçimi:} Benzerlik skoru cevaplanabilir ve cevaplanamaz talepleri ayırmadığı için
+        (Şekil~\ref{fig:skor}) karar birden çok kontrole dayandırılmıştır.
+  \item \textbf{Bilgi tabanındaki boşluklar:} Bir SOFRA şifresi sorusunun yanlış belgeyle
+        cevaplanması üzerine Bilişim Hesapları belgesi eklenmiş, ``acil talep her zaman insana gider''
+        kuralı yazılmıştır.
+  \item \textbf{İki sorun içeren talepler:} Birinin atlanabildiği görülmüş, düzeltme sıraya alınmıştır.
 \end{itemize}
 
 \section{Dönemin Kalanı İçin İş Planı}
@@ -86,19 +82,12 @@ bir kez çalıştırılacaktır.
 Bu çalışmanın ilerleyen aşamalarında;
 
 \begin{itemize}
-  \item İki sorun içeren talepler ayrı ayrı ele alınarak her sorun kendi birimine yönlendirilebilir.
-  \item Anahtar kelime (PostgreSQL tam metin arama) ve vektör arama RRF ile birleştirilerek, hit@1 ve
-        MRR ölçütlerindeki etkisi ölçülebilir \cite{cormack2009}.
+  \item Anahtar kelime ve vektör arama RRF ile birleştirilerek hit@1 üzerindeki etkisi ölçülebilir
+        \cite{cormack2009}.
   \item Değerlendirme seti 200'ün üzerine çıkarılarak modeller (yerel bir açık kaynak model dâhil)
-        doğruluk, kaçırılan escalation, 1000 talep başına maliyet ve gecikme bakımından
-        karşılaştırılabilir.
-  \item Cevap kalitesi ikinci bir dil modeliyle puanlanabilir \cite{zheng2023}, sınıf arkadaşlarından
-        toplanan gerçek talepler yeni bir görülmemiş test seti olarak kullanılabilir.
-  \item İkinci bir etiketleyiciyle etiketler arası uyum ölçülebilir.
-  \item Üniversite tek oturum açma (SSO) sistemi ve personel cevabının öğrenciye e-postayla
-        bildirilmesi eklenerek sistem gerçek kullanıma hazırlanabilir.
+        doğruluk, kaçırılan escalation, maliyet ve gecikme bakımından karşılaştırılabilir.
+  \item Cevap kalitesi ikinci bir dil modeliyle puanlanabilir \cite{zheng2023}; ikinci bir
+        etiketleyiciyle etiketler arası uyum ölçülebilir.
+  \item Üniversite tek oturum açma (SSO) ve e-posta bildirimi eklenerek sistem gerçek kullanıma
+        hazırlanabilir.
 \end{itemize}
-
-Bu öneriler doğrultusunda yapılacak çalışmalar, sistemin hem daha çok öğrenciye hemen yardım
-etmesine hem de güvenlik sonuçlarının daha büyük ve gerçekçi verilerle doğrulanmasına katkı
-sağlayacaktır.

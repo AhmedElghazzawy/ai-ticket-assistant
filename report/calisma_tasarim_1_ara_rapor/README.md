@@ -2,7 +2,9 @@
 
 BM331 Bilgisayar Mühendisliği Tasarım Çalışması I dersi için ara rapor (Türkçe, LaTeX).
 
-- **PDF:** [`calisma_tasarim_1_ara_rapor.pdf`](calisma_tasarim_1_ara_rapor.pdf)
+- **PDF:** [`calisma_tasarim_1_ara_rapor.pdf`](calisma_tasarim_1_ara_rapor.pdf) (kısaltılmış, 30 sayfa).
+  İlk, 47 sayfalık tam sürüm [`calisma_tasarim_1_ara_rapor_tam_surum.pdf`](calisma_tasarim_1_ara_rapor_tam_surum.pdf)
+  dosyasındadır; kaynağı `d95d87e` commit'indedir.
 - **Şablon:** Bölümün resmî Bitirme/Tasarım Çalışması Overleaf şablonunun dosya düzeni
   (`0main.tex`, `1kapak.tex`, ... `17kaynaklar.tex`) korunmuştur. `BUB.cls`, şablonun PDF çıktısı ve
   "Bitirme Tezi/Tasarım Çalışması Yazım Kılavuzu" (11.02.2025) esas alınarak yeniden kurulmuştur

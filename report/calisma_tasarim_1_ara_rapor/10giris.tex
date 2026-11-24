@@ -62,21 +62,11 @@ Sistemin genel akışı Şekil~\ref{fig:genelakis}'te gösterilmiştir.
 
 \section{Kapsam ve Kısıtlar}
 
-Çalışma bir ders projesi olarak tek kişi tarafından yürütülmüş, bütün bileşenler ücretsiz katmanlarda
-çalışacak şekilde tasarlanmıştır. Temel kısıtlar ve kapsam şöyledir:
-
-\begin{itemize}
-  \item \textbf{Diller:} Öğrencinin okuduğu her yer Türkçe ve İngilizcedir.
-  \item \textbf{Birimler:} Bilgi İşlem, Öğrenci İşleri, Harçlar Şube Müdürlüğü, SKS ve kategorisi
-        belli olmayan talepler için Öğrenci İşleri nöbetçi personeli olmak üzere 5 gerçek BŞEÜ birimi.
-  \item \textbf{Bilgi tabanı:} 14 konu $\times$ 2 dil $=$ 28 resmî belge, 190 parça (chunk).
-  \item \textbf{Altyapı:} Google Gemini API ücretsiz katmanı, Render ücretsiz web servisi,
-        Neon ücretsiz PostgreSQL. Bu nedenle istek sınırları ve model yoğunluğu tasarımın parçasıdır.
-  \item \textbf{Gizlilik:} Öğrencinin metni loglara asla yazılmaz (KVKK \cite{kvkk}); erişim kodları
-        ve oturum anahtarları veritabanında yalnızca özet (hash) olarak tutulur.
-  \item \textbf{Resmîyet:} Sistem öğrencinin kişisel projesidir, BŞEÜ'nün resmî hizmeti değildir;
-        arayüz bunu açıkça belirtir.
-\end{itemize}
+Çalışma tek kişilik bir ders projesidir ve bütün bileşenler ücretsiz katmanlarda çalışır (Google
+Gemini API, Render, Neon PostgreSQL); bu nedenle istek sınırları ve model yoğunluğu tasarımın
+parçasıdır. Arayüz Türkçe ve İngilizcedir. Talepler 5 gerçek BŞEÜ birimine yönlendirilir. Bilgi
+tabanı 14 konu $\times$ 2 dil $=$ 28 resmî belgeden (190 parça) oluşur. Öğrencinin metni loglara
+yazılmaz (KVKK \cite{kvkk}). Sistem öğrencinin kişisel projesidir, BŞEÜ'nün resmî hizmeti değildir.
 
 \section{Ara Rapor Dönemindeki Durum}
 
@@ -107,10 +97,37 @@ Büyük değerlendirme seti & 200+ talep, model karşılaştırması & Planland�
 \end{tabularx}
 \end{table}
 
+\section{Literatür Taraması}
+\label{ch:literatur}
+
+\textbf{Talep sınıflandırma.} Yardım masası talepleri uzun süredir TF-IDF, destek vektör makineleri ve
+derin ağlarla sınıflandırılmaktadır; Revina ve arkadaşları \cite{revina2020} basit yöntemlerin çoğu
+zaman yeterli olduğunu göstermiştir, ancak bu yöntemler binlerce etiketli örnek ister. Büyük dil
+modelleri ise yalnızca bir talimat metniyle (\textit{zero-shot}) sınıflandırma yapabilir
+\cite{brown2020}. BŞEÜ için etiketli geçmiş veri olmadığından bu yol seçilmiş, etiket kural kitabı
+modelin talimatı olarak kullanılmıştır; modelin önce gerekçesini yazması düşünce zinciri
+yaklaşımının \cite{wei2022} basit bir uygulamasıdır.
+
+\textbf{Erişim destekli üretim (RAG).} Lewis ve arkadaşları \cite{lewis2020} cevabı harici belgelerden
+getirilen parçalara dayandırmayı önermiştir; arama genellikle yoğun vektörlerle yapılır
+\cite{karpukhin2020,johnson2019}. Gao ve arkadaşları \cite{gao2023} anahtar kelime ve vektör aramanın
+birleştirilmesinin doğruluğu artırdığını belirtmektedir; bunun için yaygın yöntem karşılıklı sıra
+birleştirmedir (RRF) \cite{cormack2009}. RAG değerlendirmesi için RAGAS gibi ölçütler önerilmiştir
+\cite{es2024}.
+
+\textbf{Güvenilirlik ve güvenlik.} Dil modelleri kaynakta olmayan bilgiyi akıcı biçimde üretebilir
+\cite{ji2023}; kullanıcı metni modele verildiğinde \textit{prompt injection} saldırıları ortaya çıkar
+\cite{perez2022,greshake2023} ve OWASP bunu en önemli risk olarak listeler \cite{owasp2025}. Bu
+nedenle bu çalışmada modelin çıktısı kodla denetlenmiştir. Yavaş isteklere belirli bir süre sonra
+ikinci bir kopya gönderme (\textit{hedged request}) \cite{dean2013} canlı model zincirinin dayanağıdır.
+
+\textbf{Küçük örneklerle ölçme.} Küçük setlerde tek bir yüzde yanıltıcıdır; bu çalışmadaki bütün
+oranlar Wilson \cite{wilson1927} güven aralığıyla verilmiş ve ayar için hiç kullanılmayan kilitli test
+setleri ayrılmıştır. Cevap kalitesinin bir başka dil modeliyle puanlanması \cite{zheng2023} kalan dönem
+için planlanmıştır.
+
 \section{Raporun Düzeni}
 
-Bölüm~\ref{ch:literatur}'de konuyla ilgili çalışmalar özetlenmiştir. Bölüm~\ref{ch:yontem}'de
-kullanılan yazılımlar, veri setleri ve yöntemler; Bölüm~\ref{ch:uygulama}'da geliştirilen uygulamanın
-mimarisi ve ekran görüntüleri; Bölüm~\ref{ch:bulgular}'te ölçüm sonuçları ve tartışması;
-Bölüm~\ref{ch:sonuc}'te ara dönem değerlendirmesi, karşılaşılan zorluklar ve kalan dönemin planı
-verilmiştir. Ekler bölümünde kaynak kodu ve canlı demo bağlantıları ile önemli kod parçaları yer alır.
+Bölüm~\ref{ch:yontem}'de yazılımlar ve yöntemler,
+Bölüm~\ref{ch:uygulama}'da uygulama ve ekran görüntüleri, Bölüm~\ref{ch:bulgular}'te ölçüm sonuçları,
+Bölüm~\ref{ch:sonuc}'te ara dönem değerlendirmesi ve kalan dönemin planı verilmiştir.

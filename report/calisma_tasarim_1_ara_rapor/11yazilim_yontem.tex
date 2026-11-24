@@ -25,18 +25,11 @@ Gömme (embedding) & \texttt{gemini-embedding-2}, 768 boyut & Çok dilli: TR sor
 Arka uç & Python 3.12, FastAPI, Pydantic & Tipli, hızlı; OpenAPI şemasını kendisi üretir \\
 Veritabanı & PostgreSQL 18 + pgvector, psycopg 3 & Talepler, geçmiş ve vektörler tek veritabanında \\
 Ön yüz & React 19, TypeScript, Vite, Tailwind CSS, shadcn/ui, TanStack Router/Query & Tipli, OpenAPI'den üretilen API istemcisi \\
-Güvenlik & Argon2id, HttpOnly çerez, CSRF denetimi & OWASP önerileri \\
 Kalite & pytest, Playwright, ruff, mypy (strict), CodeQL & Her kural ve hata düzeltmesi için test \\
 Teslim & Docker, GitHub Actions, Render, Neon & Tek komutla kurulum; CI geçmeden yayın yok \\
-Geliştirme & Git, GitHub, uv, Claude Code (yardımcı araç) & Kilitli bağımlılıklar, kayıtlı geçmiş \\
 \bottomrule
 \end{tabularx}
 \end{table}
-
-\textbf{Neden LangChain yok?} Akış döngüsüz dört adımdan oluşmaktadır ve modelden tek beklenen, belirli
-bir şemada JSON üretmesidir. Bunu tek metotlu bir \texttt{LLMProvider} arayüzü karşılamaktadır.
-Bir çerçeve (framework) büyük bir bağımlılık getirir ve istemleri gizler. Akışa gerçek bir döngü
-(ör. öğrenciye ek soru sorma) eklenirse bu karar yeniden değerlendirilecektir.
 
 \section{Veri Setleri}
 \label{sec:veri}
@@ -44,53 +37,14 @@ Bir çerçeve (framework) büyük bir bağımlılık getirir ve istemleri gizler
 BŞEÜ'nün gerçek öğrenci talepleri kişisel veri içerdiğinden kullanılmamış; bunun yerine BŞEÜ'nün gerçek
 sistemleri (OBS, SOFRA, UZEM, eduroam, Akıllı Kart) ve öğrencilerin sık karşılaştığı sorunlar üzerine
 yapılan bir araştırmadan yola çıkılarak \textbf{160 talep} yazılmış ve hepsi tek tek elle
-etiketlenmiştir (Tablo~\ref{tab:veri}).
+etiketlenmiştir: 80 talepli geliştirme seti (istemler bu sette geliştirilir), 40 talepli kilitli
+test seti ve dağınık, yazım hatalı, iki sorunlu taleplerden oluşan 40 talepli kilitli gerçekçi set.
+Her set yarı yarıya Türkçe ve İngilizcedir.
 
-\begin{table}[!ht]
-\centering
-\caption{Veri setleri}
-\label{tab:veri}
-\small
-\begin{tabularx}{\textwidth}{@{}l c c X@{}}
-\toprule
-\textbf{Set} & \textbf{Talep} & \textbf{TR / EN} & \textbf{Kullanım} \\
-\midrule
-Geliştirme (dev) & 80 & 40 / 40 & İstemler ve kural kitabı bu sette geliştirilir \\
-Kilitli test & 40 & 20 / 20 & Yalnızca nihai skor; hiç ayar yapılmaz \\
-Kilitli gerçekçi & 40 & 20 / 20 & Dağınık, yazım hatalı, iki sorunlu talepler; yalnızca nihai skor \\
-\bottomrule
-\end{tabularx}
-\end{table}
 
-Kilitli setler hiçbir zaman düzenlenmez ve istem geliştirmede kullanılmaz; geliştirme ortamındaki bir
-koruma kancası (hook) bu dosyalardaki her değişikliği engeller. Geliştirme setinin kategori ve
-öncelik dağılımı Şekil~\ref{fig:devdagilim}'da verilmiştir. Kategorilerin dengeli tutulması, her
-birimin eşit ölçülmesini sağlar.
-
-\begin{figure}[!ht]
-\centering
-\begin{tikzpicture}
-\begin{axis}[rapor, xbar, width=0.52\textwidth, height=6.2cm, bar width=7pt,
-  xmin=0, xmax=15, xlabel={Talep sayısı},
-  symbolic y coords={Diğer,Kampüs Yaşamı,Harç ve Ödemeler,Akademik Kayıtlar,Ders Kaydı,Teknik Destek,Hesap Erişimi},
-  ytick=data, y dir=reverse, ymajorgrids=false, xmajorgrids,
-  nodes near coords, nodes near coords style={font=\scriptsize},
-  title={\small (a) Kategori}]
-\addplot[fill=s1, draw=none] coordinates {(11,Hesap Erişimi) (12,Teknik Destek) (10,Ders Kaydı) (12,Akademik Kayıtlar) (12,Harç ve Ödemeler) (12,Kampüs Yaşamı) (11,Diğer)};
-\end{axis}
-\end{tikzpicture}\hfill
-\begin{tikzpicture}
-\begin{axis}[rapor, ybar, width=0.44\textwidth, height=6.2cm, bar width=14pt,
-  ymin=0, ymax=36, ylabel={Talep sayısı},
-  symbolic x coords={Acil,Yüksek,Orta,Düşük}, xtick=data,
-  nodes near coords, nodes near coords style={font=\scriptsize},
-  title={\small (b) Öncelik}]
-\addplot[fill=s2, draw=none] coordinates {(Acil,11) (Yüksek,11) (Orta,27) (Düşük,31)};
-\end{axis}
-\end{tikzpicture}
-\caption{Geliştirme setinin (n = 80) dağılımı; 21 talep insana yönlendirilmeyi (escalate) gerektirir}
-\label{fig:devdagilim}
-\end{figure}
+Kilitli setler hiçbir zaman düzenlenmez ve istem geliştirmede kullanılmaz; bir koruma kancası (hook)
+bu dosyalardaki her değişikliği engeller. Geliştirme setinde yedi kategori dengelidir (10--12 talep);
+21 talep insana yönlendirilmeyi (escalate) gerektirir.
 
 \section{Talep Sınıflandırma Yöntemi}
 
@@ -123,20 +77,8 @@ hesap; kural istisnası talebi; para veya resmî kayıt hatası; not ve sınav i
 disiplin süreci. Öğrencinin yalnızca sinirli olması tek başına bir neden değildir. İki sorun içeren
 bir talepte kategori öğrenciyi en acil engelleyen sorundan seçilir, escalation ise bütün sorunlara bakar.
 
-Modelin çıktısı Kod~\ref{lst:siniflandirma}'deki Pydantic şemasıyla sınırlandırılmıştır. Model bu
-şemaya uymayan bir JSON üretirse çıktı reddedilir. \texttt{reason} alanı bilinçli olarak ilk
-sıradadır: model önce gerekçesini yazar, sonra etiketleri verir.
-
-\begin{lstlisting}[float=!ht, language=Python, caption={Sınıflandırıcının çıktı şeması (\texttt{domain/outputs.py}, açıklamalar kısaltılmıştır)}, label={lst:siniflandirma}]
-class Classification(BaseModel):
-    """`reason` comes first on purpose: think, then decide."""
-    model_config = ConfigDict(extra="forbid", strict=True)
-
-    reason: str = Field(description="1-2 short sentences: which rules apply and why.")
-    category: Category    # 7 sınıftan biri
-    priority: Priority    # urgent | high | medium | low
-    escalate: bool        # bir insan devralmalı mı?
-\end{lstlisting}
+Modelin çıktısı katı bir Pydantic şemasıyla sınırlandırılmıştır; şemaya uymayan JSON reddedilir.
+Şemada \texttt{reason} alanı ilk sıradadır: model önce gerekçesini yazar, sonra etiketleri verir.
 
 \section{Bilgi Tabanı ve Belge Arama}
 
@@ -144,22 +86,6 @@ Bilgi tabanı, BŞEÜ Ön Lisans ve Lisans Eğitim-Öğretim Yönetmeliği, Öğ
 sorulan sorular sayfaları, Bilgi İşlem duyuruları gibi resmî kaynaklardan elle derlenmiş 14 konudan
 oluşur. Her konu Türkçe ve İngilizce iki belge olarak yazılmış, her belge başlık düzeyinde parçalara
 (chunk) bölünmüştür. Her parça kaynağını (belge adı, resmî kaynak satırı, bağlantı) taşır.
-Şekil~\ref{fig:kb} konulara göre parça sayılarını gösterir.
-
-\begin{figure}[!ht]
-\centering
-\begin{tikzpicture}
-\begin{axis}[rapor, xbar, width=0.78\textwidth, height=8.2cm, bar width=6.5pt,
-  xmin=0, xmax=30, xlabel={Parça sayısı (TR + EN)},
-  symbolic y coords={Harç ve ücretler,Kampüs yaşamı,Belgeler ve hesaplar,Bilişim hesapları,SKS hizmetleri,Ders kaydı,Akademik izin,Muafiyet ve intibak,Notlar ve ortalama,Sınavlar,Staj,Yaz okulu,Devam ve mezuniyet,Engelli öğrenciler},
-  ytick=data, y dir=reverse, ymajorgrids=false, xmajorgrids,
-  nodes near coords, nodes near coords style={font=\scriptsize}]
-\addplot[fill=s1, draw=none] coordinates {(26,Harç ve ücretler) (24,Kampüs yaşamı) (18,Belgeler ve hesaplar) (18,Bilişim hesapları) (16,SKS hizmetleri) (14,Ders kaydı) (10,Akademik izin) (10,Muafiyet ve intibak) (10,Notlar ve ortalama) (10,Sınavlar) (10,Staj) (10,Yaz okulu) (8,Devam ve mezuniyet) (6,Engelli öğrenciler)};
-\end{axis}
-\end{tikzpicture}
-\caption{Bilgi tabanı: 14 konu, 28 belge, toplam 190 parça}
-\label{fig:kb}
-\end{figure}
 
 Her parça \texttt{gemini-embedding-2} modeliyle 768 boyutlu bir vektöre dönüştürülür. Talep de aynı
 şekilde vektöre çevrilir ve talep vektörü $\mathbf{q}$ ile parça vektörü $\mathbf{d}$ arasındaki
@@ -172,19 +98,9 @@ kosinüs benzerliği Eşitlik~\ref{eq:kosinus} ile hesaplanır.
 \end{equation}
 
 Burada $\Leftrightarrow$, pgvector'ün kosinüs uzaklığı işlecidir (\texttt{<=>}). Arama, talebin
-dilindeki parçalar arasından en yakın $k = 3$ parçayı veritabanının içinde SQL ile bulur
-(Kod~\ref{lst:arama}). 190 parça için yaklaşık arama indeksine gerek yoktur; tam tarama hızlıdır ve
-hiçbir parçayı kaçırmaz. Vektörler depoda kayıtlıdır ve uygulama açılırken veritabanına kopyalanır;
-bu sayede yeni bir veritabanı hiçbir model çağrısı yapılmadan dolar.
-
-\begin{lstlisting}[float=!ht, language=SQL, caption={pgvector ile en yakın 3 parçanın bulunması (\texttt{retrieval/search.py})}, label={lst:arama}]
-SELECT id, doc, language, title, source, url, text,
-       1 - (embedding <=> %(query)s::vector) AS score
-FROM kb_chunks
-WHERE %(language)s::text IS NULL OR language = %(language)s
-ORDER BY embedding <=> %(query)s::vector, id
-LIMIT %(k)s
-\end{lstlisting}
+dilindeki parçalar arasından en yakın $k = 3$ parçayı veritabanının içinde tek bir SQL sorgusuyla
+bulur. 190 parça için yaklaşık arama indeksine gerek yoktur; tam tarama hızlıdır ve hiçbir parçayı
+kaçırmaz.
 
 \section{Kaynaklı Cevap Yazma ve Alıntı Denetimi}
 
@@ -193,31 +109,11 @@ doldurur: \texttt{evidence} (kuraldan kelimesi kelimesine alıntı), \texttt{cov
 soruyu cevaplıyor mu), \texttt{reply} (cevap), \texttt{sources} (kullanılan parça kimlikleri) ve
 \texttt{general\_help} (belgelerin cevaplamadığı kısım için resmî olmadığı etiketlenen genel tavsiye).
 
-Modelin alıntısına güvenilmez; alıntı kodla denetlenir (Algoritma~\ref{alg:alinti}). Alıntı
-parçalara ayrılır, her parça Unicode, tırnak ve büyük/küçük harf farkları giderilerek
-normalleştirilir ve bulunan belgelerin metninde aranır. Bu denetim hem modelin uydurduğu kuralları
-hem de öğrencinin talebin içine yerleştirdiği sahte ``resmî kuralları'' (prompt injection) yakalar.
-
-\begin{algorithm}[!ht]
-\caption{Alıntının belgede birebir bulunduğunun denetimi (\texttt{domain/grounding.py})}
-\label{alg:alinti}
-\begin{algorithmic}[1]
-\Require alıntı $e$, getirilen parça metinleri $D = \{d_1, d_2, d_3\}$
-\State $e \gets$ parça kimliklerini sil$(e)$
-\State $P \gets$ $e$'yi satır sonu, üç nokta ve cümle sonlarından böl
-\State $P \gets \{\, \textsc{Normalle}(p) : p \in P,\ |\textsc{Kelimeler}(p)| \geq 3 \,\}$
-\State $R \gets \textsc{Normalle}(d_1 \Vert d_2 \Vert d_3)$ \Comment{NFKC, düz tırnak, küçük harf, tek boşluk}
-\If{$P = \emptyset$}
-  \State \Return \textsc{Yanlış} \Comment{alıntı yoksa kanıt da yok}
-\EndIf
-\ForAll{$p \in P$}
-  \If{$p \not\subseteq R$}
-    \State \Return \textsc{Yanlış} \Comment{belgede olmayan bir cümle}
-  \EndIf
-\EndFor
-\State \Return \textsc{Doğru}
-\end{algorithmic}
-\end{algorithm}
+Modelin alıntısına güvenilmez; alıntı kodla denetlenir (\texttt{domain/grounding.py}). Alıntı
+cümlelere bölünür, her cümle Unicode, tırnak ve büyük/küçük harf farkları giderilerek normalleştirilir
+ve bulunan belgelerin metninde aranır; tek bir cümle bile bulunamazsa alıntı geçersizdir. Bu denetim
+hem modelin uydurduğu kuralları hem de öğrencinin talebe yerleştirdiği sahte ``resmî kuralları''
+(prompt injection) yakalar.
 
 \section{Otomatik Gönderim Kararı}
 \label{sec:karar}
@@ -225,28 +121,7 @@ hem de öğrencinin talebin içine yerleştirdiği sahte ``resmî kuralları'' (
 Karar, \texttt{domain/decision.py} içinde yedi açık kontrolden oluşan sade bir Python fonksiyonudur.
 Cevap yalnızca kontrollerin \textbf{tamamı} geçerse otomatik gönderilir; kalan her kontrol bir neden
 kodu olarak kaydedilir ve hem personel panelinde hem de öğrencinin ``Nasıl karar verildi?'' izinde
-gösterilir (Tablo~\ref{tab:kontroller}, Şekil~\ref{fig:karar}).
-
-\begin{table}[!ht]
-\centering
-\caption{Otomatik gönderim için yedi kontrol}
-\label{tab:kontroller}
-\footnotesize
-\renewcommand{\arraystretch}{1.2}
-\begin{tabularx}{\textwidth}{@{}c p{5.2cm} l X@{}}
-\toprule
-\textbf{\#} & \textbf{Kontrol} & \textbf{Neden kodu} & \textbf{Gerekçe} \\
-\midrule
-1 & Kategori ``Diğer'' değil & \texttt{category\_other} & Sorumlu birim belli değil \\
-2 & Model escalation istemedi & \texttt{escalation} & Hassas konu: yalnızca insan \\
-3 & Öncelik ``acil'' değil & \texttt{urgent} & Bugün bir personel harekete geçmeli \\
-4 & En iyi benzerlik $s \geq \tau = 0{,}65$ & \texttt{weak\_match} & Zayıf eşleşme, muhtemelen yanlış belge \\
-5 & Belgeler ana soruyu kapsıyor & \texttt{not\_covered} & Belgede yoksa uydurma \\
-6 & Kaynak, gerçekten getirilen bir parça & \texttt{no\_citation} & Model kaynak uyduramaz \\
-7 & Alıntı belgede birebir var & \texttt{ungrounded} & Sahte kural ve halüsinasyon \\
-\bottomrule
-\end{tabularx}
-\end{table}
+gösterilir (Şekil~\ref{fig:karar}).
 
 \begin{figure}[!ht]
 \centering
@@ -274,54 +149,15 @@ gösterilir (Tablo~\ref{tab:kontroller}, Şekil~\ref{fig:karar}).
 \label{fig:karar}
 \end{figure}
 
-Benzerlik eşiği (0,65) tek başına güvenilir bir ayırıcı değildir: cevaplanabilir ve cevaplanamaz
-taleplerin skorları birbirine karışmaktadır (Bölüm~\ref{sec:arama-bulgu}). Bu nedenle eşik yalnızca bir
-alt sınır olarak kullanılır; asıl koruma ``kapsıyor mu'' ve ``birebir alıntı'' kontrolleridir.
-Eşik ve istemler kodda sabittir; değiştirilmeleri gözden geçirilmiş bir commit ve yeni bir
-değerlendirme gerektirir.
-
-\textbf{Yönlendirilen talepte yardım:} Talep personele gitse bile, escalation yoksa ve taslağın
-kaynaklı kısmı doğrulandıysa bu kısım öğrenciye hemen ``ön bilgi'' olarak gösterilir. Escalation
-gerektiren talepte öğrenciye yapay zekâ metni hiç gösterilmez.
+Benzerlik eşiği (0,65) tek başına güvenilir bir ayırıcı değildir (Bölüm~\ref{sec:arama-bulgu}); bu
+nedenle yalnızca bir alt sınırdır ve asıl koruma ``kapsıyor mu'' ve ``birebir alıntı'' kontrolleridir.
+Talep personele gitse bile, escalation yoksa ve taslağın kaynaklı kısmı doğrulandıysa bu kısım
+öğrenciye hemen ``ön bilgi'' olarak gösterilir.
 
 \section{Karşılaştırılan Yöntemler}
 
-Bölümün yapay zekâ projeleri için öngördüğü gibi, sistemin farklı noktalarında en az iki yöntem
-aynı veri üzerinde karşılaştırılmıştır:
-
-\begin{itemize}
-  \item \textbf{Modelin düşünme düzeyi:} aynı model, düşük (\textit{LOW}) ve yüksek (\textit{HIGH})
-        düşünme düzeyleriyle geliştirme setinde ikişer kez çalıştırılmıştır.
-  \item \textbf{Model:} \texttt{gemini-3.5-flash-lite} ve \texttt{gemini-3.1-flash-lite}
-        aynı geliştirme setinde karşılaştırılmıştır.
-  \item \textbf{Karar yöntemi:} kararın modele bırakılması yerine kodla verilmesi (ADR~0002) ve
-        yalnızca skora dayalı bir eşiğin yetersizliği skor dağılımlarıyla gösterilmiştir.
-  \item \textbf{Arama altyapısı:} ayrı bir vektör veritabanı yerine PostgreSQL içinde pgvector
-        seçilmiş; Python ile yapılan eski aramayla 120 talepte birebir aynı sonuçlar doğrulanmıştır.
-\end{itemize}
-
-Karma arama (anahtar kelime + vektör, RRF) ve bir yerel açık kaynak modelin karşılaştırılması kalan
-dönem için planlanmıştır.
-
-\section{Değerlendirme Yöntemi}
-
-Değerlendirmeler gerçek model çağrılarıyla tek bir komutla çalıştırılır
-(\texttt{make eval SUITE=...}; sınıflandırma, arama, uçtan uca ve güvenlik paketleri). Her çalıştırma, commit kimliği,
-istem, veri seti ve bilgi tabanı özetleriyle (hash) birlikte \texttt{eval/} klasörüne kaydedilir;
-böylece her sayının hangi sürümü ölçtüğü bellidir. Kullanılan ölçütler şunlardır:
-
-\begin{itemize}
-  \item \textbf{Kaçırılan escalation:} insana gitmesi gereken bir talebin gitmemesi; en tehlikeli hata.
-  \item \textbf{Etiket doğruluğu:} kategori, öncelik, escalation ve üçünün birlikte doğru olması.
-  \item \textbf{hit@1, hit@3:} beklenen belgenin ilk 1 / ilk 3 sonuç içinde bulunması.
-  \item \textbf{Hatalı otomatik gönderim:} gönderilmemesi gereken bir cevabın gönderilmesi.
-  \item \textbf{Güvenlik denemeleri:} saldırı içeren taleplerin güvenli sonuçlanma oranı.
-\end{itemize}
-
-Her oran, örnek sayısı $n$ ve Eşitlik~\ref{eq:wilson}'deki Wilson \%95 güven aralığıyla
-($z = 1{,}96$) raporlanır \cite{wilson1927}.
-
-\begin{equation}
-  \frac{\hat{p} + \dfrac{z^2}{2n} \pm z\sqrt{\dfrac{\hat{p}(1-\hat{p})}{n} + \dfrac{z^2}{4n^2}}}{1 + \dfrac{z^2}{n}}
-  \label{eq:wilson}
-\end{equation}
+Bölümün yapay zekâ projeleri için öngördüğü gibi, aynı veri üzerinde en az iki yöntem
+karşılaştırılmıştır: (1) aynı modelin düşük (\textit{LOW}) ve yüksek (\textit{HIGH}) düşünme
+düzeyleri, (2) \texttt{gemini-3.5-flash-lite} ve \texttt{gemini-3.1-flash-lite} modelleri ve (3)
+kararın kodla verilmesi ile yalnızca skora dayalı bir eşik. Karma arama (anahtar kelime + vektör, RRF)
+kalan dönem için planlanmıştır.
