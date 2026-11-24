@@ -1923,3 +1923,17 @@ PR #15 was merged first. Branch `fix/handover-on-dropped-connection`.
 - **Test first:** two new cases in `test_a_failing_live_model_hands_over_to_the_next` (`RemoteProtocolError`, `ConnectError`); they failed (2 failed, 13 passed).
 - **Fix:** `httpx.TransportError`, the parent class of timeouts, protocol and connection errors. 15 passed. ADR 0018's handover list says so.
 - **Split on purpose:** the two-issue auto-send (en-013) needs an answer-prompt change, which needs a full dev eval first; it gets its own branch, so this small fix can go live before a demo without an unmeasured prompt.
+
+## Çalışma Tasarım 1 interim report (2026-11-24)
+Branch `claude/project-thread-xaso7b`. The professor asked for an "ara rapor" in LaTeX for BM331
+Tasarım Çalışması I, in the department's format.
+- **Template:** the department page (bilecik.edu.tr/bilgisayar, Bitirme/Tasarım Çalışması) accepts only
+  LaTeX reports made from its Overleaf template. The template's sources need an Overleaf login, so
+  `report/calisma_tasarim_1_ara_rapor/BUB.cls` was rebuilt from the template's PDF and the
+  department's writing guide (11.02.2025), keeping its file layout (`0main.tex`, `1kapak.tex`, ...).
+  Changed for a design course: course line "BM331 Bilgisayar Mühendisliği Tasarım Çalışması I", "ARA
+  RAPOR" on the cover, no jury signature page (the template says it is removed for design projects).
+- **Content:** Turkish, 6 chapters, 47 pages; screenshots of the student pages (from `docs/images`) and
+  of the staff console (taken from a local demo-mode run); TikZ diagrams of the flow, layers, data
+  model, lifecycle, decision and CI; pgfplots charts drawn from `eval/` only. The 2026-11-17 partial
+  dev run and the open en-013 issue are stated as limits.

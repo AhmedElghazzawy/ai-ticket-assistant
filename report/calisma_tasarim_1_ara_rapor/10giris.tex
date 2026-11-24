@@ -1,0 +1,116 @@
+\chapter{GİRİŞ}
+
+Üniversitelerde Öğrenci İşleri, Bilgi İşlem, Harçlar ve Sağlık, Kültür ve Spor (SKS) gibi birimlere
+her dönem çok sayıda soru gelir. Bu soruların önemli bir kısmı \textit{``OBS şifremi unuttum''},
+\textit{``Kaydımı sildirirsem harcım iade edilir mi?''}, \textit{``Yaz okulunda en fazla kaç ders
+alabilirim?''} gibi, cevabı resmî yönetmeliklerde ve sıkça sorulan sorular sayfalarında zaten yazılı
+olan tekrar eden sorulardır. Öğrenci doğru sayfayı bulamadığı için soruyu e-postayla ya da birime
+giderek sorar; personel de aynı cevabı tekrar tekrar yazar. Öte yandan bazı talepler (ele geçirilmiş
+bir hesap, taciz veya kriz belirtisi, not itirazı, para iadesi hatası, hukuki tehdit) bir yazılımın
+tek başına cevaplamaması gereken, mutlaka bir insanın ilgilenmesi gereken taleplerdir.
+
+Büyük dil modelleri (LLM) doğal dili anlamada ve akıcı metin üretmede başarılıdır
+\cite{brown2020,vaswani2017}; ancak bir modelin ``uydurma'' (halüsinasyon) yapabildiği
+\cite{ji2023}, aynı soruya farklı zamanlarda farklı cevap verebildiği ve talebin içine gizlenen
+talimatlarla yönlendirilebildiği \cite{greshake2023,perez2022} bilinmektedir. Bir üniversitenin adına
+cevap veren bir sistemde bu riskler kabul edilemez. Bu nedenle bu çalışmada model yalnızca
+\textbf{girdi üreten} bir bileşen olarak kullanılmış, cevabın öğrenciye gidip gitmeyeceğine ise
+\textbf{açık ve test edilmiş program kodu} karar vermiştir.
+
+\section{Çalışmanın Amacı}
+
+Bu tasarım çalışmasının amacı, Bilecik Şeyh Edebali Üniversitesi (BŞEÜ) öğrencileri için şu dört
+işi yapan bir yardım masası asistanı tasarlamak, geliştirmek ve ölçmektir:
+
+\begin{enumerate}
+  \item \textbf{Etiketleme:} Öğrencinin Türkçe veya İngilizce yazdığı talebe bir \textit{kategori}
+        (7 sınıf), bir \textit{öncelik} (acil, yüksek, orta, düşük) ve bir insanın devralması gerekip
+        gerekmediğini gösteren \textit{escalate} etiketi vermek.
+  \item \textbf{Belge arama (RAG):} Cevabı üniversitenin resmî belgelerinden oluşan bir bilgi
+        tabanında anlam benzerliğiyle aramak \cite{lewis2020,gao2023}.
+  \item \textbf{Kaynaklı taslak:} Bulunan kuralı önce aynen alıntılayan, sonra cevabı yazan ve
+        kaynağını gösteren bir taslak üretmek.
+  \item \textbf{Karar:} Taslağı öğrenciye otomatik göndermek ya da talebi taslak ve gerekçeleriyle
+        birlikte doğru birimin kuyruğuna yönlendirmek. Bu karar modelde değil, kodda verilir.
+\end{enumerate}
+
+Sistemin genel akışı Şekil~\ref{fig:genelakis}'te gösterilmiştir.
+
+\begin{figure}[!ht]
+\centering
+\begin{tikzpicture}[node distance=5mm and 7mm]
+  \node[kutu, minimum width=24mm] (t) {Öğrenci talebi\\\scriptsize TR / EN};
+  \node[aikutu, right=of t, minimum width=28mm] (c) {1. Sınıflandırma\\\scriptsize kategori · öncelik · escalate};
+  \node[aikutu, below=9mm of c, minimum width=28mm] (r) {2. Belge arama\\\scriptsize pgvector, ilk 3 parça};
+  \node[aikutu, right=of r, minimum width=28mm] (a) {3. Kaynaklı taslak\\\scriptsize önce alıntı, sonra cevap};
+  \node[karar, right=of c, xshift=10mm] (d) {4. Karar\\\scriptsize kod, 7 kontrol};
+  \node[kodkutu, right=of d, minimum width=26mm, yshift=8mm] (s) {Öğrenciye\\otomatik cevap};
+  \node[kutu, right=of d, minimum width=26mm, yshift=-12mm, fill=s2!10, draw=s2] (h) {Birimin kuyruğu\\\scriptsize taslak + nedenler};
+  \draw[ok] (t) -- (c);
+  \draw[ok] (t.south) |- (r.west);
+  \draw[ok] (r) -- (a);
+  \draw[ok] (c) -- (d);
+  \draw[ok] (a.north) |- ([yshift=-3mm]d.south) -- (d.south);
+  \draw[ok] (d.east) -- node[etiket, above, sloped] {hepsi geçti} (s.west);
+  \draw[ok] (d.east) -- node[etiket, below, sloped] {biri kaldı} (h.west);
+  \node[font=\scriptsize, text=s1, above=1mm of c] {model (Gemini)};
+  \node[font=\scriptsize, text=s3!70!black, above=1mm of d] {sade Python kodu};
+\end{tikzpicture}
+\caption{Sistemin genel akışı: model etiketler ve yazar, son kararı kod verir}
+\label{fig:genelakis}
+\end{figure}
+
+\section{Kapsam ve Kısıtlar}
+
+Çalışma bir ders projesi olarak tek kişi tarafından yürütülmüş, bütün bileşenler ücretsiz katmanlarda
+çalışacak şekilde tasarlanmıştır. Temel kısıtlar ve kapsam şöyledir:
+
+\begin{itemize}
+  \item \textbf{Diller:} Öğrencinin okuduğu her yer Türkçe ve İngilizcedir.
+  \item \textbf{Birimler:} Bilgi İşlem, Öğrenci İşleri, Harçlar Şube Müdürlüğü, SKS ve kategorisi
+        belli olmayan talepler için Öğrenci İşleri nöbetçi personeli olmak üzere 5 gerçek BŞEÜ birimi.
+  \item \textbf{Bilgi tabanı:} 14 konu $\times$ 2 dil $=$ 28 resmî belge, 190 parça (chunk).
+  \item \textbf{Altyapı:} Google Gemini API ücretsiz katmanı, Render ücretsiz web servisi,
+        Neon ücretsiz PostgreSQL. Bu nedenle istek sınırları ve model yoğunluğu tasarımın parçasıdır.
+  \item \textbf{Gizlilik:} Öğrencinin metni loglara asla yazılmaz (KVKK \cite{kvkk}); erişim kodları
+        ve oturum anahtarları veritabanında yalnızca özet (hash) olarak tutulur.
+  \item \textbf{Resmîyet:} Sistem öğrencinin kişisel projesidir, BŞEÜ'nün resmî hizmeti değildir;
+        arayüz bunu açıkça belirtir.
+\end{itemize}
+
+\section{Ara Rapor Dönemindeki Durum}
+
+Proje, dönem başında konulan hedeflerin tamamını uçtan uca çalışan ve canlıya alınmış bir sistem
+olarak karşılamıştır. Tablo~\ref{tab:durum} ara rapor tarihi itibarıyla ana bileşenlerin durumunu
+özetler; ayrıntılı iş planı Bölüm~\ref{sec:isplani}'de verilmiştir.
+
+\begin{table}[!ht]
+\centering
+\caption{Ara rapor tarihi (24 Kasım 2026) itibarıyla proje bileşenlerinin durumu}
+\label{tab:durum}
+\small
+\begin{tabularx}{\textwidth}{@{}l X c@{}}
+\toprule
+\textbf{Bileşen} & \textbf{İçerik} & \textbf{Durum} \\
+\midrule
+Talep sınıflandırıcı & 7 kategori, 4 öncelik, escalation kuralları, JSON şemalı çıktı & Tamamlandı \\
+Kaynaklı cevap (RAG) & 28 belge, 190 parça, pgvector arama, birebir alıntı denetimi & Tamamlandı \\
+Karar kuralı & 7 açık kontrol, her biri testli & Tamamlandı \\
+Öğrenci arayüzü & Sohbet, ``Taleplerim'', karar izi, ``Bir uzmana gönder'' & Tamamlandı \\
+Personel paneli & Giriş, birim kuyruğu, düzenle-gönder, yeniden atama, istatistik & Tamamlandı \\
+Güvenlik & Prompt injection savunması, istek sınırı, CSRF, Argon2id & Tamamlandı \\
+Canlıya alma & Render + Neon, 3 modelli dayanıklı model zinciri & Tamamlandı \\
+Değerlendirme altyapısı & Tek komutla değerlendirme, sürümlü sonuçlar, \%95 GA & Kısmen \\
+Karma (hibrit) arama & Tam metin + vektör, RRF \cite{cormack2009} & Planlandı \\
+Büyük değerlendirme seti & 200+ talep, model karşılaştırması & Planlandı \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Raporun Düzeni}
+
+Bölüm~\ref{ch:literatur}'de konuyla ilgili çalışmalar özetlenmiştir. Bölüm~\ref{ch:yontem}'de
+kullanılan yazılımlar, veri setleri ve yöntemler; Bölüm~\ref{ch:uygulama}'da geliştirilen uygulamanın
+mimarisi ve ekran görüntüleri; Bölüm~\ref{ch:bulgular}'te ölçüm sonuçları ve tartışması;
+Bölüm~\ref{ch:sonuc}'te ara dönem değerlendirmesi, karşılaşılan zorluklar ve kalan dönemin planı
+verilmiştir. Ekler bölümünde kaynak kodu ve canlı demo bağlantıları ile önemli kod parçaları yer alır.

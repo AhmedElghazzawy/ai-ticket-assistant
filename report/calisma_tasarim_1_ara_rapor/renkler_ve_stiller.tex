@@ -1,0 +1,29 @@
+% Şekillerde kullanılan renkler. Uygulamanın BŞEÜ kırmızısı (bilecik.edu.tr stil dosyası) ve
+% renk körlüğü için denetlenmiş üç kategorik renk (mavi, turuncu, su yeşili).
+\definecolor{bseu}{RGB}{200,16,46}
+\definecolor{s1}{HTML}{2A78D6}
+\definecolor{s2}{HTML}{EB6834}
+\definecolor{s3}{HTML}{1BAF7A}
+\definecolor{koyu}{HTML}{2B2B2B}
+\definecolor{acik}{HTML}{F4F4F2}
+\definecolor{iyi}{HTML}{1B8A5A}
+\definecolor{uyari}{HTML}{C98500}
+\tikzset{
+  kutu/.style={draw=koyu!70, rounded corners=3pt, fill=white, align=center, font=\small, inner sep=5pt, minimum height=9mm},
+  aikutu/.style={kutu, fill=s1!10, draw=s1},
+  kodkutu/.style={kutu, fill=s3!12, draw=s3!80!black},
+  dbkutu/.style={kutu, cylinder, shape border rotate=90, aspect=0.18, fill=s2!10, draw=s2},
+  karar/.style={diamond, aspect=1.8, draw=bseu, fill=bseu!7, align=center, font=\small, inner sep=1pt},
+  ok/.style={-{Stealth[length=2.6mm]}, thick, draw=koyu!80},
+  kesik/.style={ok, dashed},
+  etiket/.style={font=\scriptsize, text=koyu!80, fill=white, inner sep=1.5pt},
+}
+\pgfplotsset{
+  rapor/.style={
+    axis lines*=left, ymajorgrids, grid style={gray!25},
+    tick label style={font=\footnotesize}, label style={font=\small},
+    legend style={font=\footnotesize, draw=none, fill=none},
+    every axis plot/.append style={line width=0.4pt},
+    /pgf/number format/use comma, /pgf/number format/1000 sep={},
+  }
+}

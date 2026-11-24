@@ -1,0 +1,104 @@
+\chapter{SONUÇLAR VE ÖNERİLER}
+\label{ch:sonuc}
+
+Bu bölümde ara dönem itibarıyla çalışmanın genel değerlendirmesi yapılmakta, karşılaşılan zorluklar
+anlatılmakta ve dönemin kalanı için iş planı sunulmaktadır.
+
+\section{Genel Değerlendirme}
+
+Ara rapor tarihinde, dönem başında hedeflenen sistem uçtan uca çalışmakta ve canlıda
+bulunmaktadır: talepler etiketlenmekte, cevap resmî belgelerde aranmakta, kaynaklı bir taslak
+yazılmakta ve gönderim kararı test edilmiş kodla verilmektedir. Öğrenci ve personel arayüzleri,
+birime göre yetkilendirme, değiştirilemeyen talep geçmişi, istek sınırları ve saldırılara karşı
+savunmalar tamamlanmıştır. Ayar için hiç kullanılmayan iki kilitli test setinde insana gitmesi
+gereken taleplerden hiçbiri kaçırılmamış, doğru belge her seferinde ilk üç sonuç içinde bulunmuş ve
+12 saldırı denemesinin tamamı engellenmiştir.
+
+Çalışmanın en önemli tasarım sonucu, bir dil modelinin güvenilir bir sistemin parçası olabilmesi için
+\textbf{kararın modelden ayrılması} gerektiğidir. Model etiketleri ve taslağı üretir; gönderim kararı,
+kaynak kartları ve alıntı denetimi kodda yapılır. Bu sayede her kural ayrı ayrı test edilebilmekte,
+her karar öğrenciye ve personele gerekçesiyle açıklanabilmektedir.
+
+\section{Karşılaşılan Zorluklar}
+
+\begin{itemize}
+  \item \textbf{Ücretsiz katman sınırları:} İlk kullanılan model günde yalnızca 20 isteğe izin
+        verdiği için değerlendirmeler yarım kalmış, daha yüksek kotalı bir modele geçilmiştir.
+        Canlı sistemde modellerin sık sık meşgul olması, üç modelli dayanıklı zincirle çözülmüştür.
+  \item \textbf{Eşik seçimi:} Benzerlik skorunun cevaplanabilir ve cevaplanamaz talepleri ayırmadığı
+        görülmüş (Şekil~\ref{fig:skor}), karar tek bir eşik yerine birden çok kontrole dayandırılmıştır.
+  \item \textbf{Bilgi tabanındaki boşluklar:} İlk kilitli test çalıştırmasında bir SOFRA şifresi
+        sorusu yanlış belgeyle cevaplanmıştır. Resmî Bilişim Hesapları belgesi eklenerek ve ``acil talep
+        her zaman insana gider'' kuralı yazılarak bu boşluk kapatılmıştır.
+  \item \textbf{İki sorun içeren talepler:} Bir talepte iki ayrı sorun olduğunda biri atlanabilmektedir
+        (Bölüm~\ref{ch:bulgular}). Bu sorun kendi testlerimde bulunmuş ve düzeltme sıraya alınmıştır.
+  \item \textbf{Ücretsiz barındırma:} Sunucu 15 dakika ziyaretçi olmazsa uyumakta, ilk açılış
+        yaklaşık 30 saniye sürmektedir.
+\end{itemize}
+
+\section{Dönemin Kalanı İçin İş Planı}
+\label{sec:isplani}
+
+Şekil~\ref{fig:gantt} tamamlanan işleri ve kalan dönemin planını haftalık olarak göstermektedir.
+Planlanan her iyileştirme önce geliştirme setinde ölçülecek, kilitli setler yalnızca dönem sonunda
+bir kez çalıştırılacaktır.
+
+\begin{figure}[!ht]
+\centering
+\scalebox{0.86}{%
+\begin{ganttchart}[
+    hgrid, vgrid={*1{gray!25, dotted}},
+    x unit=0.62cm, y unit chart=0.55cm, y unit title=0.55cm,
+    title label font=\scriptsize\bfseries, title height=1,
+    bar label font=\scriptsize, group label font=\scriptsize\bfseries,
+    bar/.append style={fill=s1, draw=none}, bar height=0.55,
+    group/.append style={fill=koyu}, group height=0.25,
+    milestone/.append style={fill=bseu, draw=none}, milestone label font=\scriptsize\bfseries,
+    today=9, today offset=0.5, today label=Ara rapor, today label font=\scriptsize\color{bseu},
+    today rule/.style={draw=bseu, dashed, thick},
+    bar label node/.append style={align=right}
+  ]{1}{16}
+  \gantttitle{Eyl}{1} \gantttitle{Ekim}{4} \gantttitle{Kasım}{5} \gantttitle{Aralık}{4} \gantttitle{Ocak}{2} \\
+  \gantttitlelist{1,...,16}{1} \\
+  \ganttgroup{Tamamlanan işler}{1}{9} \\
+  \ganttbar{Konu seçimi, problem araştırması}{1}{2} \\
+  \ganttbar{Etiket kural kitabı ve 80 talepli geliştirme seti}{2}{2} \\
+  \ganttbar{Sınıflandırıcı, kilitli test seti, ilk ölçümler}{2}{3} \\
+  \ganttbar{Belge arama (RAG), kaynaklı cevap, karar kuralı}{3}{3} \\
+  \ganttbar{API, personel kuyruğu, PostgreSQL + pgvector}{3}{4} \\
+  \ganttbar{CI, Docker, React arayüzü, personel girişi}{3}{5} \\
+  \ganttbar{Canlıya alma, saldırı testleri, gerçekçi set}{5}{5} \\
+  \ganttbar{Ön bilgi, genel tavsiye, model zinciri, geçmiş}{6}{8} \\
+  \ganttmilestone{Ara rapor}{9} \\
+  \ganttgroup[group/.append style={fill=s2}]{Planlanan işler}{9}{16} \\
+  \ganttbar[bar/.append style={fill=s2}]{İki sorunlu talep düzeltmesi, tam değerlendirme}{9}{10} \\
+  \ganttbar[bar/.append style={fill=s2}]{Karma arama (tam metin + vektör, RRF)}{10}{11} \\
+  \ganttbar[bar/.append style={fill=s2}]{200+ talepli set, model karşılaştırması}{11}{13} \\
+  \ganttbar[bar/.append style={fill=s2}]{İzleme (OpenTelemetry), maliyet paneli}{13}{14} \\
+  \ganttbar[bar/.append style={fill=s2}]{Kilitli setlerde nihai ölçüm, final rapor, sunum}{15}{16}
+\end{ganttchart}}
+\caption{İş planı (1. hafta: 28 Eylül 2026); kesikli çizgi ara rapor tarihini gösterir}
+\label{fig:gantt}
+\end{figure}
+
+\section{Gelecekteki Çalışmalar için Öneriler}
+
+Bu çalışmanın ilerleyen aşamalarında;
+
+\begin{itemize}
+  \item İki sorun içeren talepler ayrı ayrı ele alınarak her sorun kendi birimine yönlendirilebilir.
+  \item Anahtar kelime (PostgreSQL tam metin arama) ve vektör arama RRF ile birleştirilerek, hit@1 ve
+        MRR ölçütlerindeki etkisi ölçülebilir \cite{cormack2009}.
+  \item Değerlendirme seti 200'ün üzerine çıkarılarak modeller (yerel bir açık kaynak model dâhil)
+        doğruluk, kaçırılan escalation, 1000 talep başına maliyet ve gecikme bakımından
+        karşılaştırılabilir.
+  \item Cevap kalitesi ikinci bir dil modeliyle puanlanabilir \cite{zheng2023}, sınıf arkadaşlarından
+        toplanan gerçek talepler yeni bir görülmemiş test seti olarak kullanılabilir.
+  \item İkinci bir etiketleyiciyle etiketler arası uyum ölçülebilir.
+  \item Üniversite tek oturum açma (SSO) sistemi ve personel cevabının öğrenciye e-postayla
+        bildirilmesi eklenerek sistem gerçek kullanıma hazırlanabilir.
+\end{itemize}
+
+Bu öneriler doğrultusunda yapılacak çalışmalar, sistemin hem daha çok öğrenciye hemen yardım
+etmesine hem de güvenlik sonuçlarının daha büyük ve gerçekçi verilerle doğrulanmasına katkı
+sağlayacaktır.

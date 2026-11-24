@@ -1,0 +1,57 @@
+%%%%%%%%Bilecik Şeyh Edebali Üniversitesi Mühendislik Fakültesi%%%%%%%%%%%%%%%%
+%%%%%%%%Bilgisayar Mühendisliği Tasarım Çalışması I - Ara Rapor%%%%%%%%%%%%%%%%%
+%%%%%%%%Bölümün Bitirme/Tasarım Çalışması şablonundan uyarlanmıştır%%%%%%%%%%%%%
+\documentclass{BUB}
+
+\usepackage{subcaption}
+\usepackage{tikz}
+\usetikzlibrary{babel,arrows.meta,positioning,shapes.geometric,shapes.misc,fit,backgrounds,calc,decorations.pathreplacing}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepgfplotslibrary{groupplots}
+\usepackage{pgfgantt}
+\usepackage{dirtree}
+\usepackage{tcolorbox}
+
+\input{renkler_ve_stiller}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\baslik{RESMÎ BELGELERE DAYALI, YAPAY ZEKÂ DESTEKLİ\\ ÖĞRENCİ YARDIM MASASI ASİSTANI}
+\baslikEN{AN AI-ASSISTED STUDENT HELPDESK ASSISTANT\\ GROUNDED IN OFFICIAL DOCUMENTS}
+\raportur{ARA RAPOR}
+\ogrenci{Ahmed ELGHAZZAWY}
+\ogrencino{99073453998}
+\danisman{Dr. Öğr. Üyesi Hakan ÜÇGÜN}
+\ders{BM331 Bilgisayar Mühendisliği Tasarım Çalışması I}
+\yil{2026}
+\tarih{24 Kasım 2026}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%Tasarım Çalışmasının Bölümleri%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\include{1kapak}
+\pagenumbering{roman}  % romen rakamları kullanılmaya başlanıyor.
+\setcounter{page}{2}   % sayfa numarası ii'den başlatılıyor.
+\include{2bildirim}
+%-----------------------------------------------------%
+% Jüri imza sayfası (3imzasayfa) tasarım çalışmaları için kaldırılmıştır.
+%-----------------------------------------------------%
+\include{4ozetabstract}
+\include{5onsoz}
+\include{6icindekiler}
+\include{7sekiller_tablosu}
+\include{8cizelgeler_tablosu}
+\include{9simge_kisaltma}
+\pagenumbering{arabic}  % Sayfa numaralaması arap rakamlarıyla yapılır.
+\setcounter{page}{1}    % sayfa numarası 1'den başlatılır.
+\include{10giris}
+\include{11literatur}
+\include{11yazilim_yontem}
+\include{12uygulama}
+\include{14bulgu_tartisma}
+\include{15sonuc_oneri}
+\include{16ekler}
+\include{17kaynaklar}
+
+\end{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%BİTTİ%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

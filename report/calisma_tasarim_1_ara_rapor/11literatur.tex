@@ -1,0 +1,85 @@
+\chapter{LİTERATÜR TARAMASI}
+\label{ch:literatur}
+
+Bu bölümde çalışmanın dayandığı dört alan özetlenmiştir: destek talebi sınıflandırma, erişim
+destekli üretim (RAG), büyük dil modellerinin güvenilirliği ve güvenliği ile küçük örneklerle dürüst
+ölçme.
+
+\section{Destek Talebi Sınıflandırma}
+
+Yardım masası taleplerinin otomatik sınıflandırılması uzun süredir klasik makine öğrenmesi
+yöntemleriyle (TF-IDF, destek vektör makineleri, derin sinir ağları) çalışılmaktadır. Revina ve
+arkadaşları \cite{revina2020}, BT destek talepleri üzerinde yaptıkları karşılaştırmada basit ve
+yorumlanabilir yöntemlerin çoğu zaman karmaşık modeller kadar iyi sonuç verdiğini göstermiştir. Bu
+yöntemlerin ortak gereksinimi, binlerce etiketli örnektir. Büyük dil modelleri ise az sayıda örnekle
+veya yalnızca bir talimat metniyle (\textit{zero-shot}) sınıflandırma yapabilmektedir \cite{brown2020}.
+BŞEÜ için etiketli geçmiş talep verisi bulunmadığından bu çalışmada ikinci yol seçilmiş, etiket kural
+kitabı doğrudan modelin talimatı (system prompt) olarak kullanılmıştır. Modelin etiketten önce
+gerekçesini yazması, düşünce zinciri (\textit{chain-of-thought}) yaklaşımının \cite{wei2022} basit bir
+uygulamasıdır.
+
+\section{Erişim Destekli Üretim (RAG)}
+
+Lewis ve arkadaşları \cite{lewis2020}, bir dil modelinin cevabını harici bir belge deposundan
+getirilen parçalara dayandırmayı (RAG) önermiştir. Böylece modelin bilmediği veya güncel olmayan
+bilgi yerine, kurumun kendi belgeleri kullanılır ve cevap kaynağıyla birlikte gösterilebilir. Belge
+arama genellikle yoğun vektör temsilleriyle (\textit{dense retrieval}) yapılır \cite{karpukhin2020};
+çok büyük koleksiyonlarda FAISS gibi yaklaşık en yakın komşu kütüphaneleri kullanılır
+\cite{johnson2019}. Gao ve arkadaşlarının derlemesi \cite{gao2023}, anahtar kelime ve vektör aramanın
+birleştirildiği karma (hibrit) aramanın ve yeniden sıralamanın (\textit{reranking}) doğruluğu
+artırdığını belirtmektedir. İki sıralı listeyi birleştirmek için yaygın ve parametresiz bir yöntem
+karşılıklı sıra birleştirmedir (RRF) \cite{cormack2009}. RAG sistemlerinin değerlendirilmesi için
+RAGAS gibi otomatik ölçütler önerilmiştir \cite{es2024}.
+
+\section{Dil Modellerinin Güvenilirliği ve Güvenliği}
+
+Ji ve arkadaşlarının derlemesi \cite{ji2023}, dil modellerinin kaynakta bulunmayan bilgiyi akıcı
+biçimde üretebildiğini (halüsinasyon) ve bunun özellikle bilgi gerektiren görevlerde ciddi bir sorun
+olduğunu göstermektedir. Kullanıcı metninin modele girdi olarak verildiği uygulamalarda ise
+\textit{prompt injection} saldırıları ortaya çıkar: Perez ve Ribeiro \cite{perez2022} talimatların
+``önceki talimatları unut'' gibi ifadelerle ele geçirilebildiğini, Greshake ve arkadaşları
+\cite{greshake2023} ise bu saldırının dolaylı yollardan da yapılabildiğini göstermiştir. OWASP, bu
+riski büyük dil modeli uygulamaları için en önemli risk olarak listelemektedir \cite{owasp2025}. Bu
+nedenle bu çalışmada modelin çıktısına güvenmek yerine, çıktı kodla denetlenmiştir: alıntılanan kural
+belgede birebir yoksa cevap gönderilmez.
+
+Ücretsiz katmandaki model servisleri sık sık yoğunluk nedeniyle hata verir veya yavaş cevap verir.
+Dean ve Barroso \cite{dean2013}, büyük ölçekli sistemlerde yavaş isteklerin (\textit{tail latency})
+etkisini azaltmak için belirli bir süre sonra aynı isteği ikinci bir kaynağa da gönderme
+(\textit{hedged request}) yöntemini önermiştir. Canlı sistemdeki model zinciri bu fikre dayanır.
+
+\section{Küçük Örneklerle Ölçme}
+
+Değerlendirme setleri küçük olduğunda tek bir yüzde değeri yanıltıcıdır. Wilson \cite{wilson1927}
+güven aralığı, özellikle oran 0 veya 1'e yakınken normal yaklaşıma göre daha doğru aralık verir ve bu
+çalışmadaki bütün ölçütlerde kullanılmıştır. Ayrıca istem (prompt) geliştirmede kullanılan verinin
+skoru iyimser göstereceği bilindiğinden, ayar için hiç kullanılmayan kilitli test setleri
+ayrılmıştır. Cevap kalitesinin bir başka dil modeliyle puanlanması (\textit{LLM-as-a-judge})
+\cite{zheng2023} kalan dönem için planlanmıştır.
+
+\section{Literatür Özeti}
+
+Tablo~\ref{tab:literatur} incelenen çalışmaları ve bu projeye katkılarını özetlemektedir.
+
+\begin{table}[!ht]
+\centering
+\caption{Literatür özeti ve bu çalışmaya yansıması}
+\label{tab:literatur}
+\footnotesize
+\renewcommand{\arraystretch}{1.25}
+\begin{tabularx}{\textwidth}{@{}p{2.5cm} p{2.6cm} X X@{}}
+\toprule
+\textbf{Yazar (Yıl)} & \textbf{Konu} & \textbf{Bulgu} & \textbf{Bu çalışmada} \\
+\midrule
+Lewis vd. (2020) \cite{lewis2020} & RAG & Cevabı getirilen belgelere dayandırmak doğruluğu artırır & Cevaplar 28 resmî belgeden üretilir \\
+Karpukhin vd. (2020) \cite{karpukhin2020} & Yoğun vektör arama & Anlam vektörleri anahtar kelimeyi geçer & 768 boyutlu çok dilli gömme \\
+Cormack vd. (2009) \cite{cormack2009} & RRF & Basit sıra birleştirme güçlü sonuç verir & Karma arama için planlandı \\
+Revina vd. (2020) \cite{revina2020} & Talep sınıflandırma & Basit yöntemler çoğu zaman yeterli & Az sayıda kural, açık kod \\
+Wei vd. (2022) \cite{wei2022} & Düşünce zinciri & Önce gerekçe, sonra cevap & Model önce gerekçe/alıntı yazar \\
+Ji vd. (2023) \cite{ji2023} & Halüsinasyon & Model kaynaksız bilgi uydurabilir & Birebir alıntı kodla denetlenir \\
+Greshake vd. (2023) \cite{greshake2023} & Prompt injection & Girdi metni modeli yönlendirebilir & Talep çitlenir, 12 saldırı testi \\
+Dean, Barroso (2013) \cite{dean2013} & Kuyruk gecikmesi & Yavaş isteğe ikinci kopya gönderilir & 9 sn sonra ikinci modelle yarış \\
+Wilson (1927) \cite{wilson1927} & Güven aralığı & Küçük örnekte doğru aralık & Her ölçüt \%95 GA ile \\
+\bottomrule
+\end{tabularx}
+\end{table}
