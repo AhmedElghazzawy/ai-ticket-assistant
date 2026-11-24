@@ -97,6 +97,8 @@
 \setlength{\cfttabnumwidth}{5.5em}
 \setlength{\cftfigindent}{0pt}
 \setlength{\cfttabindent}{0pt}
+\setlength{\cftbeforefigskip}{5pt}
+\setlength{\cftbeforetabskip}{5pt}
 
 %--- Şekil ve tablo yazıları: "Şekil 1.1: ..." ---------------------------
 \addto\captionsturkish{%

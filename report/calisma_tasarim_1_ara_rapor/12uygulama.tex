@@ -10,9 +10,9 @@ Bu bölümde geliştirilen uygulamanın mimarisi, kod yapısı, veri modeli, ara
 
 Sistem tek bir Docker kapsayıcısında çalışan bir FastAPI uygulamasıdır: aynı uygulama hem JSON API'yi
 sunar hem de derlenmiş React arayüzünü dağıtır. Veriler barındırılan bir PostgreSQL veritabanında,
-vektörlerle birlikte tutulur (Şekil~\ref{fig:dagitim}). Tek bir dağıtım birimi bilinçli bir
-seçimdir: tek kişilik bir projede ayrı servisler bir kazanç sağlamaz, ücretsiz katman da tek bir
-kapsayıcı çalıştırır.
+vektörlerle birlikte tutulur (Şekil~\ref{fig:dagitim}). Her \texttt{push} işleminde GitHub Actions lint,
+tip denetimi, \textbf{316 test} (gerçek PostgreSQL üzerinde, kod kapsamı \%88), Playwright tarayıcı
+testleri ve Docker derlemesini çalıştırır; Render yalnızca CI başarılıysa yayına alır.
 
 \begin{figure}[!ht]
 \centering
@@ -97,11 +97,6 @@ her değişiklik, kaydıyla birlikte aynı SQL cümlesinde yazılır (ADR~0017).
 numaralı ve yalnızca eklenen migration adımlarıyla yapılır; ara rapor tarihinde şema sürümü 6'dır.
 
 
-Bir talep \texttt{auto\_sent} ya da \texttt{open} durumunda başlar; öğrenci ``bir uzmana gönder''
-derse otomatik cevaplanan talep de \texttt{open} olur, personel cevapladığında \texttt{handled} olur.
-\texttt{auto\_send} sistemin kararını, \texttt{status} ise talebin şu anki yerini ayrı tutar; böylece
-kararın değerlendirmesi dürüst kalır.
-
 \section{Kullanıcı Arayüzleri}
 
 Arayüz React 19 ile yazılmış, Türkçe ve İngilizce, açık ve koyu tema destekleyen, telefona uyumlu
@@ -116,7 +111,7 @@ sonuçlarını ve bir örnek sorunun adım adım nasıl işlendiğini de göster
 
 \begin{figure}[!ht]
 \centering
-\includegraphics[width=0.72\textwidth]{sekiller/ogrenci_ana_sayfa.jpg}
+\includegraphics[width=0.82\textwidth]{sekiller/ogrenci_ana_sayfa_kirp.jpg}
 \caption{Öğrenci ana sayfası: soru kutusu, örnek sorular ve resmî hizmet olmadığı uyarısı}
 \label{fig:ogrenciana}
 \end{figure}
@@ -126,7 +121,7 @@ Belgeler soruyu cevaplıyor ve yedi kontrolün hepsi geçiyorsa cevap hemen gös
 
 \begin{figure}[!ht]
 \centering
-\includegraphics[width=0.8\textwidth]{sekiller/ogrenci_otomatik_cevap.jpg}
+\includegraphics[width=0.72\textwidth]{sekiller/ogrenci_otomatik_cevap_kirp.jpg}
 \caption{Otomatik cevap: ``Resmî belgelere dayanarak yanıtlandı'', kaynak kartı ve geri bildirim}
 \label{fig:otomatik}
 \end{figure}
@@ -137,7 +132,7 @@ kararın arkasındaki gerçek kontrolleri adım adım açıklar (Şekil~\ref{fig
 
 \begin{figure}[!ht]
 \centering
-\includegraphics[width=0.58\textwidth]{sekiller/ogrenci_karar_izi.jpg}
+\includegraphics[width=0.5\textwidth]{sekiller/ogrenci_karar_izi_kirp.jpg}
 \caption{Birime iletilen talep: ön bilgi, sorumlu birim ve ``Nasıl karar verildi?'' izi}
 \label{fig:iz}
 \end{figure}
@@ -157,36 +152,25 @@ talebi başka bir birime aktarabilir; iki personel aynı anda cevap verirse yaln
 
 \begin{figure}[!ht]
 \centering
-\begin{subfigure}[t]{0.49\textwidth}\centering
-\includegraphics[width=\linewidth]{sekiller/personel_kuyruk.jpg}
-\caption{İnceleme kuyruğu}\label{fig:kuyruk}
-\end{subfigure}\hfill
-\begin{subfigure}[t]{0.49\textwidth}\centering
-\includegraphics[width=\linewidth]{sekiller/personel_talep_detay.jpg}
-\caption{Talep detayı ve kaynaklı taslak}\label{fig:detay}
+\begin{subfigure}{\textwidth}\centering
+\includegraphics[width=0.66\textwidth]{sekiller/personel_kuyruk_kirp.jpg}
+\caption{İnceleme kuyruğu: önce acil talepler, sonra en uzun bekleyenler}\label{fig:kuyruk}
+\end{subfigure}\\[6pt]
+\begin{subfigure}{\textwidth}\centering
+\includegraphics[width=0.66\textwidth]{sekiller/personel_talep_detay_kirp.jpg}
+\caption{Talep detayı: gönderilmeme nedeni, yapay zekâ analizi ve kaynaklı taslak}\label{fig:detay}
 \end{subfigure}
 \caption{Personel paneli (demo modu)}
 \label{fig:personel}
 \end{figure}
-
-Ayrıca bir istatistik sayfası taleplerin nasıl sonuçlandığını ve kategorilere dağılımını gösterir.
 
 \section{Güvenlik ve Gizlilik}
 
 Öğrencinin metni modele gönderilmeden önce \texttt{<ticket>} etiketleri arasına ``çitlenir'' ve istem,
 bu etiketlerin içindeki metnin talimat değil veri olduğunu söyler; öğrenci çiti erken kapatmaya
 çalışırsa etiket önce zararsız hâle getirilir. Bu tek başına bir garanti olmadığından birebir alıntı
-denetimi ikinci savunma hattıdır (ADR~0010). Ücretli modelin kötüye kullanımına karşı ziyaretçi başına
-dakikada 5, günde 30 talep ve sistem geneli günde 300 talep sınırı vardır ve model çağrısından önce
-denetlenir. Personel şifreleri Argon2id ile saklanır, hatalı girişlerde hesap ve adres başına kilit
+denetimi ikinci savunma hattıdır (ADR~0010). Ziyaretçi başına dakikada 5, günde 30 talep ve sistem geneli günde
+300 talep sınırı model çağrısından önce denetlenir. Personel şifreleri Argon2id ile saklanır, hatalı girişlerde hesap ve adres başına kilit
 uygulanır, oturum HttpOnly + Secure + SameSite çerezle tutulur ve değişiklik yapan her istekte CSRF
 denetimi yapılır. Öğrencinin talep erişim kodu rastgele 128 bittir ve yalnızca özeti saklanır
 (ADR~0009). Loglara yalnızca kimlik, uzunluk ve hata türü yazılır; bunu bir test zorunlu tutar.
-
-\section{Kalite Güvencesi ve Sürekli Entegrasyon}
-
-Her \texttt{push} işleminde GitHub Actions lint, tip denetimi, testler, ön yüz derlemesi ve Docker
-imajı derlemesini çalıştırır; Render yalnızca CI başarılıysa yayına alır. Arka uçta gerçek bir
-PostgreSQL üzerinde çalışan \textbf{316 test} (kod kapsamı \%88) ve Playwright tarayıcı testleri
-vardır. Birim testlerinde model çağrıları sahte bir sağlayıcıyla yapılır; her kural ve hata
-düzeltmesi için önce başarısız olan bir test yazılır.

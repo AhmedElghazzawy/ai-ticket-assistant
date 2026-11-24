@@ -41,16 +41,15 @@ bir kez çalıştırılacaktır.
 
 \begin{figure}[!ht]
 \centering
-\scalebox{0.86}{%
 \begin{ganttchart}[
     hgrid, vgrid={*1{gray!25, dotted}},
-    x unit=0.62cm, y unit chart=0.55cm, y unit title=0.55cm,
-    title label font=\scriptsize\bfseries, title height=1,
-    bar label font=\scriptsize, group label font=\scriptsize\bfseries,
+    x unit=0.5cm, y unit chart=0.62cm, y unit title=0.6cm,
+    title label font=\footnotesize\bfseries, title height=1,
+    bar label font=\footnotesize, group label font=\footnotesize\bfseries,
     bar/.append style={fill=s1, draw=none}, bar height=0.55,
     group/.append style={fill=koyu}, group height=0.25,
-    milestone/.append style={fill=bseu, draw=none}, milestone label font=\scriptsize\bfseries,
-    today=9, today offset=0.5, today label=Ara rapor, today label font=\scriptsize\color{bseu},
+    milestone/.append style={fill=bseu, draw=none}, milestone label font=\footnotesize\bfseries,
+    today=9, today offset=0.5, today label=Ara rapor, today label font=\footnotesize\color{bseu},
     today rule/.style={draw=bseu, dashed, thick},
     bar label node/.append style={align=right}
   ]{1}{16}
@@ -72,7 +71,7 @@ bir kez çalıştırılacaktır.
   \ganttbar[bar/.append style={fill=s2}]{200+ talepli set, model karşılaştırması}{11}{13} \\
   \ganttbar[bar/.append style={fill=s2}]{İzleme (OpenTelemetry), maliyet paneli}{13}{14} \\
   \ganttbar[bar/.append style={fill=s2}]{Kilitli setlerde nihai ölçüm, final rapor, sunum}{15}{16}
-\end{ganttchart}}
+\end{ganttchart}
 \caption{İş planı (1. hafta: 28 Eylül 2026); kesikli çizgi ara rapor tarihini gösterir}
 \label{fig:gantt}
 \end{figure}
@@ -86,8 +85,6 @@ Bu çalışmanın ilerleyen aşamalarında;
         \cite{cormack2009}.
   \item Değerlendirme seti 200'ün üzerine çıkarılarak modeller (yerel bir açık kaynak model dâhil)
         doğruluk, kaçırılan escalation, maliyet ve gecikme bakımından karşılaştırılabilir.
-  \item Cevap kalitesi ikinci bir dil modeliyle puanlanabilir \cite{zheng2023}; ikinci bir
-        etiketleyiciyle etiketler arası uyum ölçülebilir.
-  \item Üniversite tek oturum açma (SSO) ve e-posta bildirimi eklenerek sistem gerçek kullanıma
-        hazırlanabilir.
+  \item Cevap kalitesi ikinci bir dil modeliyle puanlanabilir \cite{zheng2023}; üniversite tek
+        oturum açma (SSO) ve e-posta bildirimi eklenerek sistem gerçek kullanıma hazırlanabilir.
 \end{itemize}
