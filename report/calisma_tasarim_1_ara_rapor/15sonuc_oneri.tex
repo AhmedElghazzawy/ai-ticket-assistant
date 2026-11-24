@@ -1,0 +1,90 @@
+\chapter{SONUÇLAR VE ÖNERİLER}
+\label{ch:sonuc}
+
+Bu bölümde ara dönem itibarıyla çalışmanın genel değerlendirmesi yapılmakta, karşılaşılan zorluklar
+anlatılmakta ve dönemin kalanı için iş planı sunulmaktadır.
+
+\section{Genel Değerlendirme}
+
+Ara rapor tarihinde, dönem başında hedeflenen sistem uçtan uca çalışmakta ve canlıda
+bulunmaktadır: talepler etiketlenmekte, cevap resmî belgelerde aranmakta, kaynaklı bir taslak
+yazılmakta ve gönderim kararı test edilmiş kodla verilmektedir. Öğrenci ve personel arayüzleri,
+birime göre yetkilendirme, değiştirilemeyen talep geçmişi, istek sınırları ve saldırılara karşı
+savunmalar tamamlanmıştır. Ayar için hiç kullanılmayan iki kilitli test setinde insana gitmesi
+gereken taleplerden hiçbiri kaçırılmamış, doğru belge her seferinde ilk üç sonuç içinde bulunmuş ve
+12 saldırı denemesinin tamamı engellenmiştir.
+
+Çalışmanın en önemli tasarım sonucu, bir dil modelinin güvenilir bir sistemin parçası olabilmesi için
+\textbf{kararın modelden ayrılması} gerektiğidir. Model etiketleri ve taslağı üretir; gönderim kararı,
+kaynak kartları ve alıntı denetimi kodda yapılır. Bu sayede her kural ayrı ayrı test edilebilmekte,
+her karar öğrenciye ve personele gerekçesiyle açıklanabilmektedir.
+
+\section{Karşılaşılan Zorluklar}
+
+\begin{itemize}
+  \item \textbf{Ücretsiz katman sınırları:} Günde 20 istekle sınırlı ilk model yerine daha yüksek
+        kotalı bir modele geçilmiş; canlıdaki model yoğunluğu üç modelli zincirle çözülmüştür.
+  \item \textbf{Eşik seçimi:} Benzerlik skoru cevaplanabilir ve cevaplanamaz talepleri ayırmadığı için
+        (Şekil~\ref{fig:skor}) karar birden çok kontrole dayandırılmıştır.
+  \item \textbf{Bilgi tabanındaki boşluklar:} Bir SOFRA şifresi sorusunun yanlış belgeyle
+        cevaplanması üzerine Bilişim Hesapları belgesi eklenmiş, ``acil talep her zaman insana gider''
+        kuralı yazılmıştır.
+  \item \textbf{İki sorun içeren talepler:} Birinin atlanabildiği görülmüş, düzeltme sıraya alınmıştır.
+\end{itemize}
+
+\section{Dönemin Kalanı İçin İş Planı}
+\label{sec:isplani}
+
+Şekil~\ref{fig:gantt} tamamlanan işleri ve kalan dönemin planını haftalık olarak göstermektedir.
+Planlanan her iyileştirme önce geliştirme setinde ölçülecek, kilitli setler yalnızca dönem sonunda
+bir kez çalıştırılacaktır.
+
+\begin{figure}[!ht]
+\centering
+\begin{ganttchart}[
+    hgrid, vgrid={*1{gray!25, dotted}},
+    x unit=0.5cm, y unit chart=0.62cm, y unit title=0.6cm,
+    title label font=\footnotesize\bfseries, title height=1,
+    bar label font=\footnotesize, group label font=\footnotesize\bfseries,
+    bar/.append style={fill=s1, draw=none}, bar height=0.55,
+    group/.append style={fill=koyu}, group height=0.25,
+    milestone/.append style={fill=bseu, draw=none}, milestone label font=\footnotesize\bfseries,
+    today=9, today offset=0.5, today label=Ara rapor, today label font=\footnotesize\color{bseu},
+    today rule/.style={draw=bseu, dashed, thick},
+    bar label node/.append style={align=right}
+  ]{1}{16}
+  \gantttitle{Eyl}{1} \gantttitle{Ekim}{4} \gantttitle{Kasım}{5} \gantttitle{Aralık}{4} \gantttitle{Ocak}{2} \\
+  \gantttitlelist{1,...,16}{1} \\
+  \ganttgroup{Tamamlanan işler}{1}{9} \\
+  \ganttbar{Konu seçimi, problem araştırması}{1}{2} \\
+  \ganttbar{Etiket kural kitabı ve 80 talepli geliştirme seti}{2}{2} \\
+  \ganttbar{Sınıflandırıcı, kilitli test seti, ilk ölçümler}{2}{3} \\
+  \ganttbar{Belge arama (RAG), kaynaklı cevap, karar kuralı}{3}{3} \\
+  \ganttbar{API, personel kuyruğu, PostgreSQL + pgvector}{3}{4} \\
+  \ganttbar{CI, Docker, React arayüzü, personel girişi}{3}{5} \\
+  \ganttbar{Canlıya alma, saldırı testleri, gerçekçi set}{5}{5} \\
+  \ganttbar{Ön bilgi, genel tavsiye, model zinciri, geçmiş}{6}{8} \\
+  \ganttmilestone{Ara rapor}{9} \\
+  \ganttgroup[group/.append style={fill=s2}]{Planlanan işler}{9}{16} \\
+  \ganttbar[bar/.append style={fill=s2}]{İki sorunlu talep düzeltmesi, tam değerlendirme}{9}{10} \\
+  \ganttbar[bar/.append style={fill=s2}]{Karma arama (tam metin + vektör, RRF)}{10}{11} \\
+  \ganttbar[bar/.append style={fill=s2}]{200+ talepli set, model karşılaştırması}{11}{13} \\
+  \ganttbar[bar/.append style={fill=s2}]{İzleme (OpenTelemetry), maliyet paneli}{13}{14} \\
+  \ganttbar[bar/.append style={fill=s2}]{Kilitli setlerde nihai ölçüm, final rapor, sunum}{15}{16}
+\end{ganttchart}
+\caption{İş planı (1. hafta: 28 Eylül 2026); kesikli çizgi ara rapor tarihini gösterir}
+\label{fig:gantt}
+\end{figure}
+
+\section{Gelecekteki Çalışmalar için Öneriler}
+
+Bu çalışmanın ilerleyen aşamalarında;
+
+\begin{itemize}
+  \item Anahtar kelime ve vektör arama RRF ile birleştirilerek hit@1 üzerindeki etkisi ölçülebilir
+        \cite{cormack2009}.
+  \item Değerlendirme seti 200'ün üzerine çıkarılarak modeller (yerel bir açık kaynak model dâhil)
+        doğruluk, kaçırılan escalation, maliyet ve gecikme bakımından karşılaştırılabilir.
+  \item Cevap kalitesi ikinci bir dil modeliyle puanlanabilir \cite{zheng2023}; üniversite tek
+        oturum açma (SSO) ve e-posta bildirimi eklenerek sistem gerçek kullanıma hazırlanabilir.
+\end{itemize}

@@ -1,0 +1,163 @@
+\chapter{KULLANILAN YAZILIMLAR ve YÖNTEMLER}
+\label{ch:yontem}
+
+Bu bölümde kullanılan yazılım araçları, veri setleri ve sistemin dört adımında uygulanan yöntemler
+anlatılmaktadır. Her önemli teknoloji seçiminin gerekçesi projede bir \textit{Mimari Karar Kaydı}
+(ADR) olarak yazılı tutulmuştur; ara rapor tarihinde 18 ADR bulunmaktadır.
+
+\section{Yazılım Araçları ve Teknolojiler}
+
+Her iş için gereksinimi karşılayan en basit araç seçilmiştir. Tablo~\ref{tab:teknoloji} kullanılan
+teknolojileri ve seçilme nedenlerini özetler.
+
+\begin{table}[!ht]
+\centering
+\caption{Kullanılan teknolojiler ve seçilme nedenleri}
+\label{tab:teknoloji}
+\footnotesize
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\textwidth}{@{}p{2.4cm} p{4.2cm} X@{}}
+\toprule
+\textbf{Katman} & \textbf{Teknoloji} & \textbf{Neden} \\
+\midrule
+Yapay zekâ & Google Gemini Flash-Lite (ücretsiz katman), \texttt{google-genai} & İyi Türkçe, JSON şemasına zorlanmış çıktı, ücretsiz \\
+Gömme (embedding) & \texttt{gemini-embedding-2}, 768 boyut & Çok dilli: TR soru, TR/EN belge \\
+Arka uç & Python 3.12, FastAPI, Pydantic & Tipli, hızlı; OpenAPI şemasını kendisi üretir \\
+Veritabanı & PostgreSQL 18 + pgvector, psycopg 3 & Talepler, geçmiş ve vektörler tek veritabanında \\
+Ön yüz & React 19, TypeScript, Vite, Tailwind CSS, shadcn/ui, TanStack Router/Query & Tipli, OpenAPI'den üretilen API istemcisi \\
+Kalite & pytest, Playwright, ruff, mypy (strict), CodeQL & Her kural ve hata düzeltmesi için test \\
+Teslim & Docker, GitHub Actions, Render, Neon & Tek komutla kurulum; CI geçmeden yayın yok \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Veri Setleri}
+\label{sec:veri}
+
+BŞEÜ'nün gerçek öğrenci talepleri kişisel veri içerdiğinden kullanılmamış; bunun yerine BŞEÜ'nün gerçek
+sistemleri (OBS, SOFRA, UZEM, eduroam, Akıllı Kart) ve öğrencilerin sık karşılaştığı sorunlar üzerine
+yapılan bir araştırmadan yola çıkılarak \textbf{160 talep} yazılmış ve hepsi tek tek elle
+etiketlenmiştir: 80 talepli geliştirme seti (istemler bu sette geliştirilir), 40 talepli kilitli
+test seti ve dağınık, yazım hatalı, iki sorunlu taleplerden oluşan 40 talepli kilitli gerçekçi set.
+Her set yarı yarıya Türkçe ve İngilizcedir.
+
+
+Kilitli setler hiçbir zaman düzenlenmez ve istem geliştirmede kullanılmaz; bir koruma kancası (hook)
+bu dosyalardaki her değişikliği engeller. Geliştirme setinde yedi kategori dengelidir (10--12 talep);
+21 talep insana yönlendirilmeyi (escalate) gerektirir.
+
+\section{Talep Sınıflandırma Yöntemi}
+
+Etiket kural kitabı (\texttt{docs/labels.md}) hem elle etiketlemede hem de modelin talimatında
+kullanılan tek kaynaktır. Kategoriler ve sorumlu birimler Tablo~\ref{tab:kategori}'da verilmiştir.
+Kategoriden birime eşleme model tarafından değil, kodda sabit bir tabloyla yapılır.
+
+\begin{table}[!ht]
+\centering
+\caption{Kategoriler ve sorumlu BŞEÜ birimleri}
+\label{tab:kategori}
+\small
+\begin{tabularx}{\textwidth}{@{}l l X@{}}
+\toprule
+\textbf{Kimlik} & \textbf{Kategori} & \textbf{Birim} \\
+\midrule
+\texttt{account\_access} & Hesap Erişimi & Bilgi İşlem Daire Başkanlığı \\
+\texttt{it\_support} & Teknik Destek & Bilgi İşlem Daire Başkanlığı \\
+\texttt{registration} & Ders Kaydı & Öğrenci İşleri Daire Başkanlığı \\
+\texttt{academic\_records} & Akademik Kayıtlar & Öğrenci İşleri Daire Başkanlığı \\
+\texttt{billing} & Harç ve Ödemeler & Öğrenci İşleri, İstatistik Disiplin ve Harçlar Şube Md. \\
+\texttt{campus\_life} & Kampüs Yaşamı & Sağlık, Kültür ve Spor Daire Başkanlığı \\
+\texttt{other} & Diğer & Öğrenci İşleri nöbetçi personeli \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\textbf{Escalation kuralları:} güvenlik tehdidi; taciz veya kriz belirtisi; ele geçirilmiş olabilecek
+hesap; kural istisnası talebi; para veya resmî kayıt hatası; not ve sınav itirazı; hukuki tehdit;
+disiplin süreci. Öğrencinin yalnızca sinirli olması tek başına bir neden değildir. İki sorun içeren
+bir talepte kategori öğrenciyi en acil engelleyen sorundan seçilir, escalation ise bütün sorunlara bakar.
+
+Modelin çıktısı katı bir Pydantic şemasıyla sınırlandırılmıştır; şemaya uymayan JSON reddedilir.
+Şemada \texttt{reason} alanı ilk sıradadır: model önce gerekçesini yazar, sonra etiketleri verir.
+
+\section{Bilgi Tabanı ve Belge Arama}
+
+Bilgi tabanı, BŞEÜ Ön Lisans ve Lisans Eğitim-Öğretim Yönetmeliği, Öğrenci İşleri ve SKS sıkça
+sorulan sorular sayfaları, Bilgi İşlem duyuruları gibi resmî kaynaklardan elle derlenmiş 14 konudan
+oluşur. Her konu Türkçe ve İngilizce iki belge olarak yazılmış, her belge başlık düzeyinde parçalara
+(chunk) bölünmüştür. Her parça kaynağını (belge adı, resmî kaynak satırı, bağlantı) taşır.
+
+Her parça \texttt{gemini-embedding-2} modeliyle 768 boyutlu bir vektöre dönüştürülür. Talep de aynı
+şekilde vektöre çevrilir ve talep vektörü $\mathbf{q}$ ile parça vektörü $\mathbf{d}$ arasındaki
+kosinüs benzerliği Eşitlik~\ref{eq:kosinus} ile hesaplanır.
+
+\begin{equation}
+  s(\mathbf{q},\mathbf{d}) = \frac{\mathbf{q}\cdot\mathbf{d}}{\lVert\mathbf{q}\rVert\,\lVert\mathbf{d}\rVert}
+  = 1 - \bigl(\mathbf{q} \Leftrightarrow \mathbf{d}\bigr)
+  \label{eq:kosinus}
+\end{equation}
+
+Burada $\Leftrightarrow$, pgvector'ün kosinüs uzaklığı işlecidir (\texttt{<=>}). Arama, talebin
+dilindeki parçalar arasından en yakın $k = 3$ parçayı veritabanının içinde tek bir SQL sorgusuyla
+bulur. 190 parça için yaklaşık arama indeksine gerek yoktur; tam tarama hızlıdır ve hiçbir parçayı
+kaçırmaz.
+
+\section{Kaynaklı Cevap Yazma ve Alıntı Denetimi}
+
+Cevap adımında modele talep (çitlenmiş olarak) ve bulunan üç parça verilir. Model sırayla şu alanları
+doldurur: \texttt{evidence} (kuraldan kelimesi kelimesine alıntı), \texttt{covered} (belgeler ana
+soruyu cevaplıyor mu), \texttt{reply} (cevap), \texttt{sources} (kullanılan parça kimlikleri) ve
+\texttt{general\_help} (belgelerin cevaplamadığı kısım için resmî olmadığı etiketlenen genel tavsiye).
+
+Modelin alıntısına güvenilmez; alıntı kodla denetlenir (\texttt{domain/grounding.py}). Alıntı
+cümlelere bölünür, her cümle Unicode, tırnak ve büyük/küçük harf farkları giderilerek normalleştirilir
+ve bulunan belgelerin metninde aranır; tek bir cümle bile bulunamazsa alıntı geçersizdir. Bu denetim
+hem modelin uydurduğu kuralları hem de öğrencinin talebe yerleştirdiği sahte ``resmî kuralları''
+(prompt injection) yakalar.
+
+\section{Otomatik Gönderim Kararı}
+\label{sec:karar}
+
+Karar, \texttt{domain/decision.py} içinde yedi açık kontrolden oluşan sade bir Python fonksiyonudur.
+Cevap yalnızca kontrollerin \textbf{tamamı} geçerse otomatik gönderilir; kalan her kontrol bir neden
+kodu olarak kaydedilir ve hem personel panelinde hem de öğrencinin ``Nasıl karar verildi?'' izinde
+gösterilir (Şekil~\ref{fig:karar}).
+
+\begin{figure}[!ht]
+\centering
+\begin{tikzpicture}[node distance=3.2mm, every node/.style={font=\scriptsize}]
+  \node[kutu, minimum width=30mm] (in) {Etiketler + en iyi skor $s$\\+ taslak + getirilen parçalar};
+  \node[karar, below=of in] (k1) {kategori $\neq$ diğer?};
+  \node[karar, below=of k1] (k2) {escalate yok?};
+  \node[karar, below=of k2] (k3) {öncelik $\neq$ acil?};
+  \node[karar, below=of k3] (k4) {$s \geq 0{,}65$?};
+  \node[karar, below=of k4] (k5) {covered?};
+  \node[karar, below=of k5] (k6) {kaynak getirildi?};
+  \node[karar, below=of k6] (k7) {alıntı birebir?};
+  \node[kodkutu, below=5mm of k7, minimum width=34mm] (s) {\textbf{Otomatik gönder}};
+  \coordinate (b1) at ($(k4.east)+(24mm,0)$);
+  \coordinate (b2) at ($(k4.east)+(72mm,0)$);
+  \node[fit=(k1.north -| b1) (k7.south -| b2), draw=s2, fill=s2!8, rounded corners=3pt, inner sep=0pt] (h) {};
+  \node[align=center, font=\small, text width=44mm] at (h.center) {\textbf{Birime yönlendir}\\[4pt] neden kodları kaydedilir,\\ personel taslağı düzenleyip\\ gönderir\\[6pt]
+        \scriptsize escalation yoksa ve kaynak\\\scriptsize doğrulandıysa öğrenciye\\\scriptsize ``ön bilgi'' gösterilir};
+  \foreach \a/\b in {in/k1,k1/k2,k2/k3,k3/k4,k4/k5,k5/k6,k6/k7,k7/s}
+    \draw[ok] (\a) -- (\b);
+  \foreach \k in {k1,k2,k3,k4,k5,k6,k7}
+    \draw[ok, draw=s2] (\k.east) -- node[etiket, above, pos=0.3] {hayır} (h.west |- \k.east);
+\end{tikzpicture}
+\caption{Karar akışı: her ``hayır'' bir neden kodu ekler; tek bir neden bile yönlendirme için yeterlidir}
+\label{fig:karar}
+\end{figure}
+
+Benzerlik eşiği (0,65) tek başına güvenilir bir ayırıcı değildir (Bölüm~\ref{sec:arama-bulgu}); bu
+nedenle yalnızca bir alt sınırdır ve asıl koruma ``kapsıyor mu'' ve ``birebir alıntı'' kontrolleridir.
+Talep personele gitse bile, escalation yoksa ve taslağın kaynaklı kısmı doğrulandıysa bu kısım
+öğrenciye hemen ``ön bilgi'' olarak gösterilir.
+
+\section{Karşılaştırılan Yöntemler}
+
+Bölümün yapay zekâ projeleri için öngördüğü gibi, aynı veri üzerinde en az iki yöntem
+karşılaştırılmıştır: (1) aynı modelin düşük (\textit{LOW}) ve yüksek (\textit{HIGH}) düşünme
+düzeyleri, (2) \texttt{gemini-3.5-flash-lite} ve \texttt{gemini-3.1-flash-lite} modelleri ve (3)
+kararın kodla verilmesi ile yalnızca skora dayalı bir eşik. Karma arama (anahtar kelime + vektör, RRF)
+kalan dönem için planlanmıştır.

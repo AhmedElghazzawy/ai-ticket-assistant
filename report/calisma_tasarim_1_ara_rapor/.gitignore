@@ -1,0 +1,13 @@
+# LaTeX build files; the PDF that is handed in is calisma_tasarim_1_ara_rapor.pdf
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.lof
+*.lot
+*.out
+*.toc
+*.synctex.gz
+0main.pdf

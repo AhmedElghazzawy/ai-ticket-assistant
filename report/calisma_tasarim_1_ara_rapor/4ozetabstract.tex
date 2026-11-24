@@ -1,0 +1,63 @@
+\onbaslik{ÖZET}
+\begin{center}
+{\setstretch{1.5}\bfseries\BaslikTR\par}
+\end{center}
+\vspace{0.4cm}
+
+Üniversitelerde öğrenci destek birimlerine gelen soruların büyük bölümü, cevabı resmî yönetmelik
+ve duyurularda zaten bulunan tekrar eden sorulardır; buna karşın hesap ele geçirilmesi, taciz,
+not itirazı gibi hassas talepler mutlaka bir insan tarafından ele alınmalıdır. Bu tasarım
+çalışmasının amacı, Bilecik Şeyh Edebali Üniversitesi öğrencilerinin Türkçe veya İngilizce yazdığı
+destek taleplerini okuyan, kategori, öncelik ve insana yönlendirme gereği bakımından etiketleyen,
+cevabı üniversitenin resmî belgelerinde arayan, kaynağını gösteren bir taslak cevap yazan ve bu
+cevabın öğrenciye otomatik gönderilip gönderilmeyeceğine büyük dil modeli yerine test edilmiş, açık
+kurallardan oluşan bir program koduyla karar veren bir yardım masası asistanı geliştirmektir.
+
+Sistemde etiketleme ve taslak yazma adımlarında ücretsiz katmandaki bir büyük dil modeli, belge
+aramada çok dilli metin gömmeleri ve vektör aramalı ilişkisel bir veritabanı kullanılmıştır. Yedi
+koşulun tamamı sağlanmadıkça cevap gönderilmez; alıntılanan her kural, bulunan belgede kelimesi
+kelimesine aranır. Sistem öğrenci sohbet ekranı, talep takibi ve birime göre yetkilendirilmiş
+personel paneliyle birlikte canlıya alınmıştır.
+
+Ara dönem itibarıyla elle etiketlenmiş yüz altmış talep üzerinde yapılan ölçümlerde, ayar için hiç
+kullanılmayan iki kilitli test setinde insana gitmesi gereken taleplerden hiçbiri kaçırılmamış, doğru
+belge ilk üç sonuç içinde her seferinde bulunmuş, gerçekçi sette hatalı otomatik gönderim
+görülmemiş ve on iki saldırı denemesinin tamamı engellenmiştir. Üç etiketin birlikte doğruluğu
+yaklaşık yüzde yetmiş üçtür. Kalan dönemde karma arama, daha büyük bir değerlendirme seti ve
+modellerin karşılaştırılması planlanmaktadır.
+
+\vspace{1cm}
+\noindent{\singlespacing\textbf{Anahtar Kelimeler:} Büyük Dil Modelleri, Erişim Destekli Üretim,
+Destek Talebi Sınıflandırma, Vektör Arama, Yardım Masası\par}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\onbaslik{ABSTRACT}
+\begin{center}
+{\setstretch{1.5}\bfseries\BaslikEN\par}
+\end{center}
+\vspace{0.4cm}
+
+Most questions that reach university student support offices are repeated questions whose answers
+already exist in official regulations and announcements, while sensitive requests such as a
+compromised account, harassment or a grade appeal must always be handled by a person. The aim of
+this design project is a helpdesk assistant for the students of Bilecik Şeyh Edebali University: it
+reads a support request written in Turkish or English, labels its category, priority and whether a
+person must take over, searches the official university documents for the answer, drafts a reply
+that cites its sources, and decides whether the reply is sent automatically with tested, explicit
+program code instead of the language model.
+
+A free-tier large language model labels requests and writes drafts; multilingual text embeddings
+and a relational database with vector search find the documents. A reply is sent only if all seven
+conditions hold, and every quoted rule is searched for word for word in the retrieved document. The
+system is deployed with a student chat page, request tracking and an office-scoped staff console.
+
+At this interim stage, on one hundred and sixty hand-labelled requests, the two locked test sets
+that were never used for tuning show no missed request that needed a person, the right document in
+the top three results every time, no unsafe automatic reply on the realistic set, and all twelve
+attack attempts blocked. All three labels are correct together for about seventy-three percent of
+requests. Hybrid search, a larger evaluation set and a comparison of models are planned for the rest
+of the term.
+
+\vspace{1cm}
+\noindent{\singlespacing\textbf{Keywords:} Large Language Models, Retrieval-Augmented Generation,
+Support Ticket Classification, Vector Search, Helpdesk\par}

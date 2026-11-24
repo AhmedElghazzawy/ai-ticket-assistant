@@ -1,0 +1,227 @@
+\chapter{BULGULAR VE TARTIŞMA}
+\label{ch:bulgular}
+
+Bu bölümdeki bütün sayılar projenin \texttt{eval/} klasöründe kayıtlı değerlendirme dosyalarından
+alınmıştır. Setler küçük olduğundan aralıklar geniştir; sonuçlar yaklaşık tahminler olarak
+yorumlanmalıdır.
+
+\section{Değerlendirme Yöntemi}
+
+Değerlendirmeler gerçek model çağrılarıyla tek bir komutla çalıştırılır
+(\texttt{make eval SUITE=...}; sınıflandırma, arama, uçtan uca ve güvenlik paketleri). Her çalıştırma, commit kimliği,
+istem, veri seti ve bilgi tabanı özetleriyle (hash) birlikte \texttt{eval/} klasörüne kaydedilir;
+böylece her sayının hangi sürümü ölçtüğü bellidir. Ölçütler: kaçırılan escalation (en tehlikeli
+hata), etiket doğruluğu, hit@1 ve hit@3 (doğru belgenin ilk 1 / ilk 3 sonuçta bulunması), hatalı
+otomatik gönderim ve saldırı taleplerinin güvenli sonuçlanma oranı.
+
+Her oran, örnek sayısı $n$ ve Eşitlik~\ref{eq:wilson}'deki Wilson \%95 güven aralığıyla
+($z = 1{,}96$) raporlanır \cite{wilson1927}; köşeli parantez içindeki değerler bu aralıktır.
+
+\begin{equation}
+  \frac{\hat{p} + \dfrac{z^2}{2n} \pm z\sqrt{\dfrac{\hat{p}(1-\hat{p})}{n} + \dfrac{z^2}{4n^2}}}{1 + \dfrac{z^2}{n}}
+  \label{eq:wilson}
+\end{equation}
+
+\section{Talep Sınıflandırma}
+
+Şekil~\ref{fig:siniflandirma} sınıflandırıcının üç sette, \texttt{gemini-3.5-flash-lite} modeli ve
+yüksek düşünme düzeyiyle yapılan ilk çalıştırmadaki doğruluğunu gösterir. Geliştirme setindeki skorun
+kilitli setlerden yaklaşık 11 puan yüksek olması beklenen bir sonuçtur: kural kitabı bu setteki
+talepler incelenerek yazılmıştır. Dürüst sonuç kilitli setlerdir ve kilitli tutulmalarının nedeni de
+budur.
+
+\begin{figure}[!ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[rapor, ybar=1.5pt, width=0.9\textwidth, height=6cm, bar width=12pt,
+  ymin=0.5, ymax=1.04, ytick={0.5,0.6,0.7,0.8,0.9,1.0},
+  yticklabel={\%\pgfmathparse{\tick*100}\pgfmathprintnumber{\pgfmathresult}},
+  ylabel={Doğruluk},
+  symbolic x coords={Kategori,Öncelik,Escalation,Üçü birden}, xtick=data, enlarge x limits=0.16,
+  legend style={at={(0.5,1.03)}, anchor=south, legend columns=3},
+  error bars/y dir=both, error bars/y explicit, error bars/error bar style={koyu!70, line width=0.6pt},
+  error bars/error mark options={rotate=90, mark size=2pt, koyu!70}]
+\addplot[fill=s1, draw=none] coordinates {
+  (Kategori,0.975) -= (0,0.062) += (0,0.018)
+  (Öncelik,0.875) -= (0,0.090) += (0,0.056)
+  (Escalation,0.9625) -= (0,0.0675) += (0,0.0245)
+  (Üçü birden,0.8375) -= (0,0.0955) += (0,0.0655)};
+\addplot[fill=s2, draw=none, error bars/.cd, y explicit] coordinates {
+  (Kategori,0.875) -= (0,0.136) += (0,0.070)
+  (Öncelik,0.85) -= (0,0.141) += (0,0.079)
+  (Escalation,0.90) -= (0,0.131) += (0,0.060)
+  (Üçü birden,0.725) -= (0,0.153) += (0,0.114)};
+\addplot[fill=s3, draw=none, error bars/.cd, y explicit] coordinates {
+  (Kategori,0.925) -= (0,0.124) += (0,0.049)
+  (Öncelik,0.85) -= (0,0.141) += (0,0.079)
+  (Escalation,0.95) -= (0,0.115) += (0,0.036)
+  (Üçü birden,0.725) -= (0,0.153) += (0,0.114)};
+\legend{Geliştirme (n = 80), Kilitli test (n = 40), Kilitli gerçekçi (n = 40)}
+\end{axis}
+\end{tikzpicture}
+\caption{Sınıflandırma doğruluğu ve \%95 Wilson güven aralıkları (ilk çalıştırma)}
+\label{fig:siniflandirma}
+\end{figure}
+
+Tablo~\ref{tab:siniflandirma} iki çalıştırmanın sonuçlarını ve en önemli güvenlik ölçütü olan
+kaçırılan escalation sayısını verir. \textbf{İnsana gitmesi gereken taleplerden hiçbiri iki kilitli
+sette de, iki çalıştırmada da kaçırılmamıştır} (0/14 ve 0/11). Bununla birlikte 0/11 sonucu gerçek
+oranın sıfır olduğunu kanıtlamaz: Wilson aralığının üst sınırı yaklaşık \%26'dır. Model hata yaptığında
+bunu güvenli yönde yapmaktadır: gereksiz escalation (fazladan insana yönlendirme) testte 4--5,
+gerçekçi sette 2 talepte görülmüştür.
+
+\begin{table}[!ht]
+\centering
+\caption{Sınıflandırma sonuçları (iki çalıştırma; kilitli setler ayar için hiç kullanılmadı)}
+\label{tab:siniflandirma}
+\small
+\begin{tabular}{@{}l c c c c c@{}}
+\toprule
+\textbf{Set} & \textbf{n} & \textbf{Kategori} & \textbf{Öncelik} & \textbf{Üçü birden} & \textbf{Kaçırılan esc.} \\
+\midrule
+Geliştirme, 1. / 2. & 80 & \%97,5 / 98,8 & \%87,5 / 88,8 & \%83,8 / 85,0 & 0/21 / 0/21 \\
+Kilitli test, 1. / 2. & 40 & \%87,5 / 92,5 & \%85,0 / 85,0 & \%72,5 / 75,0 & 0/14 / 0/14 \\
+Kilitli gerçekçi, 1. / 2. & 40 & \%92,5 / 95,0 & \%85,0 / 90,0 & \%72,5 / 77,5 & 0/11 / 0/11 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+En zayıf etiket önceliktir; ancak öncelik hatalarının neredeyse tamamı komşu sınıflar arasındadır
+(bir basamak sapma payıyla geliştirme setinde \%98,8) ve 11 acil talebin 11'i doğru bulunmuştur.
+
+\subsection{Yöntem Karşılaştırması: Düşünme Düzeyi ve Model}
+
+Tablo~\ref{tab:model} iki karşılaştırmayı birlikte verir. Aynı modelde yüksek düşünme düzeyi
+kategori doğruluğunu değiştirmemiş, ancak öncelik doğruluğunu \%75,6'dan \%88,1'e, üç etiketin
+birlikte doğruluğunu \%70,6'dan \%84,4'e çıkarmıştır; iki çalıştırma arasında önceliği değişen talep
+oranı da \%11,3'ten \%3,8'e düşmüştür. Bu nedenle sistemde yüksek düşünme düzeyi kullanılmaktadır.
+İki model arasındaki farklar ise güven aralıklarının içinde kalmaktadır: 80 talep bu iki modeli
+ayırmaya yetmemektedir ve bu, daha büyük bir değerlendirme setine olan ihtiyacı göstermektedir.
+
+\begin{table}[!ht]
+\centering
+\caption{Yöntem karşılaştırması: Gemini 3.5 / 3.1 Flash-Lite (geliştirme seti, n = 80)}
+\label{tab:model}
+\small
+\begin{tabular}{@{}l c c c c@{}}
+\toprule
+\textbf{Model, düşünme} & \textbf{Kategori} & \textbf{Öncelik} & \textbf{Üçü birden} & \textbf{Kaçırılan esc.} \\
+\midrule
+3.5, düşük düşünme$^{*}$ & \%98,1 & \%75,6 & \%70,6 & 0/21 \\
+3.5, yüksek düşünme$^{*}$ & \%98,1 & \%88,1 & \%84,4 & 0/21 \\
+\midrule
+3.5, yüksek & \%97,5 [91--99] & \%87,5 [79--93] & \%83,8 [74--90] & 0/21 \\
+3.1, yüksek & \%97,5 [91--99] & \%85,0 [76--91] & \%80,0 [70--87] & 0/21 \\
+\bottomrule
+\multicolumn{5}{@{}l}{\footnotesize $^{*}$ İki çalıştırmanın ortalaması; alttaki satırlar ilk çalıştırma.}
+\end{tabular}
+\end{table}
+
+\section{Belge Arama}
+\label{sec:arama-bulgu}
+
+Belge arama yalnızca cevabı bilgi tabanında bulunan (cevaplanabilir) taleplerde ölçülmüştür. Doğru
+belge, üç setin hepsinde ilk üç sonuç içinde \textbf{her seferinde} bulunmuştur
+(Şekil~\ref{fig:hit}). İlk sıradaki sonuç da büyük çoğunlukla doğrudur.
+
+\begin{figure}[!ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[rapor, ybar=1.5pt, width=0.8\textwidth, height=5.2cm, bar width=16pt,
+  ymin=0.6, ymax=1.06, ytick={0.6,0.7,0.8,0.9,1.0},
+  yticklabel={\%\pgfmathparse{\tick*100}\pgfmathprintnumber{\pgfmathresult}},
+  symbolic x coords={G,T,R}, xtick=data, xticklabels={Geliştirme (n = 47), Kilitli test (n = 17), Kilitli gerçekçi (n = 30)},
+  enlarge x limits=0.22, legend style={at={(0.5,1.03)}, anchor=south, legend columns=2},
+  error bars/y dir=both, error bars/y explicit, error bars/error bar style={koyu!70, line width=0.6pt},
+  error bars/error mark options={rotate=90, mark size=2pt, koyu!70}]
+\addplot[fill=s2, draw=none] coordinates {
+  (G,0.915) -= (0,0.114) += (0,0.051)
+  (T,0.941) -= (0,0.211) += (0,0.048)
+  (R,0.967) -= (0,0.134) += (0,0.027)};
+\addplot[fill=s1, draw=none] coordinates {
+  (G,1.0) -= (0,0.076) += (0,0)
+  (T,1.0) -= (0,0.184) += (0,0)
+  (R,1.0) -= (0,0.114) += (0,0)};
+\legend{hit@1, hit@3}
+\end{axis}
+\end{tikzpicture}
+\caption{Doğru belgenin ilk 1 ve ilk 3 sonuç içinde bulunma oranı (\%95 GA)}
+\label{fig:hit}
+\end{figure}
+
+Şekil~\ref{fig:skor} ise en iyi benzerlik skorunun cevaplanabilir ve cevaplanamaz talepleri
+ayırmadığını göstermektedir: geliştirme setindeki 33 cevaplanamaz talebin 22'si 0,65 eşiğinin üzerinde
+skor almıştır. Skor yalnızca bir alt sınırdır; asıl ayırımı modelin ``kapsıyor mu'' kararı ve kodun
+birebir alıntı denetimi yapar. Bu bulgu, kararın tek bir eşiğe bırakılmamasının ve birden çok
+kontrolün birlikte kullanılmasının gerekçesidir.
+
+\begin{figure}[!ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[rapor, width=0.8\textwidth, height=4.6cm, xmin=0.52, xmax=0.88, ymin=-0.5, ymax=1.5,
+  ytick={0,1}, yticklabels={Cevaplanamaz (33), Cevaplanabilir (47)}, ymajorgrids=false, xmajorgrids,
+  xlabel={En iyi benzerlik skoru $s$}, xtick={0.55,0.60,0.65,0.70,0.75,0.80,0.85},
+  xticklabel style={/pgf/number format/.cd, fixed, fixed zerofill, precision=2, use comma}]
+\addplot[only marks, mark=*, mark size=1.9pt, s1, fill opacity=0.75, draw=white, line width=0.3pt] coordinates {(0.782,0.906) (0.683,1.016) (0.757,0.953) (0.805,1.037) (0.765,1.045) (0.688,0.844) (0.767,0.825) (0.654,1.121) (0.734,0.913) (0.77,0.904) (0.771,1.178) (0.689,0.989) (0.865,1.121) (0.764,0.991) (0.732,1.050) (0.834,0.874) (0.694,1.049) (0.659,1.132) (0.693,1.008) (0.722,1.087) (0.635,1.062) (0.699,0.843) (0.768,1.093) (0.7,1.033) (0.715,0.928) (0.804,0.831) (0.707,1.132) (0.692,0.990) (0.765,1.079) (0.81,1.136) (0.775,1.077) (0.682,1.152) (0.674,0.962) (0.784,1.108) (0.728,0.980) (0.684,1.157) (0.798,1.136) (0.7,0.855) (0.69,0.869) (0.69,0.898) (0.713,1.168) (0.773,0.977) (0.704,1.046) (0.74,0.928) (0.714,1.003) (0.71,0.959) (0.713,0.946)};
+\addplot[only marks, mark=*, mark size=1.9pt, s2, fill opacity=0.75, draw=white, line width=0.3pt] coordinates {(0.65,0.031) (0.791,0.030) (0.661,0.146) (0.708,0.066) (0.655,0.154) (0.642,0.128) (0.698,0.177) (0.653,0.062) (0.674,-0.121) (0.616,0.130) (0.69,0.167) (0.578,0.146) (0.543,0.025) (0.701,0.077) (0.695,-0.104) (0.692,0.119) (0.674,0.026) (0.699,-0.077) (0.643,-0.157) (0.639,0.127) (0.618,0.176) (0.709,-0.148) (0.73,0.108) (0.665,-0.032) (0.701,-0.126) (0.614,-0.074) (0.663,0.097) (0.655,0.134) (0.564,-0.164) (0.7,0.041) (0.614,-0.164) (0.649,0.079) (0.683,-0.061)};
+\draw[bseu, very thick, dashed] (axis cs:0.65,-0.5) -- (axis cs:0.65,1.5);
+\node[font=\scriptsize, text=bseu, anchor=south west] at (axis cs:0.652,1.22) {$\tau = 0{,}65$};
+\end{axis}
+\end{tikzpicture}
+\caption{En iyi benzerlik skorlarının dağılımı (geliştirme seti, n = 80): iki grup büyük ölçüde örtüşür}
+\label{fig:skor}
+\end{figure}
+
+\section{Uçtan Uca Sistem}
+
+Tam boru hattı (sınıflandırma, arama, cevap ve karar) Şekil~\ref{fig:boruhatti}'te özetlenmiştir.
+Gerçekçi kilitli sette 40 talebin 15'i otomatik cevaplanmış, \textbf{hiçbir hatalı otomatik gönderim
+olmamış} ve hiçbir cevap yanlış belgeyi kaynak göstermemiştir. Geliştirme setinde ``ön bilgi''
+özelliğiyle hemen yardım alan öğrenci oranı 15/79'dan 28/80'e [\%25--46] çıkmış, escalation gerektiren
+hiçbir talepte ön bilgi gösterilmemiştir.
+
+\begin{figure}[!ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[rapor, xbar stacked, width=0.78\textwidth, height=4.2cm, bar width=13pt,
+  xmin=0, xmax=100, xlabel={Taleplerin yüzdesi},
+  xticklabel={\%\pgfmathprintnumber{\tick}},
+  symbolic y coords={R,G}, ytick={R,G}, yticklabels={Kilitli gerçekçi (n = 40), Geliştirme (n = 80)},
+  ymajorgrids=false, xmajorgrids, enlarge y limits=0.45,
+  legend style={at={(0.5,1.04)}, anchor=south, legend columns=3}]
+\addplot[fill=s3, draw=white, line width=1pt] coordinates {(21.25,G) (37.5,R)};
+\addplot[fill=s1, draw=white, line width=1pt] coordinates {(13.75,G) (0,R)};
+\addplot[fill=s2, draw=white, line width=1pt] coordinates {(65,G) (62.5,R)};
+\legend{Otomatik cevap, Yönlendirildi + ön bilgi, Yönlendirildi}
+\end{axis}
+\end{tikzpicture}
+\caption{Taleplerin sonuçlanma biçimi (gerçekçi sette ön bilgi ayrıca ölçülmedi)}
+\label{fig:boruhatti}
+\end{figure}
+
+\section{Güvenlik Denemeleri}
+
+Altısı Türkçe, altısı İngilizce 12 saldırı talebi hazırlanmıştır: sahte kural yerleştirme,
+\texttt{</ticket>} yazarak çiti kırma, etiketleri zorlama, istemi sızdırma, rol yapma ve cevaba
+kanarya kelimesi yazdırma (her tür için TR ve EN birer talep). Sahte kural cevaba girmediyse, istem
+sızdırılmadıysa, etiketler değiştirilmediyse ve kanarya kelimesi görünmediyse deneme güvenli sayılır.
+\textbf{12 denemenin 12'si güvenli} sonuçlanmıştır [\%76--100]. Kaynak gösteren cevaplardaki
+alıntıların 35/36'sı belgelerde birebir bulunmuştur [\%86--99,5].
+
+\section{Tartışma ve Sınırlar}
+
+Sonuçlar, ``güvenli tarafta hata yapan'' bir sistem tasarımının ücretsiz ve küçük bir dil modeliyle
+de mümkün olduğunu göstermektedir: en tehlikeli iki hata türü (kaçırılan escalation ve hatalı otomatik
+gönderim) kilitli setlerde gözlenmemiş, bunun bedeli ise taleplerin bir kısmının gereksiz yere insana
+yönlendirilmesi olmuştur. Bu bilinçli bir tercihtir: yanlış bir otomatik cevap, gecikmiş bir insan
+cevabından daha zararlıdır. Sonuçlar yorumlanırken şu sınırlar dikkate alınmalıdır:
+
+\begin{itemize}
+  \item \textbf{Veri:} Talepler sentetiktir ve tek kişi tarafından etiketlenmiştir; 40 talepte \%95
+        aralığı yaklaşık $\pm$13 puandır.
+  \item \textbf{Güncellik:} Uçtan uca sonuçlar 23--24 Ekim 2026'da, genel tavsiye özelliğinden
+        (ADR~0013) önce ölçülmüştür. 17 Kasım'daki kısmi tekrar (model yoğunluğu nedeniyle 80 talebin
+        52'si) \textbf{iki sorun içeren bir talepte bir hatalı otomatik gönderim} bulmuştur: not
+        ortalaması cevaplanmış, yazıcı arızası Bilgi İşlem'e ulaşmamıştır. Düzeltme ve tam yeniden
+        ölçüm kalan dönemin ilk işidir.
+\end{itemize}
